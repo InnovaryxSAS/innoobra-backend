@@ -1,0 +1,25 @@
+name: CI-CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # 1. Checkout el código
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 2. (Temporal) solo imprime “hello”
+    - run: echo "✅ ¡Pipeline corriendo!"
+
+
+
+
+
+
+
