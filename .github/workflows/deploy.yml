@@ -1,10 +1,9 @@
-name: CI-CD
+name: Terraform CI-CD
 
 on:
   push:
     branches:
       - main
-  pull_request: {}
 
 permissions:
   id-token: write
@@ -13,16 +12,24 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::902182906885:role/GitHubDeployRole
-          role-session-name: deploySession
           aws-region: us-east-1
 
-      - name: Confirmación
-        run: echo "Conectado a AWS correctamente. Listo para el despliegue."
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: infra
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: infra
