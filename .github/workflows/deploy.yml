@@ -1,7 +1,12 @@
 name: CI-CD
 
 on:
-  permissions:
+  push:
+    branches:
+      - main
+  pull_request: {}
+
+permissions:
   id-token: write
   contents: read
 
@@ -19,10 +24,5 @@ jobs:
           role-session-name: deploySession
           aws-region: us-east-1
 
-
-
-
-
-
-
-
+      - name: Confirmación
+        run: echo "Conectado a AWS correctamente. Listo para el despliegue."
