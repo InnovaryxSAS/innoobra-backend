@@ -2,6 +2,7 @@ provider "aws" {
   profile = "prod"
   region  = "us-east-1"
 }
+
 resource "aws_iam_role" "lambda_exec" {
   name = "lambda_exec_role_v3"
   assume_role_policy = jsonencode({
