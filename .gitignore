@@ -1,0 +1,18 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+
+# Archivos de empaquetado
+*.zip
+*.jar
+
+# Archivos de log
+crash.log
+
+# Otros
+.DS_Store
+*.iml
+.idea/
+.vscode/
