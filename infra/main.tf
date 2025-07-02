@@ -20,7 +20,7 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
 
 resource "aws_lambda_function" "hello" {
   function_name = var.lambda_function_name
-  handler       = "com.innobra.HelloHandler::handleRequest"
+  handler       = "com.innobra.lambda.Handler::handleRequest"
   runtime       = "java17"
   role          = aws_iam_role.lambda_exec.arn
   filename      = "${path.module}/lambda.jar"
