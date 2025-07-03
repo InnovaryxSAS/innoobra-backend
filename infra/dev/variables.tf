@@ -17,25 +17,25 @@ variable "lambdas" {
       handler   = "com.lambdas.handler.GetCompaniesHandler::handleRequest"
       jar_path  = "functions/company/lambdas-1.0-SNAPSHOT.jar"
       route_key = "GET /company"
-      method    = "GET"
+      method    = "POST"
     },
     get_companiesID = {
       handler   = "com.lambdas.handler.GetCompanyByIdHandler::handleRequest"
       jar_path  = "functions/company/lambdas-1.0-SNAPSHOT.jar"
       route_key = "GET /company/{id}"
-      method    = "GET"
+      method    = "POST"
     },
     update_company = {
       handler   = "com.lambdas.handler.UpdateCompanyHandler::handleRequest"
       jar_path  = "functions/company/lambdas-1.0-SNAPSHOT.jar"
       route_key = "PUT /company/{id}"
-      method    = "PUT"
+      method    = "POST"
     },
     delete_company = {
       handler   = "com.lambdas.handler.DeleteCompanyHandler::handleRequest"
       jar_path  = "functions/company/lambdas-1.0-SNAPSHOT.jar"
       route_key = "DELETE /company/{id}"
-      method    = "DELETE"
+      method    = "POST"
     },
     
   }
