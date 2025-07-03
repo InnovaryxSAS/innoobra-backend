@@ -21,6 +21,7 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+
 resource "aws_apigatewayv2_api" "http_api" {
   name          = "http-api-budget"
   protocol_type = "HTTP"
@@ -40,7 +41,7 @@ resource "aws_lambda_function" "lambda" {
   for_each      = var.lambdas
   function_name = each.key
   handler       = each.value.handler
-  runtime       = "java17"
+  runtime       = "java21"
   filename      = "${path.module}/${each.value.jar_path}"
   source_code_hash = filebase64sha256("${path.module}/${each.value.jar_path}")
   role          = aws_iam_role.lambda_exec.arn

@@ -26,8 +26,8 @@ resource "aws_lambda_function" "hello" {
   handler       = "com.innobra.lambda.Handler::handleRequest"
   runtime       = "java17"
   role          = aws_iam_role.lambda_exec.arn
-  filename      = "${path.module}/lambda.jar"
-  source_code_hash = filebase64sha256("${path.module}/lambda.jar")
+  filename      = "${path.module}/functions/company/lambdas-1.0-SNAPSHOT.jar"
+  source_code_hash = filebase64sha256("${path.module}/functions/company/lambdas-1.0-SNAPSHOT.jar")
 }
 
 
