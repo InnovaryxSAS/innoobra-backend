@@ -2,7 +2,7 @@ provider "aws" {
   region  = "us-east-1"
 }
 resource "aws_iam_role" "lambda_exec" {
-  name = "lambda_exec_role_v4"
+  name = "lambda_exec_role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -21,14 +21,6 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-resource "aws_lambda_function" "hello" {
-  function_name = var.lambda_function_name
-  handler       = "com.innobra.lambda.Handler::handleRequest"
-  runtime       = "java17"
-  role          = aws_iam_role.lambda_exec.arn
-  filename      = "${path.module}/lambda.jar"
-  source_code_hash = filebase64sha256("${path.module}/lambda.jar")
-}
 
 
 resource "aws_apigatewayv2_api" "http_api" {
