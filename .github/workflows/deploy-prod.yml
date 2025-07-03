@@ -41,7 +41,7 @@ jobs:
 
       # 3. Mover el JAR generado a la carpeta de Terraform
       - name: Move lambda.jar to Terraform dir
-        run: mv lambda-java/lambda-hello/target/lambda-hello-1.0-SNAPSHOT-jar-with-dependencies.jar infra/dev/lambda.jar
+        run: mv lambda-java/lambda-hello/target/lambda-hello-1.0-SNAPSHOT-jar-with-dependencies.jar infra/prod/lambda.jar
 
       - name: Terraform Init
         run: terraform init
