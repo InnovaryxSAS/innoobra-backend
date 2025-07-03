@@ -16,3 +16,5 @@ crash.log
 *.iml
 .idea/
 .vscode/
+lambda-java/company/template.yaml
+lambda-java/company/events/
