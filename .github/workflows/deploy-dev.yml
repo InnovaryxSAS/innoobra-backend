@@ -36,6 +36,9 @@ jobs:
       - name: Build Lambda jar
         run: mvn clean package -f lambda-java/company/pom.xml
 
+      - name: Create target directory for Lambda jar
+        run: mkdir -p infra/dev/functions/company
+
       # 3. Mover el JAR generado a la carpeta de Terraform
       - name: Move lambda.jar to Terraform dir
         run: mv lambda-java/company/target/lambdas-1.0-SNAPSHOT.jar infra/dev/functions/company/lambdas-1.0-SNAPSHOT.jar
