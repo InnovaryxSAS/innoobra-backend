@@ -34,11 +34,11 @@ jobs:
 
       # 2. Compilar el JAR con Maven
       - name: Build Lambda jar
-        run: mvn clean package -f path/a/tu/pom.xml
+        run: mvn clean package -f lambda-java/lambda-hello/pom.xml
 
       # 3. Mover el JAR generado a la carpeta de Terraform
       - name: Move lambda.jar to Terraform dir
-        run: mv path/a/tu/target/lambda-hello-1.0-SNAPSHOT-jar-with-dependencies.jar infra/dev/lambda.jar
+        run: mv lambda-java/lambda-hello/target/lambda-hello-1.0-SNAPSHOT-jar-with-dependencies.jar infra/dev/lambda.jar
 
       - name: Terraform Init
         run: terraform init
