@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -21,6 +25,23 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # 2. Compilar el JAR con Maven
+      - name: Build Lambda jar
+        run: mvn clean package -f path/a/tu/pom.xml
+
+      # 3. Mover el JAR generado a la carpeta de Terraform
+      - name: Move lambda.jar to Terraform dir
+        run: mv path/a/tu/target/lambda-hello-1.0-SNAPSHOT-jar-with-dependencies.jar infra/dev/lambda.jar
 
       - name: Terraform Init
         run: terraform init
