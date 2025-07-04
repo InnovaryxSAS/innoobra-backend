@@ -18,3 +18,5 @@ crash.log
 .vscode/
 lambda-java/company/template.yaml
 lambda-java/company/events/
+lambda-java/project/template.yaml
+lambda-java/project/events/
