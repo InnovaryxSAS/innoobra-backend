@@ -26,21 +26,31 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
-      # 2. Compilar el JAR con Maven
+       # 1. Compilar el JAR de company
       - name: Build Lambda jar
         run: mvn clean package -f lambda-java/company/pom.xml
 
-      # 3. Mover el JAR generado a la carpeta de Terraform
+      # 2. Mover el JAR generado de company a la carpeta de Terraform
       - name: Move lambda.jar to Terraform dir
         run: |
           mkdir -p infra/dev/functions/company
-          mv lambda-java/company/target/lambdas-1.0-SNAPSHOT.jar infra/dev/functions/company/lambdas-1.0-SNAPSHOT.jar
+          mv lambda-java/company/target/company-1.0-SNAPSHOT.jar infra/dev/functions/company/company-1.0-SNAPSHOT.jar
+
+      # 3. Compilar el JAR de project
+      - name: Build Project Lambda jar
+        run: mvn clean package -f lambda-java/project/pom.xml
+
+      # 4. Mover el JAR generado de project a la carpeta de Terraform
+      - name: Move project lambda.jar to Terraform dir
+        run: |
+          mkdir -p infra/dev/functions/project
+          mv lambda-java/project/target/project-1.0-SNAPSHOT.jar infra/dev/functions/project/project-1.0-SNAPSHOT.jar
 
       - name: Terraform Init
         run: terraform init
