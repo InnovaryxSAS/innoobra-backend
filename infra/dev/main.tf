@@ -55,11 +55,6 @@ resource "aws_lambda_function" "lambda" {
   }
 }
 
-resource "aws_apigatewayv2_api" "http_api" {
-  name          = "http-api-${var.environment}"
-  protocol_type = "HTTP"
-}
-
 resource "aws_apigatewayv2_route" "lambda_route" {
   for_each  = var.lambdas
   api_id    = aws_apigatewayv2_api.http_api.id
