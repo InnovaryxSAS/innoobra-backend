@@ -55,10 +55,8 @@ public class UpdateProjectHandler implements RequestHandler<APIGatewayProxyReque
             }
             
             UpdateProjectRequestDTO requestDTO = OBJECT_MAPPER.readValue(input.getBody(), UpdateProjectRequestDTO.class);
-            logger.debug("Parsed update request DTO");
             
             ValidationHelper.validateAndThrow(requestDTO, ValidationGroups.Update.class);
-            logger.debug("Request validation passed");
             
             Optional<Project> existingProjectOpt = PROJECT_SERVICE.getProjectById(projectId);
             if (!existingProjectOpt.isPresent()) {
@@ -67,16 +65,13 @@ public class UpdateProjectHandler implements RequestHandler<APIGatewayProxyReque
             }
             
             Project existingProject = existingProjectOpt.get();
-            logger.debug("Retrieved existing project for update");
             
             Project updatedProject = DTOMapper.updateProjectFromDTO(existingProject, requestDTO);
-            logger.debug("Mapped update DTO to Project entity");
             
             Project savedProject = PROJECT_SERVICE.updateProject(updatedProject);
             logger.info("Project updated successfully");
             
             ProjectResponseDTO responseDTO = DTOMapper.toProjectResponseDTO(savedProject);
-            logger.debug("Mapped updated Project entity to response DTO");
             
             logFinalConnectionPoolStatus();
             
@@ -106,7 +101,6 @@ public class UpdateProjectHandler implements RequestHandler<APIGatewayProxyReque
     private void logConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.debug("Connection pool status: {}, healthy: {}", 
                         poolManager.getPoolStats(), poolManager.isHealthy());
         } catch (Exception e) {
             logger.warn("Could not retrieve connection pool status: {}", e.getMessage());
@@ -116,7 +110,6 @@ public class UpdateProjectHandler implements RequestHandler<APIGatewayProxyReque
     private void logFinalConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.debug("Final connection pool status: {}", poolManager.getPoolStats());
         } catch (Exception e) {
             logger.warn("Could not retrieve final connection pool status: {}", e.getMessage());
         }

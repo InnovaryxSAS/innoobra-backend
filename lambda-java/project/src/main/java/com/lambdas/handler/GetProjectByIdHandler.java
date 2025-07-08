@@ -38,7 +38,6 @@ public class GetProjectByIdHandler implements RequestHandler<APIGatewayProxyRequ
             }
             
             MDC.put("projectId", projectId);
-            logger.debug("Processing retrieval for project ID: {}", projectId);
             
             Optional<Project> projectOpt = PROJECT_SERVICE.getProjectById(projectId);
             
@@ -46,7 +45,6 @@ public class GetProjectByIdHandler implements RequestHandler<APIGatewayProxyRequ
                 logger.info("Project retrieved successfully with ID: {}", projectId);
                 
                 ProjectResponseDTO responseDTO = DTOMapper.toProjectResponseDTO(projectOpt.get());
-                logger.debug("Mapped Project entity to response DTO");
                 
                 logFinalConnectionPoolStatus();
                 
@@ -71,7 +69,6 @@ public class GetProjectByIdHandler implements RequestHandler<APIGatewayProxyRequ
     private void logConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.debug("Connection pool status: {}, healthy: {}", 
                         poolManager.getPoolStats(), poolManager.isHealthy());
         } catch (Exception e) {
             logger.warn("Could not retrieve connection pool status: {}", e.getMessage());
@@ -81,7 +78,6 @@ public class GetProjectByIdHandler implements RequestHandler<APIGatewayProxyRequ
     private void logFinalConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.debug("Final connection pool status: {}", poolManager.getPoolStats());
         } catch (Exception e) {
             logger.warn("Could not retrieve final connection pool status: {}", e.getMessage());
         }

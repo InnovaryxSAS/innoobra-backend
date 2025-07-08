@@ -57,10 +57,8 @@ public class UpdateCompanyHandler implements RequestHandler<APIGatewayProxyReque
             }
             
             UpdateCompanyRequestDTO requestDTO = OBJECT_MAPPER.readValue(input.getBody(), UpdateCompanyRequestDTO.class);
-            logger.debug("Parsed update request DTO");
             
             ValidationHelper.validateAndThrow(requestDTO, ValidationGroups.Update.class);
-            logger.debug("Request validation passed");
             
             Optional<Company> existingCompanyOpt = COMPANY_SERVICE.getCompanyById(companyId);
             if (!existingCompanyOpt.isPresent()) {
@@ -69,16 +67,13 @@ public class UpdateCompanyHandler implements RequestHandler<APIGatewayProxyReque
             }
             
             Company existingCompany = existingCompanyOpt.get();
-            logger.debug("Retrieved existing company for update");
             
             Company updatedCompany = DTOMapper.updateCompanyFromDTO(existingCompany, requestDTO);
-            logger.debug("Mapped update DTO to Company entity");
             
             Company savedCompany = COMPANY_SERVICE.updateCompany(updatedCompany);
             logger.info("Company updated successfully");
             
             CompanyResponseDTO responseDTO = DTOMapper.toResponseDTO(savedCompany);
-            logger.debug("Mapped updated Company entity to response DTO");
             
             logFinalConnectionPoolStatus();
             
@@ -108,7 +103,6 @@ public class UpdateCompanyHandler implements RequestHandler<APIGatewayProxyReque
     private void logConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.debug("Connection pool status: {}, healthy: {}", 
                         poolManager.getPoolStats(), poolManager.isHealthy());
         } catch (Exception e) {
             logger.warn("Could not retrieve connection pool status: {}", e.getMessage());
@@ -118,7 +112,6 @@ public class UpdateCompanyHandler implements RequestHandler<APIGatewayProxyReque
     private void logFinalConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.debug("Final connection pool status: {}", poolManager.getPoolStats());
         } catch (Exception e) {
             logger.warn("Could not retrieve final connection pool status: {}", e.getMessage());
         }

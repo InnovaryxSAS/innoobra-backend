@@ -33,7 +33,6 @@ public class GetCompaniesHandler implements RequestHandler<APIGatewayProxyReques
             logger.info("Retrieved {} companies successfully", companies.size());
             
             List<CompanyResponseDTO> responseDTOs = DTOMapper.toResponseDTOList(companies);
-            logger.debug("Mapped {} companies to response DTOs", responseDTOs.size());
             
             return ResponseUtil.createResponse(200, responseDTOs);
             

@@ -94,5 +94,6 @@ variable "lambdas" {
     },
 
     # === Others Lambdas ===
+    
   }
 }

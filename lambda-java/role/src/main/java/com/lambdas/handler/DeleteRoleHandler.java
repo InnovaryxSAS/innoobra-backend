@@ -33,7 +33,6 @@ public class DeleteRoleHandler implements RequestHandler<APIGatewayProxyRequestE
             }
             
             MDC.put("roleId", roleId);
-            logger.debug("Processing deletion for role ID: {}", roleId);
             
             boolean deleted = ROLE_SERVICE.deactivateRole(roleId);
             

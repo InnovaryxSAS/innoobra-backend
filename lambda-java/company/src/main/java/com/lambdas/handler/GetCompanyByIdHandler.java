@@ -36,7 +36,6 @@ public class GetCompanyByIdHandler implements RequestHandler<APIGatewayProxyRequ
             }
             
             MDC.put("companyId", companyId);
-            logger.debug("Processing retrieval for company ID: {}", companyId);
             
             Optional<Company> companyOpt = COMPANY_SERVICE.getCompanyById(companyId);
             
@@ -44,7 +43,6 @@ public class GetCompanyByIdHandler implements RequestHandler<APIGatewayProxyRequ
                 logger.info("Company retrieved successfully with ID: {}", companyId);
                 
                 CompanyResponseDTO responseDTO = DTOMapper.toResponseDTO(companyOpt.get());
-                logger.debug("Mapped Company entity to response DTO");
                 
                 return ResponseUtil.createResponse(200, responseDTO);
             } else {

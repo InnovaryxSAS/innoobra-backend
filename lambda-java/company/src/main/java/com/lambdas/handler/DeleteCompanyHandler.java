@@ -33,7 +33,6 @@ public class DeleteCompanyHandler implements RequestHandler<APIGatewayProxyReque
             }
             
             MDC.put("companyId", companyId);
-            logger.debug("Processing deletion for company ID: {}", companyId);
             
             boolean deleted = COMPANY_SERVICE.deleteCompany(companyId);
             

@@ -35,7 +35,6 @@ public class GetProjectsHandler implements RequestHandler<APIGatewayProxyRequest
             logger.info("Retrieved {} projects successfully", projects.size());
             
             List<ProjectResponseDTO> responseDTOs = DTOMapper.toProjectResponseDTOList(projects);
-            logger.debug("Mapped {} projects to response DTOs", responseDTOs.size());
             
             logFinalConnectionPoolStatus();
             
@@ -56,7 +55,6 @@ public class GetProjectsHandler implements RequestHandler<APIGatewayProxyRequest
     private void logConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.debug("Connection pool status: {}, healthy: {}", 
                         poolManager.getPoolStats(), poolManager.isHealthy());
         } catch (Exception e) {
             logger.warn("Could not retrieve connection pool status: {}", e.getMessage());
@@ -66,7 +64,6 @@ public class GetProjectsHandler implements RequestHandler<APIGatewayProxyRequest
     private void logFinalConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.debug("Final connection pool status: {}", poolManager.getPoolStats());
         } catch (Exception e) {
             logger.warn("Could not retrieve final connection pool status: {}", e.getMessage());
         }

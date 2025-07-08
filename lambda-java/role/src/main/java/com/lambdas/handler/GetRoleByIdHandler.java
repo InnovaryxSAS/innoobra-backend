@@ -36,7 +36,6 @@ public class GetRoleByIdHandler implements RequestHandler<APIGatewayProxyRequest
             }
             
             MDC.put("roleId", roleId);
-            logger.debug("Processing retrieval for role ID: {}", roleId);
             
             Optional<Role> roleOpt = ROLE_SERVICE.getRoleById(roleId);
             
@@ -44,7 +43,6 @@ public class GetRoleByIdHandler implements RequestHandler<APIGatewayProxyRequest
                 logger.info("Role retrieved successfully with ID: {}", roleId);
                 
                 RoleResponseDTO responseDTO = DTOMapper.toRoleResponseDTO(roleOpt.get());
-                logger.debug("Mapped Role entity to response DTO");
                 
                 return ResponseUtil.createResponse(200, responseDTO);
             } else {

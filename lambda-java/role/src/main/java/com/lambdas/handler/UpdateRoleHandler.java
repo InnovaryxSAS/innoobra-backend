@@ -57,10 +57,8 @@ public class UpdateRoleHandler implements RequestHandler<APIGatewayProxyRequestE
             }
             
             UpdateRoleRequestDTO requestDTO = OBJECT_MAPPER.readValue(input.getBody(), UpdateRoleRequestDTO.class);
-            logger.debug("Parsed update request DTO");
             
             ValidationHelper.validateAndThrow(requestDTO, ValidationGroups.Update.class);
-            logger.debug("Request validation passed");
             
             Optional<Role> existingRoleOpt = ROLE_SERVICE.getRoleById(roleId);
             if (!existingRoleOpt.isPresent()) {
@@ -69,16 +67,13 @@ public class UpdateRoleHandler implements RequestHandler<APIGatewayProxyRequestE
             }
             
             Role existingRole = existingRoleOpt.get();
-            logger.debug("Retrieved existing role for update");
             
             Role updatedRole = DTOMapper.updateRoleFromDTO(existingRole, requestDTO);
-            logger.debug("Mapped update DTO to Role entity");
             
             Role savedRole = ROLE_SERVICE.updateRole(updatedRole);
             logger.info("Role updated successfully");
             
             RoleResponseDTO responseDTO = DTOMapper.toRoleResponseDTO(savedRole);
-            logger.debug("Mapped updated Role entity to response DTO");
             
             logFinalConnectionPoolStatus();
             
@@ -108,7 +103,6 @@ public class UpdateRoleHandler implements RequestHandler<APIGatewayProxyRequestE
     private void logConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.debug("Connection pool status: {}, healthy: {}", 
                         poolManager.getPoolStats(), poolManager.isHealthy());
         } catch (Exception e) {
             logger.warn("Could not retrieve connection pool status: {}", e.getMessage());
@@ -118,7 +112,6 @@ public class UpdateRoleHandler implements RequestHandler<APIGatewayProxyRequestE
     private void logFinalConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.debug("Final connection pool status: {}", poolManager.getPoolStats());
         } catch (Exception e) {
             logger.warn("Could not retrieve final connection pool status: {}", e.getMessage());
         }

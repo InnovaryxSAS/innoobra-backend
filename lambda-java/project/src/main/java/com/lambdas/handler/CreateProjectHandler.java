@@ -45,19 +45,14 @@ public class CreateProjectHandler implements RequestHandler<APIGatewayProxyReque
             }
             
             CreateProjectRequestDTO requestDTO = OBJECT_MAPPER.readValue(input.getBody(), CreateProjectRequestDTO.class);
-            logger.debug("Parsed create request DTO");
             
             ValidationHelper.validateAndThrow(requestDTO, ValidationGroups.Create.class);
-            logger.debug("Request validation passed");
             
             Project project = DTOMapper.toProject(requestDTO);
-            logger.debug("Mapped request DTO to Project entity");
             
             Project createdProject = PROJECT_SERVICE.createProject(project);
-            logger.info("Project created successfully with ID: {}", createdProject.getId());
             
             ProjectResponseDTO responseDTO = DTOMapper.toProjectResponseDTO(createdProject);
-            logger.debug("Mapped created Project entity to response DTO");
             
             logFinalConnectionPoolStatus();
             
@@ -87,7 +82,6 @@ public class CreateProjectHandler implements RequestHandler<APIGatewayProxyReque
     private void logConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.debug("Connection pool status: {}, healthy: {}", 
                         poolManager.getPoolStats(), poolManager.isHealthy());
         } catch (Exception e) {
             logger.warn("Could not retrieve connection pool status: {}", e.getMessage());
@@ -97,7 +91,6 @@ public class CreateProjectHandler implements RequestHandler<APIGatewayProxyReque
     private void logFinalConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.debug("Final connection pool status: {}", poolManager.getPoolStats());
         } catch (Exception e) {
             logger.warn("Could not retrieve final connection pool status: {}", e.getMessage());
         }

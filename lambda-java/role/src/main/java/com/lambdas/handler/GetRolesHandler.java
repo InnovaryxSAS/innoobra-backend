@@ -33,7 +33,6 @@ public class GetRolesHandler implements RequestHandler<APIGatewayProxyRequestEve
             logger.info("Retrieved {} roles successfully", roles.size());
             
             List<RoleResponseDTO> responseDTOs = DTOMapper.toRoleResponseDTOList(roles);
-            logger.debug("Mapped {} roles to response DTOs", responseDTOs.size());
             
             return ResponseUtil.createResponse(200, responseDTOs);
             

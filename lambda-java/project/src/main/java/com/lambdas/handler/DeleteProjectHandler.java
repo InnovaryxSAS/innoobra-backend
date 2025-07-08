@@ -35,7 +35,6 @@ public class DeleteProjectHandler implements RequestHandler<APIGatewayProxyReque
             }
             
             MDC.put("projectId", projectId);
-            logger.debug("Processing deletion for project ID: {}", projectId);
             
             boolean deleted = PROJECT_SERVICE.deleteProject(projectId);
             
@@ -88,7 +87,6 @@ public class DeleteProjectHandler implements RequestHandler<APIGatewayProxyReque
     private void logConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.debug("Connection pool status: {}, healthy: {}", 
                         poolManager.getPoolStats(), poolManager.isHealthy());
         } catch (Exception e) {
             logger.warn("Could not retrieve connection pool status: {}", e.getMessage());
@@ -98,7 +96,6 @@ public class DeleteProjectHandler implements RequestHandler<APIGatewayProxyReque
     private void logFinalConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.debug("Final connection pool status: {}", poolManager.getPoolStats());
         } catch (Exception e) {
             logger.warn("Could not retrieve final connection pool status: {}", e.getMessage());
         }
