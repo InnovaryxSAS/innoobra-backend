@@ -57,7 +57,7 @@ public class RoleRepository {
             return role;
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.printStackTrace(); 
 
             if ("23505".equals(e.getSQLState())) {
                 throw new RoleAlreadyExistsException("Role with ID " + role.getIdRole() + " already exists");
@@ -112,34 +112,6 @@ public class RoleRepository {
 
         } catch (SQLException e) {
             throw new DatabaseException("Error retrieving roles", e);
-        }
-    }
-
-    public List<Role> findAllActive() {
-        final String sql = """
-                SELECT id_role, name, description, created_at, updated_at, status
-                FROM roles
-                WHERE status != ?
-                ORDER BY created_at DESC
-                """;
-
-        List<Role> roles = new ArrayList<>();
-
-        try (Connection conn = getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, RoleStatus.INACTIVE.getValue());
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    roles.add(mapResultSetToRole(rs));
-                }
-            }
-
-            return roles;
-
-        } catch (SQLException e) {
-            throw new DatabaseException("Error retrieving active roles", e);
         }
     }
 
@@ -202,7 +174,7 @@ public class RoleRepository {
     public Role update(Role role) {
         final String sql = """
                 UPDATE roles
-                SET name = ?, description = ?, updated_at = ?, status = ?
+                SET name = ?, description = ?, updated_at = ?, status = ?::role_status
                 WHERE id_role = ?
                 """;
 
@@ -214,7 +186,7 @@ public class RoleRepository {
             stmt.setString(1, role.getName());
             stmt.setString(2, role.getDescription());
             stmt.setTimestamp(3, Timestamp.valueOf(role.getUpdatedAt()));
-            stmt.setObject(4, role.getStatus().getValue(), java.sql.Types.OTHER);
+            stmt.setString(4, role.getStatus().getValue());
             stmt.setString(5, role.getIdRole());
 
             int rowsAffected = stmt.executeUpdate();
@@ -241,7 +213,7 @@ public class RoleRepository {
 
             LocalDateTime now = LocalDateTime.now();
             String inactiveStatus = RoleStatus.INACTIVE.getValue();
-            
+
             stmt.setString(1, inactiveStatus);
             stmt.setTimestamp(2, Timestamp.valueOf(now));
             stmt.setString(3, idRole);
@@ -263,144 +235,39 @@ public class RoleRepository {
         }
     }
 
-    public boolean activate(String idRole) {
-        final String sql = """
-                UPDATE roles
-                SET status = ?, updated_at = ?
-                WHERE id_role = ? AND status != ?
-                """;
-
-        try (Connection conn = getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            LocalDateTime now = LocalDateTime.now();
-            stmt.setString(1, RoleStatus.ACTIVE.getValue());
-            stmt.setTimestamp(2, Timestamp.valueOf(now));
-            stmt.setString(3, idRole);
-            stmt.setString(4, RoleStatus.ACTIVE.getValue());
-
-            int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected == 0) {
-                throw new RoleNotFoundException("Role with ID " + idRole + " not found or already active");
-            }
-
-            return true;
-
-        } catch (SQLException e) {
-            throw new DatabaseException("Error activating role", e);
-        }
-    }
-
-    public boolean suspend(String idRole) {
-        final String sql = """
-                UPDATE roles
-                SET status = ?, updated_at = ?
-                WHERE id_role = ? AND status NOT IN (?, ?)
-                """;
-
-        try (Connection conn = getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            LocalDateTime now = LocalDateTime.now();
-            stmt.setString(1, RoleStatus.SUSPENDED.getValue());
-            stmt.setTimestamp(2, Timestamp.valueOf(now));
-            stmt.setString(3, idRole);
-            stmt.setString(4, RoleStatus.SUSPENDED.getValue());
-            stmt.setString(5, RoleStatus.INACTIVE.getValue());
-
-            int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected == 0) {
-                throw new RoleNotFoundException("Role with ID " + idRole + " not found or already suspended/inactive");
-            }
-
-            return true;
-
-        } catch (SQLException e) {
-            throw new DatabaseException("Error suspending role", e);
-        }
-    }
-
-    public boolean setPending(String idRole) {
-        final String sql = """
-                UPDATE roles
-                SET status = ?, updated_at = ?
-                WHERE id_role = ? AND status != ?
-                """;
-
-        try (Connection conn = getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            LocalDateTime now = LocalDateTime.now();
-            stmt.setString(1, RoleStatus.PENDING.getValue());
-            stmt.setTimestamp(2, Timestamp.valueOf(now));
-            stmt.setString(3, idRole);
-            stmt.setString(4, RoleStatus.PENDING.getValue());
-
-            int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected == 0) {
-                throw new RoleNotFoundException("Role with ID " + idRole + " not found or already pending");
-            }
-
-            return true;
-
-        } catch (SQLException e) {
-            throw new DatabaseException("Error setting role to pending", e);
-        }
-    }
 
     public long count() {
         final String sql = "SELECT COUNT(*) FROM roles";
-
+        
         try (Connection conn = getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql);
-                ResultSet rs = stmt.executeQuery()) {
-
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()) {
+            
             if (rs.next()) {
                 return rs.getLong(1);
             }
-
             return 0;
-
+            
         } catch (SQLException e) {
             throw new DatabaseException("Error counting roles", e);
         }
     }
 
-    public long countActive() {
-        final String sql = "SELECT COUNT(*) FROM roles WHERE status != ?";
-
-        try (Connection conn = getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, RoleStatus.INACTIVE.getValue());
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getLong(1);
-                }
-                return 0;
-            }
-
-        } catch (SQLException e) {
-            throw new DatabaseException("Error counting active roles", e);
-        }
-    }
-
     public long countByStatus(RoleStatus status) {
         final String sql = "SELECT COUNT(*) FROM roles WHERE status = ?";
-
+        
         try (Connection conn = getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
             stmt.setString(1, status.getValue());
-
+            
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getLong(1);
                 }
                 return 0;
             }
-
+            
         } catch (SQLException e) {
             throw new DatabaseException("Error counting roles by status", e);
         }
@@ -420,24 +287,6 @@ public class RoleRepository {
 
         } catch (SQLException e) {
             throw new DatabaseException("Error checking if role exists", e);
-        }
-    }
-
-    public boolean existsByIdActive(String idRole) {
-        final String sql = "SELECT 1 FROM roles WHERE id_role = ? AND status != ? LIMIT 1";
-
-        try (Connection conn = getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, idRole);
-            stmt.setString(2, RoleStatus.INACTIVE.getValue());
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next();
-            }
-
-        } catch (SQLException e) {
-            throw new DatabaseException("Error checking if active role exists", e);
         }
     }
 

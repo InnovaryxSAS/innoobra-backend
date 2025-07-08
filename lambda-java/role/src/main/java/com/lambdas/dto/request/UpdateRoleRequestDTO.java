@@ -1,18 +1,22 @@
 package com.lambdas.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.lambdas.model.RoleStatus;
+import com.lambdas.validation.annotations.RoleStatusValid;
+import jakarta.validation.constraints.*;
 
 public class UpdateRoleRequestDTO {
 
     @JsonProperty("name")
+    @Size(min = 1, max = 50, message = "Role name must be between 1 and 50 characters")
     private String name;
 
     @JsonProperty("description")
+    @Size(min = 1, max = 100, message = "Role description must be between 1 and 100 characters")
     private String description;
 
     @JsonProperty("status")
-    private RoleStatus status;
+    @RoleStatusValid
+    private String status;
 
     // Default constructor
     public UpdateRoleRequestDTO() {
@@ -35,44 +39,12 @@ public class UpdateRoleRequestDTO {
         this.description = description;
     }
 
-    public RoleStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(RoleStatus status) {
+    public void setStatus(String status) {
         this.status = status;
-    }
-
-    // Builder pattern
-    public static class Builder {
-        private final UpdateRoleRequestDTO dto;
-
-        public Builder() {
-            dto = new UpdateRoleRequestDTO();
-        }
-
-        public Builder name(String name) {
-            dto.setName(name);
-            return this;
-        }
-
-        public Builder description(String description) {
-            dto.setDescription(description);
-            return this;
-        }
-
-        public Builder status(RoleStatus status) {
-            dto.setStatus(status);
-            return this;
-        }
-
-        public UpdateRoleRequestDTO build() {
-            return dto;
-        }
-    }
-
-    public static Builder builder() {
-        return new Builder();
     }
 
     @Override
@@ -80,7 +52,7 @@ public class UpdateRoleRequestDTO {
         return "UpdateRoleRequestDTO{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", status=" + status +
+                ", status='" + status + '\'' +
                 '}';
     }
 }

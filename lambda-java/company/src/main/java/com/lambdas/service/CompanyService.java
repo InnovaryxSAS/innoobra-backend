@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import com.lambdas.model.Company;
 import com.lambdas.repository.CompanyRepository;
-import com.lambdas.util.ValidationUtil;
+import com.lambdas.util.ValidationHelper;
 
 public class CompanyService {
     
@@ -20,7 +20,7 @@ public class CompanyService {
     }
     
     public Company createCompany(Company company) {
-        ValidationUtil.validateCompanyForCreation(company);
+        ValidationHelper.validateAndThrow(company);
         return repository.save(company);
     }
     
@@ -33,7 +33,7 @@ public class CompanyService {
     }
     
     public Company updateCompany(Company company) {
-        ValidationUtil.validateCompanyForUpdate(company);
+        ValidationHelper.validateAndThrow(company);
         return repository.update(company);
     }
     

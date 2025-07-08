@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import jakarta.validation.constraints.*;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -12,25 +13,34 @@ import java.util.Objects;
 public class Role {
 
     @JsonProperty("id_role")
+    @NotBlank(message = "Role ID cannot be blank")
+    @Size(max = 255, message = "Role ID cannot exceed 255 characters")
     private String idRole;
 
     @JsonProperty("name")
+    @NotBlank(message = "Role name cannot be blank")
+    @Size(min = 1, max = 50, message = "Role name must be between 1 and 50 characters")
     private String name;
 
     @JsonProperty("description")
+    @NotBlank(message = "Role description cannot be blank")
+    @Size(min = 1, max = 100, message = "Role description must be between 1 and 100 characters")
     private String description;
 
     @JsonProperty("createdAt")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @NotNull(message = "Created at cannot be null")
     private LocalDateTime createdAt;
 
     @JsonProperty("updatedAt")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @NotNull(message = "Updated at cannot be null")
     private LocalDateTime updatedAt;
 
     @JsonProperty("status")
+    @NotNull(message = "Status cannot be null")
     private RoleStatus status;
 
     // Default constructor
@@ -118,6 +128,36 @@ public class Role {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    public boolean isValidStatus(String statusValue) {
+        if (statusValue == null) return false;
+        try {
+            RoleStatus.fromValue(statusValue);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    public boolean hasRequiredFields() {
+        return idRole != null && !idRole.trim().isEmpty() &&
+               name != null && !name.trim().isEmpty() &&
+               description != null && !description.trim().isEmpty();
+    }
+
+    public boolean isValidFieldLengths() {
+        return (idRole == null || idRole.length() <= 255) &&
+               (name == null || (name.length() >= 1 && name.length() <= 50)) &&
+               (description == null || (description.length() >= 1 && description.length() <= 100));
+    }
+
+    public boolean isValidName(String name) {
+        return name != null && !name.trim().isEmpty() && name.length() <= 50;
+    }
+
+    public boolean isValidDescription(String description) {
+        return description != null && !description.trim().isEmpty() && description.length() <= 100;
     }
 
     private void updateTimestamp() {

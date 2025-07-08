@@ -11,56 +11,74 @@ import com.lambdas.model.Project;
 import com.lambdas.repository.ConnectionPoolManager;
 import com.lambdas.service.ProjectService;
 import com.lambdas.util.ResponseUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.util.List;
 
 public class GetProjectsHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
     
+    private static final Logger logger = LoggerFactory.getLogger(GetProjectsHandler.class);
     private static final ProjectService PROJECT_SERVICE = new ProjectService();
     
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
-        context.getLogger().log("Processing request: " + requestId);
+        MDC.put("requestId", requestId);
         
         try {
-            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            context.getLogger().log("Connection pool status: " + poolManager.getPoolStats());
-            context.getLogger().log("Connection pool healthy: " + poolManager.isHealthy());
-        } catch (Exception e) {
-            context.getLogger().log("Warning: Could not get pool stats: " + e.getMessage());
-        }
-        
-        try {
+            logger.info("Starting projects retrieval process");
+            logConnectionPoolStatus();
+            
             List<Project> projects = PROJECT_SERVICE.getAllProjects();
+            logger.info("Retrieved {} projects successfully", projects.size());
             
             List<ProjectResponseDTO> responseDTOs = DTOMapper.toProjectResponseDTOList(projects);
+            logger.debug("Mapped {} projects to response DTOs", responseDTOs.size());
             
-            context.getLogger().log("Retrieved " + projects.size() + " projects successfully");
-            
-            try {
-                ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-                context.getLogger().log("Final connection pool status: " + poolManager.getPoolStats());
-            } catch (Exception e) {
-                context.getLogger().log("Warning: Could not get final pool stats: " + e.getMessage());
-            }
+            logFinalConnectionPoolStatus();
             
             return ResponseUtil.createResponse(200, responseDTOs);
             
         } catch (DatabaseException e) {
-            context.getLogger().log("Database error for request " + requestId + ": " + e.getMessage());
-            try {
-                ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-                context.getLogger().log("Connection pool status on error: " + poolManager.getPoolStats());
-                context.getLogger().log("Connection pool healthy on error: " + poolManager.isHealthy());
-            } catch (Exception poolException) {
-                context.getLogger().log("Could not get pool stats on error: " + poolException.getMessage());
-            }
+            logger.error("Database error occurred", e);
+            logConnectionPoolStatusOnError();
             return ResponseUtil.createErrorResponse(500, "Internal server error");
         } catch (Exception e) {
-            context.getLogger().log("Unexpected error for request " + requestId + ": " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Unexpected error occurred", e);
             return ResponseUtil.createErrorResponse(500, "Internal server error");
+        } finally {
+            MDC.clear();
+        }
+    }
+    
+    private void logConnectionPoolStatus() {
+        try {
+            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
+            logger.debug("Connection pool status: {}, healthy: {}", 
+                        poolManager.getPoolStats(), poolManager.isHealthy());
+        } catch (Exception e) {
+            logger.warn("Could not retrieve connection pool status: {}", e.getMessage());
+        }
+    }
+    
+    private void logFinalConnectionPoolStatus() {
+        try {
+            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
+            logger.debug("Final connection pool status: {}", poolManager.getPoolStats());
+        } catch (Exception e) {
+            logger.warn("Could not retrieve final connection pool status: {}", e.getMessage());
+        }
+    }
+    
+    private void logConnectionPoolStatusOnError() {
+        try {
+            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
+            logger.error("Connection pool status on error: {}, healthy: {}", 
+                        poolManager.getPoolStats(), poolManager.isHealthy());
+        } catch (Exception e) {
+            logger.error("Could not retrieve connection pool status on error: {}", e.getMessage());
         }
     }
 }

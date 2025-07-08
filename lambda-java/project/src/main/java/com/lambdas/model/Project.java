@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -13,55 +14,85 @@ import java.util.Objects;
 public class Project {
 
     @JsonProperty("id")
+    @NotBlank(message = "Project ID cannot be blank")
+    @Size(max = 255, message = "Project ID cannot exceed 255 characters")
     private String id;
 
     @JsonProperty("name")
-    private String name; 
+    @NotBlank(message = "Project name cannot be blank")
+    @Size(min = 1, max = 100, message = "Project name must be between 1 and 100 characters")
+    private String name;
 
     @JsonProperty("description")
-    private String description; 
+    @NotBlank(message = "Project description cannot be blank")
+    @Size(min = 1, max = 500, message = "Project description must be between 1 and 500 characters")
+    private String description;
 
     @JsonProperty("address")
+    @Size(max = 150, message = "Address cannot exceed 150 characters")
     private String address;
 
     @JsonProperty("city")
-    private String city; 
+    @NotBlank(message = "City cannot be blank")
+    @Size(min = 1, max = 50, message = "City must be between 1 and 50 characters")
+    private String city;
 
     @JsonProperty("state")
+    @NotBlank(message = "State cannot be blank")
+    @Size(min = 1, max = 100, message = "State must be between 1 and 100 characters")
     private String state;
 
     @JsonProperty("country")
+    @NotBlank(message = "Country cannot be blank")
+    @Pattern(regexp = "^[A-Z]{2,3}$", message = "Country must be a 2 or 3 letter uppercase code")
+    @Size(min = 2, max = 3, message = "Country code must be 2 or 3 characters")
     private String country;
 
     @JsonProperty("createdAt")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @NotNull(message = "Created at cannot be null")
     private LocalDateTime createdAt;
 
     @JsonProperty("updatedAt")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @NotNull(message = "Updated at cannot be null")
     private LocalDateTime updatedAt;
 
     @JsonProperty("status")
+    @NotNull(message = "Status cannot be null")
     private ProjectStatus status;
 
     @JsonProperty("responsibleUser")
+    @NotBlank(message = "Responsible user cannot be blank")
+    @Size(max = 255, message = "Responsible user cannot exceed 255 characters")
     private String responsibleUser;
 
     @JsonProperty("dataSource")
+    @NotBlank(message = "Data source cannot be blank")
+    @Size(max = 255, message = "Data source cannot exceed 255 characters")
     private String dataSource;
 
     @JsonProperty("company")
+    @NotBlank(message = "Company cannot be blank")
+    @Size(max = 255, message = "Company cannot exceed 255 characters")
     private String company;
 
     @JsonProperty("createdBy")
+    @NotBlank(message = "Created by cannot be blank")
+    @Size(max = 255, message = "Created by cannot exceed 255 characters")
     private String createdBy;
 
     @JsonProperty("budget")
+    @NotNull(message = "Budget cannot be null")
+    @DecimalMin(value = "0.00", message = "Budget must be greater than or equal to 0")
+    @Digits(integer = 13, fraction = 2, message = "Budget must have at most 13 integer digits and 2 decimal places")
     private BigDecimal budget;
 
     @JsonProperty("inventory")
+    @NotBlank(message = "Inventory cannot be blank")
+    @Size(min = 1, max = 500, message = "Inventory must be between 1 and 500 characters")
     private String inventory;
 
     // Default constructor
@@ -74,7 +105,7 @@ public class Project {
     }
 
     // Constructor for existing projects (when loading from database)
-    public Project(String id, String name, String description, String address, String city, 
+    public Project(String id, String name, String description, String address, String city,
                    String state, String country, LocalDateTime createdAt, LocalDateTime updatedAt,
                    ProjectStatus status, String responsibleUser, String dataSource, String company,
                    String createdBy, BigDecimal budget, String inventory) {
@@ -223,9 +254,42 @@ public class Project {
     }
 
     public static Builder builder() {
-    return new Builder();
-}
+        return new Builder();
+    }
 
+    public boolean isValidStatus(String statusValue) {
+        if (statusValue == null) return false;
+        try {
+            ProjectStatus.fromValue(statusValue);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    public boolean isValidCountryCode(String countryCode) {
+        if (countryCode == null) return false;
+        return countryCode.matches("^[A-Z]{2,3}$");
+    }
+
+    public boolean isValidBudget(BigDecimal budget) {
+        if (budget == null) return false;
+        return budget.compareTo(BigDecimal.ZERO) >= 0;
+    }
+
+    public boolean hasRequiredFields() {
+        return id != null && !id.trim().isEmpty() &&
+               name != null && !name.trim().isEmpty() &&
+               description != null && !description.trim().isEmpty() &&
+               city != null && !city.trim().isEmpty() &&
+               state != null && !state.trim().isEmpty() &&
+               country != null && !country.trim().isEmpty() &&
+               responsibleUser != null && !responsibleUser.trim().isEmpty() &&
+               dataSource != null && !dataSource.trim().isEmpty() &&
+               company != null && !company.trim().isEmpty() &&
+               createdBy != null && !createdBy.trim().isEmpty() &&
+               inventory != null && !inventory.trim().isEmpty();
+    }
 
     private void updateTimestamp() {
         this.updatedAt = LocalDateTime.now();
@@ -437,6 +501,7 @@ public class Project {
                 ", company='" + company + '\'' +
                 ", createdBy='" + createdBy + '\'' +
                 ", budget=" + budget +
+                ", inventory='" + inventory + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

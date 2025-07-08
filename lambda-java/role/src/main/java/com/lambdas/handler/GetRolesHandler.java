@@ -8,59 +8,43 @@ import com.lambdas.dto.response.RoleResponseDTO;
 import com.lambdas.exception.DatabaseException;
 import com.lambdas.mapper.DTOMapper;
 import com.lambdas.model.Role;
-import com.lambdas.repository.ConnectionPoolManager;
 import com.lambdas.service.RoleService;
 import com.lambdas.util.ResponseUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.util.List;
 
 public class GetRolesHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
     
+    private static final Logger logger = LoggerFactory.getLogger(GetRolesHandler.class);
     private static final RoleService ROLE_SERVICE = new RoleService();
     
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
-        context.getLogger().log("Processing request: " + requestId);
+        MDC.put("requestId", requestId);
         
         try {
-            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            context.getLogger().log("Connection pool status: " + poolManager.getPoolStats());
-            context.getLogger().log("Connection pool healthy: " + poolManager.isHealthy());
-        } catch (Exception e) {
-            context.getLogger().log("Warning: Could not get pool stats: " + e.getMessage());
-        }
-        
-        try {
+            logger.info("Starting roles retrieval process");
+            
             List<Role> roles = ROLE_SERVICE.getAllRoles();
+            logger.info("Retrieved {} roles successfully", roles.size());
             
             List<RoleResponseDTO> responseDTOs = DTOMapper.toRoleResponseDTOList(roles);
-            
-            context.getLogger().log("Retrieved " + roles.size() + " roles successfully");
-            
-            try {
-                ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-                context.getLogger().log("Final connection pool status: " + poolManager.getPoolStats());
-            } catch (Exception e) {
-                context.getLogger().log("Warning: Could not get final pool stats: " + e.getMessage());
-            }
+            logger.debug("Mapped {} roles to response DTOs", responseDTOs.size());
             
             return ResponseUtil.createResponse(200, responseDTOs);
             
         } catch (DatabaseException e) {
-            context.getLogger().log("Database error for request " + requestId + ": " + e.getMessage());
-            try {
-                ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-                context.getLogger().log("Connection pool status on error: " + poolManager.getPoolStats());
-                context.getLogger().log("Connection pool healthy on error: " + poolManager.isHealthy());
-            } catch (Exception poolException) {
-                context.getLogger().log("Could not get pool stats on error: " + poolException.getMessage());
-            }
+            logger.error("Database error occurred", e);
             return ResponseUtil.createErrorResponse(500, "Internal server error");
         } catch (Exception e) {
-            context.getLogger().log("Unexpected error for request " + requestId + ": " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Unexpected error occurred", e);
             return ResponseUtil.createErrorResponse(500, "Internal server error");
+        } finally {
+            MDC.clear();
         }
     }
 }

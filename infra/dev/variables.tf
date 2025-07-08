@@ -65,6 +65,34 @@ variable "lambdas" {
       route_key = "DELETE /project/{id}"
     },
 
+    # === Role Lambdas ===
+
+    create_role = {
+      handler   = "com.lambdas.handler.CreateRoleHandler::handleRequest"
+      jar_path  = "functions/role/role-1.0-SNAPSHOT.jar"
+      route_key = "POST /role"
+    },
+    get_roles = {
+      handler   = "com.lambdas.handler.GetRolesHandler::handleRequest"
+      jar_path  = "functions/role/role-1.0-SNAPSHOT.jar"
+      route_key = "GET /role"
+    },
+    get_role_by_id = {
+      handler   = "com.lambdas.handler.GetRoleByIdHandler::handleRequest"
+      jar_path  = "functions/role/role-1.0-SNAPSHOT.jar"
+      route_key = "GET /role/{id}"
+    },
+    update_role = {
+      handler   = "com.lambdas.handler.UpdateRoleHandler::handleRequest"
+      jar_path  = "functions/role/role-1.0-SNAPSHOT.jar"
+      route_key = "PUT /role/{id}"
+    },
+    delete_role = {
+      handler   = "com.lambdas.handler.DeleteRoleHandler::handleRequest"
+      jar_path  = "functions/role/role-1.0-SNAPSHOT.jar"
+      route_key = "DELETE /role/{id}"
+    },
+
     # === Others Lambdas ===
   }
 }

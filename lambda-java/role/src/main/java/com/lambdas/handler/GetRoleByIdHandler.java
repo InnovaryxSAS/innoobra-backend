@@ -8,71 +8,58 @@ import com.lambdas.dto.response.RoleResponseDTO;
 import com.lambdas.exception.DatabaseException;
 import com.lambdas.mapper.DTOMapper;
 import com.lambdas.model.Role;
-import com.lambdas.repository.ConnectionPoolManager;
 import com.lambdas.service.RoleService;
 import com.lambdas.util.ResponseUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.util.Optional;
 
 public class GetRoleByIdHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
     
+    private static final Logger logger = LoggerFactory.getLogger(GetRoleByIdHandler.class);
     private static final RoleService ROLE_SERVICE = new RoleService();
     
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
-        context.getLogger().log("Processing request: " + requestId);
+        MDC.put("requestId", requestId);
         
         try {
-            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            context.getLogger().log("Connection pool status: " + poolManager.getPoolStats());
-            context.getLogger().log("Connection pool healthy: " + poolManager.isHealthy());
-        } catch (Exception e) {
-            context.getLogger().log("Warning: Could not get pool stats: " + e.getMessage());
-        }
-        
-        try {
+            logger.info("Starting role retrieval by ID process");
+            
             String roleId = input.getPathParameters().get("id");
             if (roleId == null || roleId.trim().isEmpty()) {
+                logger.warn("Role ID is missing or empty");
                 return ResponseUtil.createErrorResponse(400, "Role ID is required");
             }
             
-            context.getLogger().log("Retrieving role by ID: " + roleId);
+            MDC.put("roleId", roleId);
+            logger.debug("Processing retrieval for role ID: {}", roleId);
             
             Optional<Role> roleOpt = ROLE_SERVICE.getRoleById(roleId);
             
             if (roleOpt.isPresent()) {
+                logger.info("Role retrieved successfully with ID: {}", roleId);
+                
                 RoleResponseDTO responseDTO = DTOMapper.toRoleResponseDTO(roleOpt.get());
-                
-                context.getLogger().log("Role retrieved successfully: " + roleId);
-                
-                try {
-                    ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-                    context.getLogger().log("Final connection pool status: " + poolManager.getPoolStats());
-                } catch (Exception e) {
-                    context.getLogger().log("Warning: Could not get final pool stats: " + e.getMessage());
-                }
+                logger.debug("Mapped Role entity to response DTO");
                 
                 return ResponseUtil.createResponse(200, responseDTO);
             } else {
-                context.getLogger().log("Role not found: " + roleId);
+                logger.warn("Role not found with ID: {}", roleId);
                 return ResponseUtil.createErrorResponse(404, "Role not found");
             }
             
         } catch (DatabaseException e) {
-            context.getLogger().log("Database error for request " + requestId + ": " + e.getMessage());
-            try {
-                ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-                context.getLogger().log("Connection pool status on error: " + poolManager.getPoolStats());
-                context.getLogger().log("Connection pool healthy on error: " + poolManager.isHealthy());
-            } catch (Exception poolException) {
-                context.getLogger().log("Could not get pool stats on error: " + poolException.getMessage());
-            }
+            logger.error("Database error occurred", e);
             return ResponseUtil.createErrorResponse(500, "Internal server error");
         } catch (Exception e) {
-            context.getLogger().log("Unexpected error for request " + requestId + ": " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Unexpected error occurred", e);
             return ResponseUtil.createErrorResponse(500, "Internal server error");
+        } finally {
+            MDC.clear();
         }
     }
 }

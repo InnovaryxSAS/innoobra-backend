@@ -1,47 +1,64 @@
 package com.lambdas.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.lambdas.validation.annotations.ProjectStatusValid;
+import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 
 public class UpdateProjectRequestDTO {
 
     @JsonProperty("name")
+    @Size(min = 1, max = 100, message = "Project name must be between 1 and 100 characters")
     private String name;
 
     @JsonProperty("description")
+    @Size(min = 1, max = 500, message = "Project description must be between 1 and 500 characters")
     private String description;
 
     @JsonProperty("address")
+    @Size(max = 150, message = "Address cannot exceed 150 characters")
     private String address;
 
     @JsonProperty("city")
+    @Size(min = 1, max = 50, message = "City must be between 1 and 50 characters")
     private String city;
 
     @JsonProperty("state")
+    @Size(min = 1, max = 100, message = "State must be between 1 and 100 characters")
     private String state;
 
     @JsonProperty("country")
+    @Pattern(regexp = "^[A-Z]{2,3}$", message = "Country must be a 2 or 3 letter uppercase code")
+    @Size(min = 2, max = 3, message = "Country code must be 2 or 3 characters")
     private String country;
 
     @JsonProperty("status")
+    @ProjectStatusValid
     private String status;
 
     @JsonProperty("responsibleUser")
+    @Size(max = 255, message = "Responsible user cannot exceed 255 characters")
     private String responsibleUser;
 
     @JsonProperty("dataSource")
+    @Size(max = 255, message = "Data source cannot exceed 255 characters")
     private String dataSource;
 
     @JsonProperty("company")
+    @Size(max = 255, message = "Company cannot exceed 255 characters")
     private String company;
 
     @JsonProperty("createdBy")
+    @Size(max = 255, message = "Created by cannot exceed 255 characters")
     private String createdBy;
 
     @JsonProperty("budget")
+    @DecimalMin(value = "0.00", message = "Budget must be greater than or equal to 0")
+    @Digits(integer = 13, fraction = 2, message = "Budget must have at most 13 integer digits and 2 decimal places")
     private BigDecimal budget;
 
     @JsonProperty("inventory")
+    @Size(min = 1, max = 500, message = "Inventory must be between 1 and 500 characters")
     private String inventory;
 
     // Default constructor
@@ -153,7 +170,7 @@ public class UpdateProjectRequestDTO {
         this.inventory = inventory;
     }
 
-        public static class Builder {
+    public static class Builder {
         private final UpdateProjectRequestDTO dto;
 
         public Builder() {
@@ -230,7 +247,6 @@ public class UpdateProjectRequestDTO {
         }
     }
 
-    // Método de acceso para iniciar el builder
     public static Builder builder() {
         return new Builder();
     }

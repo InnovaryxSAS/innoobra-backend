@@ -6,7 +6,7 @@ import java.util.Optional;
 import com.lambdas.model.Role;
 import com.lambdas.model.RoleStatus;
 import com.lambdas.repository.RoleRepository;
-import com.lambdas.util.ValidationUtil;
+import com.lambdas.util.ValidationHelper;
 
 public class RoleService {
     
@@ -21,7 +21,7 @@ public class RoleService {
     }
     
     public Role createRole(Role role) {
-        ValidationUtil.validateRoleForCreation(role);
+        ValidationHelper.validateAndThrow(role);
         return repository.save(role);
     }
     
@@ -34,7 +34,7 @@ public class RoleService {
     }
     
     public Role updateRole(Role role) {
-        ValidationUtil.validateRoleForUpdate(role);
+        ValidationHelper.validateAndThrow(role);
         return repository.update(role);
     }
     
@@ -50,22 +50,10 @@ public class RoleService {
         return repository.findByName(name);
     }
     
-    public boolean activateRole(String id) {
-        return repository.activate(id);
-    }
-    
     public boolean deactivateRole(String id) {
         return repository.deactivate(id);
     }
-    
-    public boolean suspendRole(String id) {
-        return repository.suspend(id);
-    }
-    
-    public boolean setPendingRole(String id) {
-        return repository.setPending(id);
-    }
-    
+
     public long countRoles() {
         return repository.count();
     }

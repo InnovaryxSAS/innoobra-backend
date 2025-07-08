@@ -8,11 +8,11 @@ import com.lambdas.dto.request.UpdateRoleRequestDTO;
 import com.lambdas.dto.response.RoleResponseDTO;
 import com.lambdas.model.Role;
 import com.lambdas.model.RoleStatus;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DTOMapper {
+
+    private DTOMapper() {
+    }
 
     public static Role toRole(CreateRoleRequestDTO dto) {
         if (dto == null) {
@@ -23,7 +23,7 @@ public class DTOMapper {
                 .idRole(dto.getIdRole())
                 .name(dto.getName())
                 .description(dto.getDescription())
-                .status(dto.getStatus() != null ? dto.getStatus() : RoleStatus.ACTIVE)
+                .status(RoleStatus.ACTIVE)
                 .build();
     }
 
@@ -32,37 +32,37 @@ public class DTOMapper {
             return existingRole;
         }
 
-        return Role.builder()
+        Role.Builder builder = Role.builder()
                 .idRole(existingRole.getIdRole())
                 .createdAt(existingRole.getCreatedAt())
-                .name(dto.getName() != null ? dto.getName() : existingRole.getName())
-                .description(dto.getDescription() != null ? dto.getDescription() : existingRole.getDescription())
-                .status(dto.getStatus() != null ? dto.getStatus() : existingRole.getStatus())
-                .fromDatabase()
-                .build();
-    }
+                .fromDatabase();
 
-    public static Role updateRoleUsingSetters(Role existingRole, UpdateRoleRequestDTO dto) {
-        if (existingRole == null || dto == null) {
-            return existingRole;
-        }
+        builder.name(dto.getName() != null ? dto.getName() : existingRole.getName());
+        builder.description(dto.getDescription() != null ? dto.getDescription() : existingRole.getDescription());
 
-        if (dto.getName() != null) {
-            existingRole.setName(dto.getName());
-        }
-        if (dto.getDescription() != null) {
-            existingRole.setDescription(dto.getDescription());
-        }
         if (dto.getStatus() != null) {
-            existingRole.setStatus(dto.getStatus());
+            try {
+                RoleStatus status = RoleStatus.fromValue(dto.getStatus());
+                builder.status(status);
+            } catch (IllegalArgumentException e) {
+                builder.status(existingRole.getStatus());
+            }
+        } else {
+            builder.status(existingRole.getStatus());
         }
 
-        return existingRole;
+        return builder.build();
     }
 
     public static RoleResponseDTO toRoleResponseDTO(Role role) {
         if (role == null) {
             return null;
+        }
+
+        // Fix: Extract the status value separately to avoid type confusion
+        String statusValue = null;
+        if (role.getStatus() != null) {
+            statusValue = role.getStatus().getValue();
         }
 
         return RoleResponseDTO.builder()
@@ -71,7 +71,7 @@ public class DTOMapper {
                 .description(role.getDescription())
                 .createdAt(role.getCreatedAt())
                 .updatedAt(role.getUpdatedAt())
-                .status(role.getStatus())
+                .status(statusValue)
                 .build();
     }
 

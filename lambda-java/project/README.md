@@ -12,7 +12,7 @@ Se desarrollaron las siguientes funciones Lambda:
 - getProjects: Lista todos los proyectos existentes.
 - getProjectById: Obtiene los detalles de un proyecto mediante su ID.
 - updateProject: Actualiza los campos editables de un proyecto existente.
-- deleteProject: Elimina lógicamente un proyecto por su ID.
+- deleteProject: Elimina un proyecto por su ID.
 - Activaciones y cambios de estado: Permite activar, desactivar, suspender, completar, cancelar o marcar como pendiente un proyecto.
 
 ---

@@ -34,14 +34,26 @@ public class ResponseUtil {
         errorBody.put("error", message);
         errorBody.put("statusCode", String.valueOf(statusCode));
         
+        return createResponse(statusCode, errorBody);
+    }
+    
+    public static APIGatewayProxyResponseEvent createErrorResponse(int statusCode, Object errorObject) {
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
         response.setStatusCode(statusCode);
         response.setHeaders(createHeaders());
         
         try {
-            response.setBody(objectMapper.writeValueAsString(errorBody));
+            response.setBody(objectMapper.writeValueAsString(errorObject));
         } catch (JsonProcessingException e) {
-            response.setBody("{\"error\":\"Internal server error\",\"statusCode\":\"500\"}");
+            Map<String, String> errorBody = new HashMap<>();
+            errorBody.put("error", "Internal server error");
+            errorBody.put("statusCode", String.valueOf(statusCode));
+            
+            try {
+                response.setBody(objectMapper.writeValueAsString(errorBody));
+            } catch (JsonProcessingException ex) {
+                response.setBody("{\"error\":\"Internal server error\",\"statusCode\":\"" + statusCode + "\"}");
+            }
         }
         
         return response;

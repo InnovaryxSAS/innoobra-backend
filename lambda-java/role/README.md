@@ -12,7 +12,7 @@ Se desarrollaron las siguientes funciones Lambda:
 - getRoles: Lista todos los roles existentes.
 - getRoleById: Obtiene los detalles de un rol mediante su ID.
 - updateRole: Actualiza los campos editables de un rol existente.
-- deleteRole: Elimina logicamente un rol por su ID.
+- deleteRole: Elimina un rol por su ID.
 - Activaciones y cambios de estado: Permite activar, desactivar, suspender o marcar como pendiente un rol.
 
 ---

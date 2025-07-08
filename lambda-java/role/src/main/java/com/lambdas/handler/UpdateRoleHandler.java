@@ -17,12 +17,17 @@ import com.lambdas.model.Role;
 import com.lambdas.repository.ConnectionPoolManager;
 import com.lambdas.service.RoleService;
 import com.lambdas.util.ResponseUtil;
-import com.lambdas.util.ValidationUtil;
+import com.lambdas.util.ValidationHelper;
+import com.lambdas.validation.groups.ValidationGroups;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.util.Optional;
 
 public class UpdateRoleHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
     
+    private static final Logger logger = LoggerFactory.getLogger(UpdateRoleHandler.class);
     private static final RoleService ROLE_SERVICE = new RoleService();
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new JavaTimeModule());
@@ -30,81 +35,102 @@ public class UpdateRoleHandler implements RequestHandler<APIGatewayProxyRequestE
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
-        context.getLogger().log("Processing request: " + requestId);
         
-        try {
-            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            context.getLogger().log("Connection pool status: " + poolManager.getPoolStats());
-            context.getLogger().log("Connection pool healthy: " + poolManager.isHealthy());
-        } catch (Exception e) {
-            context.getLogger().log("Warning: Could not get pool stats: " + e.getMessage());
-        }
+        MDC.put("requestId", requestId);
         
         try {
             String roleId = input.getPathParameters().get("id");
+            
+            MDC.put("roleId", roleId);
+            
+            logger.info("Starting role update process");
+            logConnectionPoolStatus();
+            
             if (roleId == null || roleId.trim().isEmpty()) {
+                logger.warn("Role ID is missing or empty");
                 return ResponseUtil.createErrorResponse(400, "Role ID is required");
             }
             
             if (input.getBody() == null || input.getBody().trim().isEmpty()) {
+                logger.warn("Request body is empty or null");
                 return ResponseUtil.createErrorResponse(400, "Request body is required");
             }
             
             UpdateRoleRequestDTO requestDTO = OBJECT_MAPPER.readValue(input.getBody(), UpdateRoleRequestDTO.class);
-            context.getLogger().log("Parsed update request DTO for role: " + roleId);
+            logger.debug("Parsed update request DTO");
             
-            ValidationUtil.ValidationResult validationResult = ValidationUtil.validateUpdateRoleRequest(requestDTO);
-            if (!validationResult.isValid()) {
-                return ResponseUtil.createErrorResponse(400, validationResult.getErrorsAsString());
-            }
+            ValidationHelper.validateAndThrow(requestDTO, ValidationGroups.Update.class);
+            logger.debug("Request validation passed");
             
             Optional<Role> existingRoleOpt = ROLE_SERVICE.getRoleById(roleId);
             if (!existingRoleOpt.isPresent()) {
+                logger.warn("Role not found for update");
                 return ResponseUtil.createErrorResponse(404, "Role not found");
             }
             
             Role existingRole = existingRoleOpt.get();
+            logger.debug("Retrieved existing role for update");
             
             Role updatedRole = DTOMapper.updateRoleFromDTO(existingRole, requestDTO);
+            logger.debug("Mapped update DTO to Role entity");
             
             Role savedRole = ROLE_SERVICE.updateRole(updatedRole);
+            logger.info("Role updated successfully");
             
             RoleResponseDTO responseDTO = DTOMapper.toRoleResponseDTO(savedRole);
+            logger.debug("Mapped updated Role entity to response DTO");
             
-            context.getLogger().log("Role updated successfully: " + roleId);
-            
-            try {
-                ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-                context.getLogger().log("Final connection pool status: " + poolManager.getPoolStats());
-            } catch (Exception e) {
-                context.getLogger().log("Warning: Could not get final pool stats: " + e.getMessage());
-            }
+            logFinalConnectionPoolStatus();
             
             return ResponseUtil.createResponse(200, responseDTO);
             
         } catch (JsonProcessingException e) {
-            context.getLogger().log("JSON parsing error: " + e.getMessage());
+            logger.error("JSON parsing error: {}", e.getMessage());
             return ResponseUtil.createErrorResponse(400, "Invalid JSON format");
         } catch (ValidationException e) {
-            context.getLogger().log("Validation error: " + e.getMessage());
-            return ResponseUtil.createErrorResponse(400, e.getMessage());
+            logger.warn("Validation error: {}", e.getMessage());
+            return ResponseUtil.createErrorResponse(400, e.toMap());
         } catch (RoleNotFoundException e) {
-            context.getLogger().log("Role not found: " + e.getMessage());
+            logger.warn("Role not found: {}", e.getMessage());
             return ResponseUtil.createErrorResponse(404, e.getMessage());
         } catch (DatabaseException e) {
-            context.getLogger().log("Database error for request " + requestId + ": " + e.getMessage());
-            try {
-                ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-                context.getLogger().log("Connection pool status on error: " + poolManager.getPoolStats());
-                context.getLogger().log("Connection pool healthy on error: " + poolManager.isHealthy());
-            } catch (Exception poolException) {
-                context.getLogger().log("Could not get pool stats on error: " + poolException.getMessage());
-            }
+            logger.error("Database error occurred", e);
+            logConnectionPoolStatusOnError();
             return ResponseUtil.createErrorResponse(500, "Internal server error");
         } catch (Exception e) {
-            context.getLogger().log("Unexpected error for request " + requestId + ": " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Unexpected error occurred", e);
             return ResponseUtil.createErrorResponse(500, "Internal server error");
+        } finally {
+            MDC.clear();
+        }
+    }
+    
+    private void logConnectionPoolStatus() {
+        try {
+            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
+            logger.debug("Connection pool status: {}, healthy: {}", 
+                        poolManager.getPoolStats(), poolManager.isHealthy());
+        } catch (Exception e) {
+            logger.warn("Could not retrieve connection pool status: {}", e.getMessage());
+        }
+    }
+    
+    private void logFinalConnectionPoolStatus() {
+        try {
+            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
+            logger.debug("Final connection pool status: {}", poolManager.getPoolStats());
+        } catch (Exception e) {
+            logger.warn("Could not retrieve final connection pool status: {}", e.getMessage());
+        }
+    }
+    
+    private void logConnectionPoolStatusOnError() {
+        try {
+            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
+            logger.error("Connection pool status on error: {}, healthy: {}", 
+                        poolManager.getPoolStats(), poolManager.isHealthy());
+        } catch (Exception e) {
+            logger.error("Could not retrieve connection pool status on error: {}", e.getMessage());
         }
     }
 }

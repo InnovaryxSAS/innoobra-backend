@@ -12,7 +12,7 @@ Se desarrollaron las siguientes funciones Lambda:
 - getCompanies: Lista todas las compañías existentes.
 - getCompanyById: Obtiene los detalles de una compañía mediante su ID.
 - updateCompany: Actualiza los campos editables de una compañía existente.
-- deleteCompany: Desactiva lógicamente una compañía por su ID.
+- deleteCompany: Elimina una compañía por su ID.
 - Activaciones y cambios de estado: Permite activar, desactivar, suspender o marcar como pendiente una compañía.
 
 ---

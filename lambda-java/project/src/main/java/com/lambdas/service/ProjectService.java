@@ -6,7 +6,7 @@ import java.util.Optional;
 import com.lambdas.model.Project;
 import com.lambdas.model.ProjectStatus;
 import com.lambdas.repository.ProjectRepository;
-import com.lambdas.util.ValidationUtil;
+import com.lambdas.util.ValidationHelper;
 
 public class ProjectService {
     
@@ -21,7 +21,7 @@ public class ProjectService {
     }
     
     public Project createProject(Project project) {
-        ValidationUtil.validateProjectForCreation(project);
+        ValidationHelper.validateAndThrow(project);
         return repository.save(project);
     }
     
@@ -34,7 +34,7 @@ public class ProjectService {
     }
     
     public Project updateProject(Project project) {
-        ValidationUtil.validateProjectForUpdate(project);
+        ValidationHelper.validateAndThrow(project);
         return repository.update(project);
     }
     
@@ -52,13 +52,5 @@ public class ProjectService {
     
     public List<Project> getProjectsByResponsibleUser(String userId) {
         return repository.findByResponsibleUser(userId);
-    }
-    
-    public boolean completeProject(String id) {
-        return repository.complete(id);
-    }
-    
-    public boolean cancelProject(String id) {
-        return repository.cancel(id);
     }
 }

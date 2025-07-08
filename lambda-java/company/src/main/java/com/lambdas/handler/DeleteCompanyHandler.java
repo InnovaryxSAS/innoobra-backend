@@ -7,67 +7,60 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.lambdas.dto.response.DeleteResponseDTO;
 import com.lambdas.exception.CompanyNotFoundException;
 import com.lambdas.exception.DatabaseException;
-import com.lambdas.repository.ConnectionPoolManager;
 import com.lambdas.service.CompanyService;
 import com.lambdas.util.ResponseUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 public class DeleteCompanyHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
     
+    private static final Logger logger = LoggerFactory.getLogger(DeleteCompanyHandler.class);
     private static final CompanyService COMPANY_SERVICE = new CompanyService();
     
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
-        context.getLogger().log("Processing request: " + requestId);
+        MDC.put("requestId", requestId);
         
         try {
-            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            context.getLogger().log("Connection pool status: " + poolManager.getPoolStats());
-            context.getLogger().log("Connection pool healthy: " + poolManager.isHealthy());
-        } catch (Exception e) {
-            context.getLogger().log("Warning: Could not get pool stats: " + e.getMessage());
-        }
-        
-        try {
+            logger.info("Starting company deletion process");
+            
             String companyId = input.getPathParameters().get("id");
             if (companyId == null || companyId.trim().isEmpty()) {
+                logger.warn("Company ID is missing or empty");
                 return ResponseUtil.createErrorResponse(400, "Company ID is required");
             }
             
-            context.getLogger().log("Attempting to delete company: " + companyId);
+            MDC.put("companyId", companyId);
+            logger.debug("Processing deletion for company ID: {}", companyId);
             
             boolean deleted = COMPANY_SERVICE.deleteCompany(companyId);
             
             if (deleted) {
+                logger.info("Company deleted successfully with ID: {}", companyId);
+                
                 DeleteResponseDTO responseDTO = new DeleteResponseDTO.Builder()
                         .message("Company successfully deactivated")
                         .companyId(companyId)
                         .success(true)
                         .build();
                 
-                context.getLogger().log("Company deleted successfully: " + companyId);
-                
-                try {
-                    ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-                    context.getLogger().log("Final connection pool status: " + poolManager.getPoolStats());
-                } catch (Exception e) {
-                    context.getLogger().log("Warning: Could not get final pool stats: " + e.getMessage());
-                }
-                
                 return ResponseUtil.createResponse(200, responseDTO);
             } else {
+                logger.warn("Company not found for deletion with ID: {}", companyId);
+                
                 DeleteResponseDTO responseDTO = new DeleteResponseDTO.Builder()
                         .message("Company not found")
                         .companyId(companyId)
                         .success(false)
                         .build();
                 
-                context.getLogger().log("Company not found for deletion: " + companyId);
                 return ResponseUtil.createResponse(404, responseDTO);
             }
             
         } catch (CompanyNotFoundException e) {
-            context.getLogger().log("Company not found: " + e.getMessage());
+            logger.warn("Company not found: {}", e.getMessage());
             
             DeleteResponseDTO responseDTO = new DeleteResponseDTO.Builder()
                     .message(e.getMessage())
@@ -77,19 +70,13 @@ public class DeleteCompanyHandler implements RequestHandler<APIGatewayProxyReque
                     
             return ResponseUtil.createResponse(404, responseDTO);
         } catch (DatabaseException e) {
-            context.getLogger().log("Database error for request " + requestId + ": " + e.getMessage());
-            try {
-                ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-                context.getLogger().log("Connection pool status on error: " + poolManager.getPoolStats());
-                context.getLogger().log("Connection pool healthy on error: " + poolManager.isHealthy());
-            } catch (Exception poolException) {
-                context.getLogger().log("Could not get pool stats on error: " + poolException.getMessage());
-            }
+            logger.error("Database error occurred", e);
             return ResponseUtil.createErrorResponse(500, "Internal server error");
         } catch (Exception e) {
-            context.getLogger().log("Unexpected error for request " + requestId + ": " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Unexpected error occurred", e);
             return ResponseUtil.createErrorResponse(500, "Internal server error");
+        } finally {
+            MDC.clear();
         }
     }
 }

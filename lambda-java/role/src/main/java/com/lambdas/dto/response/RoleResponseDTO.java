@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import com.lambdas.model.RoleStatus;
 
 import java.time.LocalDateTime;
 
@@ -31,7 +30,7 @@ public class RoleResponseDTO {
     private LocalDateTime updatedAt;
 
     @JsonProperty("status")
-    private RoleStatus status;
+    private String status; 
 
     // Default constructor
     public RoleResponseDTO() {
@@ -41,7 +40,7 @@ public class RoleResponseDTO {
     public static class Builder {
         private String idRole, name, description;
         private LocalDateTime createdAt, updatedAt;
-        private RoleStatus status;
+        private String status; 
 
         public Builder idRole(String idRole) {
             this.idRole = idRole;
@@ -68,7 +67,7 @@ public class RoleResponseDTO {
             return this;
         }
 
-        public Builder status(RoleStatus status) {
+        public Builder status(String status) {
             this.status = status;
             return this;
         }
@@ -130,11 +129,11 @@ public class RoleResponseDTO {
         this.updatedAt = updatedAt;
     }
 
-    public RoleStatus getStatus() {
+    public String getStatus() { 
         return status;
     }
 
-    public void setStatus(RoleStatus status) {
+    public void setStatus(String status) { 
         this.status = status;
     }
 
@@ -144,7 +143,7 @@ public class RoleResponseDTO {
                 "idRole='" + idRole + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", status=" + status +
+                ", status='" + status + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
