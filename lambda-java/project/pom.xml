@@ -20,6 +20,14 @@
     <lambda.main.class>com.lambdas.project.ProjectHandler</lambda.main.class>
   </properties>
 
+  <dependencies>
+    <dependency>
+      <groupId>com.lambdas</groupId>
+      <artifactId>common</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+
   <build>
     <plugins>
       <plugin>

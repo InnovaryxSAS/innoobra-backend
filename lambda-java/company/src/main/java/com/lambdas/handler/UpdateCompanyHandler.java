@@ -16,44 +16,52 @@ import com.lambdas.mapper.DTOMapper;
 import com.lambdas.model.Company;
 import com.lambdas.repository.ConnectionPoolManager;
 import com.lambdas.service.CompanyService;
+import com.lambdas.service.impl.CompanyServiceImpl;
+import com.lambdas.util.HttpStatus;
+import com.lambdas.util.LoggingHelper;
 import com.lambdas.util.ResponseUtil;
 import com.lambdas.util.ValidationHelper;
 import com.lambdas.validation.groups.ValidationGroups;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import java.util.Optional;
 
 public class UpdateCompanyHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
-    private static final Logger logger = LoggerFactory.getLogger(UpdateCompanyHandler.class);
-    private static final CompanyService COMPANY_SERVICE = new CompanyService();
+    private static final Logger logger = LoggingHelper.getLogger(UpdateCompanyHandler.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new JavaTimeModule());
+
+    private final CompanyService companyService;
+
+    public UpdateCompanyHandler() {
+        this.companyService = new CompanyServiceImpl();
+    }
+
+    // Constructor para inyección de dependencias (útil para testing)
+    public UpdateCompanyHandler(CompanyService companyService) {
+        this.companyService = companyService;
+    }
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
-
-        MDC.put("requestId", requestId);
+        LoggingHelper.initializeRequestContext(requestId);
 
         try {
             String companyId = input.getPathParameters().get("id");
-
-            MDC.put("companyId", companyId);
-
-            logger.info("Starting company update process");
-            logConnectionPoolStatus();
-
             if (companyId == null || companyId.trim().isEmpty()) {
-                logger.warn("Company ID is missing or empty");
-                return ResponseUtil.createErrorResponse(400, "Company ID is required");
+                LoggingHelper.logMissingParameter(logger, "Company ID");
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Company ID is required");
             }
 
+            LoggingHelper.addCompanyId(companyId);
+            LoggingHelper.logProcessStart(logger, "company update");
+            logConnectionPoolStatus();
+
             if (input.getBody() == null || input.getBody().trim().isEmpty()) {
-                logger.warn("Request body is empty or null");
-                return ResponseUtil.createErrorResponse(400, "Request body is required");
+                LoggingHelper.logEmptyRequestBody(logger);
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Request body is required");
             }
 
             UpdateCompanyRequestDTO requestDTO = OBJECT_MAPPER.readValue(input.getBody(),
@@ -61,43 +69,43 @@ public class UpdateCompanyHandler implements RequestHandler<APIGatewayProxyReque
 
             ValidationHelper.validateAndThrow(requestDTO, ValidationGroups.Update.class);
 
-            Optional<Company> existingCompanyOpt = COMPANY_SERVICE.getCompanyById(companyId);
+            Optional<Company> existingCompanyOpt = companyService.getCompanyById(companyId);
             if (!existingCompanyOpt.isPresent()) {
-                logger.warn("Company not found for update");
-                return ResponseUtil.createErrorResponse(404, "Company not found");
+                LoggingHelper.logEntityNotFound(logger, "Company", companyId);
+                return ResponseUtil.createErrorResponse(HttpStatus.NOT_FOUND, "Company not found");
             }
 
             Company existingCompany = existingCompanyOpt.get();
 
             Company updatedCompany = DTOMapper.updateCompanyFromDTO(existingCompany, requestDTO);
+            Company savedCompany = companyService.updateCompany(updatedCompany);
 
-            Company savedCompany = COMPANY_SERVICE.updateCompany(updatedCompany);
-            logger.info("Company updated successfully");
+            LoggingHelper.logSuccess(logger, "Company update", companyId);
 
             CompanyResponseDTO responseDTO = DTOMapper.toResponseDTO(savedCompany);
 
             logFinalConnectionPoolStatus();
 
-            return ResponseUtil.createResponse(200, responseDTO);
+            return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
 
         } catch (JsonProcessingException e) {
-            logger.error("JSON parsing error: {}", e.getMessage());
-            return ResponseUtil.createErrorResponse(400, "Invalid JSON format");
+            LoggingHelper.logJsonParsingError(logger, e.getMessage());
+            return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Invalid JSON format");
         } catch (ValidationException e) {
-            logger.warn("Validation error: {}", e.getMessage());
-            return ResponseUtil.createErrorResponse(400, e.toMap());
+            LoggingHelper.logValidationError(logger, e.getMessage());
+            return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, e.toMap());
         } catch (CompanyNotFoundException e) {
-            logger.warn("Company not found: {}", e.getMessage());
-            return ResponseUtil.createErrorResponse(404, e.getMessage());
+            LoggingHelper.logEntityNotFound(logger, "Company", e.getMessage());
+            return ResponseUtil.createErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (DatabaseException e) {
-            logger.error("Database error occurred", e);
+            LoggingHelper.logDatabaseError(logger, e.getMessage(), e);
             logConnectionPoolStatusOnError();
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } catch (Exception e) {
-            logger.error("Unexpected error occurred", e);
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            LoggingHelper.logUnexpectedError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } finally {
-            MDC.clear();
+            LoggingHelper.clearContext();
         }
     }
 
@@ -107,7 +115,8 @@ public class UpdateCompanyHandler implements RequestHandler<APIGatewayProxyReque
             poolManager.getPoolStats();
             poolManager.isHealthy();
         } catch (Exception e) {
-            logger.warn("Could not retrieve connection pool status: {}", e.getMessage());
+            LoggingHelper.logConnectionPoolWarning(logger,
+                    "Could not retrieve connection pool status: " + e.getMessage());
         }
     }
 
@@ -115,17 +124,19 @@ public class UpdateCompanyHandler implements RequestHandler<APIGatewayProxyReque
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
         } catch (Exception e) {
-            logger.warn("Could not retrieve final connection pool status: {}", e.getMessage());
+            LoggingHelper.logConnectionPoolWarning(logger,
+                    "Could not retrieve final connection pool status: " + e.getMessage());
         }
     }
 
     private void logConnectionPoolStatusOnError() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.error("Connection pool status on error: {}, healthy: {}",
-                    poolManager.getPoolStats(), poolManager.isHealthy());
+            LoggingHelper.logConnectionPoolError(logger, poolManager.getPoolStats().toString(),
+                    poolManager.isHealthy());
         } catch (Exception e) {
-            logger.error("Could not retrieve connection pool status on error: {}", e.getMessage());
+            LoggingHelper.logConnectionPoolWarning(logger,
+                    "Could not retrieve connection pool status on error: " + e.getMessage());
         }
     }
 }

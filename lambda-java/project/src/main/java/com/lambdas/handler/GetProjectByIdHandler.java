@@ -10,60 +10,68 @@ import com.lambdas.mapper.DTOMapper;
 import com.lambdas.model.Project;
 import com.lambdas.repository.ConnectionPoolManager;
 import com.lambdas.service.ProjectService;
+import com.lambdas.service.impl.ProjectServiceImpl;
+import com.lambdas.util.HttpStatus;
+import com.lambdas.util.LoggingHelper;
 import com.lambdas.util.ResponseUtil;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import java.util.Optional;
 
-public class GetProjectByIdHandler
-        implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+public class GetProjectByIdHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
-    private static final Logger logger = LoggerFactory.getLogger(GetProjectByIdHandler.class);
-    private static final ProjectService PROJECT_SERVICE = new ProjectService();
+    private static final Logger logger = LoggingHelper.getLogger(GetProjectByIdHandler.class);
+
+    private final ProjectService projectService;
+
+    public GetProjectByIdHandler() {
+        this.projectService = new ProjectServiceImpl();
+    }
+
+    // Constructor para inyección de dependencias (útil para testing)
+    public GetProjectByIdHandler(ProjectService projectService) {
+        this.projectService = projectService;
+    }
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
-        MDC.put("requestId", requestId);
+        LoggingHelper.initializeRequestContext(requestId);
 
         try {
-            logger.info("Starting project retrieval by ID process");
-            logConnectionPoolStatus();
-
             String projectId = input.getPathParameters().get("id");
             if (projectId == null || projectId.trim().isEmpty()) {
-                logger.warn("Project ID is missing or empty");
-                return ResponseUtil.createErrorResponse(400, "Project ID is required");
+                LoggingHelper.logMissingParameter(logger, "Project ID");
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Project ID is required");
             }
 
-            MDC.put("projectId", projectId);
+            LoggingHelper.logProcessStart(logger, "project retrieval by ID");
+            logConnectionPoolStatus();
 
-            Optional<Project> projectOpt = PROJECT_SERVICE.getProjectById(projectId);
+            Optional<Project> projectOpt = projectService.getProjectById(projectId);
 
             if (projectOpt.isPresent()) {
-                logger.info("Project retrieved successfully with ID: {}", projectId);
+                LoggingHelper.logSuccess(logger, "Project retrieval", projectId);
 
                 ProjectResponseDTO responseDTO = DTOMapper.toProjectResponseDTO(projectOpt.get());
 
                 logFinalConnectionPoolStatus();
 
-                return ResponseUtil.createResponse(200, responseDTO);
+                return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
             } else {
-                logger.warn("Project not found with ID: {}", projectId);
-                return ResponseUtil.createErrorResponse(404, "Project not found");
+                LoggingHelper.logEntityNotFound(logger, "Project", projectId);
+                return ResponseUtil.createErrorResponse(HttpStatus.NOT_FOUND, "Project not found");
             }
 
         } catch (DatabaseException e) {
-            logger.error("Database error occurred", e);
+            LoggingHelper.logDatabaseError(logger, e.getMessage(), e);
             logConnectionPoolStatusOnError();
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } catch (Exception e) {
-            logger.error("Unexpected error occurred", e);
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            LoggingHelper.logUnexpectedError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } finally {
-            MDC.clear();
+            LoggingHelper.clearContext();
         }
     }
 
@@ -73,7 +81,8 @@ public class GetProjectByIdHandler
             poolManager.getPoolStats();
             poolManager.isHealthy();
         } catch (Exception e) {
-            logger.warn("Could not retrieve connection pool status: {}", e.getMessage());
+            LoggingHelper.logConnectionPoolWarning(logger,
+                    "Could not retrieve connection pool status: " + e.getMessage());
         }
     }
 
@@ -81,17 +90,19 @@ public class GetProjectByIdHandler
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
         } catch (Exception e) {
-            logger.warn("Could not retrieve final connection pool status: {}", e.getMessage());
+            LoggingHelper.logConnectionPoolWarning(logger,
+                    "Could not retrieve final connection pool status: " + e.getMessage());
         }
     }
 
     private void logConnectionPoolStatusOnError() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.error("Connection pool status on error: {}, healthy: {}",
-                    poolManager.getPoolStats(), poolManager.isHealthy());
+            LoggingHelper.logConnectionPoolError(logger, poolManager.getPoolStats().toString(),
+                    poolManager.isHealthy());
         } catch (Exception e) {
-            logger.error("Could not retrieve connection pool status on error: {}", e.getMessage());
+            LoggingHelper.logConnectionPoolWarning(logger,
+                    "Could not retrieve connection pool status on error: " + e.getMessage());
         }
     }
 }

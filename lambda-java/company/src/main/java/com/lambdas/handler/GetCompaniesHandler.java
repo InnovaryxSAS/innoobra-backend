@@ -9,41 +9,52 @@ import com.lambdas.exception.DatabaseException;
 import com.lambdas.mapper.DTOMapper;
 import com.lambdas.model.Company;
 import com.lambdas.service.CompanyService;
+import com.lambdas.service.impl.CompanyServiceImpl;
+import com.lambdas.util.HttpStatus;
+import com.lambdas.util.LoggingHelper;
 import com.lambdas.util.ResponseUtil;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import java.util.List;
 
 public class GetCompaniesHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
     
-    private static final Logger logger = LoggerFactory.getLogger(GetCompaniesHandler.class);
-    private static final CompanyService COMPANY_SERVICE = new CompanyService();
+    private static final Logger logger = LoggingHelper.getLogger(GetCompaniesHandler.class);
+
+    private final CompanyService companyService;
+
+    public GetCompaniesHandler() {
+        this.companyService = new CompanyServiceImpl();
+    }
+
+    // Constructor para inyección de dependencias (útil para testing)
+    public GetCompaniesHandler(CompanyService companyService) {
+        this.companyService = companyService;
+    }
     
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
-        MDC.put("requestId", requestId);
+        LoggingHelper.initializeRequestContext(requestId);
         
         try {
-            logger.info("Starting companies retrieval process");
+            LoggingHelper.logProcessStart(logger, "companies retrieval");
             
-            List<Company> companies = COMPANY_SERVICE.getAllCompanies();
-            logger.info("Retrieved {} companies successfully", companies.size());
+            List<Company> companies = companyService.getAllCompanies();
+            LoggingHelper.logSuccessWithCount(logger, "Companies retrieval", companies.size());
             
             List<CompanyResponseDTO> responseDTOs = DTOMapper.toResponseDTOList(companies);
             
-            return ResponseUtil.createResponse(200, responseDTOs);
+            return ResponseUtil.createResponse(HttpStatus.OK, responseDTOs);
             
         } catch (DatabaseException e) {
-            logger.error("Database error occurred", e);
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            LoggingHelper.logDatabaseError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } catch (Exception e) {
-            logger.error("Unexpected error occurred", e);
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            LoggingHelper.logUnexpectedError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } finally {
-            MDC.clear();
+            LoggingHelper.clearContext();
         }
     }
 }

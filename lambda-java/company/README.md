@@ -52,7 +52,7 @@ lambda-java/
     ├── model/           <- Entidades del dominio (Company, CompanyStatus)
     ├── repository/      <- Acceso a base de datos con JDBC
     ├── service/         <- Lógica de negocio
-    ├── util/            <- Utilidades y validaciones
+    ├── validadation/    <- validaciones
     └── test/            <- Pruebas automatizadas
 ```
 

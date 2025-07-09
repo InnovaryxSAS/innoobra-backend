@@ -39,6 +39,8 @@
   <modules>
     <module>company</module>
     <module>project</module>
+    <module>role</module>
+    <module>common</module>
   </modules>
 
   <dependencies>

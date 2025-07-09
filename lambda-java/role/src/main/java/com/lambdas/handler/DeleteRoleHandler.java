@@ -7,75 +7,86 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.lambdas.dto.response.DeleteRoleResponseDTO;
 import com.lambdas.exception.RoleNotFoundException;
 import com.lambdas.exception.DatabaseException;
+import com.lambdas.service.impl.RoleServiceImpl;
 import com.lambdas.service.RoleService;
+import com.lambdas.util.HttpStatus;
+import com.lambdas.util.LoggingHelper;
 import com.lambdas.util.ResponseUtil;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 public class DeleteRoleHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
-    
-    private static final Logger logger = LoggerFactory.getLogger(DeleteRoleHandler.class);
-    private static final RoleService ROLE_SERVICE = new RoleService();
-    
+
+    private static final Logger logger = LoggingHelper.getLogger(DeleteRoleHandler.class);
+
+    private final RoleService roleService;
+
+    public DeleteRoleHandler() {
+        this.roleService = new RoleServiceImpl();
+    }
+
+    // Constructor para inyección de dependencias (útil para testing)
+    public DeleteRoleHandler(RoleService roleService) {
+        this.roleService = roleService;
+    }
+
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
-        MDC.put("requestId", requestId);
-        
+        LoggingHelper.initializeRequestContext(requestId);
+
         try {
-            logger.info("Starting role deletion process");
-            
+            LoggingHelper.logProcessStart(logger, "role deletion");
+
             String roleId = input.getPathParameters().get("id");
             if (roleId == null || roleId.trim().isEmpty()) {
-                logger.warn("Role ID is missing or empty");
-                return ResponseUtil.createErrorResponse(400, "Role ID is required");
+                LoggingHelper.logMissingParameter(logger, "Role ID");
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Role ID is required");
             }
-            
-            MDC.put("roleId", roleId);
-            
-            boolean deleted = ROLE_SERVICE.deactivateRole(roleId);
-            
+
+            LoggingHelper.addUserId(roleId); // Agregamos el roleId al contexto de logging
+
+            boolean deleted = roleService.deactivateRole(roleId);
+
             if (deleted) {
-                logger.info("Role deleted successfully with ID: {}", roleId);
-                
+                LoggingHelper.logSuccess(logger, "Role deletion", roleId);
+
                 DeleteRoleResponseDTO responseDTO = new DeleteRoleResponseDTO.Builder()
                         .message("Role successfully deleted")
                         .roleId(roleId)
                         .success(true)
                         .build();
-                
-                return ResponseUtil.createResponse(200, responseDTO);
+
+                return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
             } else {
-                logger.warn("Role not found for deletion with ID: {}", roleId);
-                
+                LoggingHelper.logEntityNotFound(logger, "Role", roleId);
+
                 DeleteRoleResponseDTO responseDTO = new DeleteRoleResponseDTO.Builder()
                         .message("Role not found")
                         .roleId(roleId)
                         .success(false)
                         .build();
-                
-                return ResponseUtil.createResponse(404, responseDTO);
+
+                return ResponseUtil.createResponse(HttpStatus.NOT_FOUND, responseDTO);
             }
-            
+
         } catch (RoleNotFoundException e) {
-            logger.warn("Role not found: {}", e.getMessage());
-            
+            LoggingHelper.logEntityNotFound(logger, "Role", e.getMessage());
+
             DeleteRoleResponseDTO responseDTO = new DeleteRoleResponseDTO.Builder()
                     .message(e.getMessage())
                     .roleId(input.getPathParameters().get("id"))
                     .success(false)
                     .build();
-                    
-            return ResponseUtil.createResponse(404, responseDTO);
+
+            return ResponseUtil.createResponse(HttpStatus.NOT_FOUND, responseDTO);
         } catch (DatabaseException e) {
-            logger.error("Database error occurred", e);
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            LoggingHelper.logDatabaseError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } catch (Exception e) {
-            logger.error("Unexpected error occurred", e);
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            LoggingHelper.logUnexpectedError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } finally {
-            MDC.clear();
+            LoggingHelper.clearContext();
         }
     }
 }
