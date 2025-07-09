@@ -34,30 +34,31 @@ public class CreateProjectHandler implements RequestHandler<APIGatewayProxyReque
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
         MDC.put("requestId", requestId);
-        
+
         try {
             logger.info("Starting project creation process");
             logConnectionPoolStatus();
-            
+
             if (input.getBody() == null || input.getBody().trim().isEmpty()) {
                 logger.warn("Request body is empty or null");
                 return ResponseUtil.createErrorResponse(400, "Request body is required");
             }
-            
-            CreateProjectRequestDTO requestDTO = OBJECT_MAPPER.readValue(input.getBody(), CreateProjectRequestDTO.class);
-            
+
+            CreateProjectRequestDTO requestDTO = OBJECT_MAPPER.readValue(input.getBody(),
+                    CreateProjectRequestDTO.class);
+
             ValidationHelper.validateAndThrow(requestDTO, ValidationGroups.Create.class);
-            
+
             Project project = DTOMapper.toProject(requestDTO);
-            
+
             Project createdProject = PROJECT_SERVICE.createProject(project);
-            
+
             ProjectResponseDTO responseDTO = DTOMapper.toProjectResponseDTO(createdProject);
-            
+
             logFinalConnectionPoolStatus();
-            
+
             return ResponseUtil.createResponse(201, responseDTO);
-            
+
         } catch (JsonProcessingException e) {
             logger.error("JSON parsing error: {}", e.getMessage());
             return ResponseUtil.createErrorResponse(400, "Invalid JSON format");
@@ -78,16 +79,17 @@ public class CreateProjectHandler implements RequestHandler<APIGatewayProxyReque
             MDC.clear();
         }
     }
-    
+
     private void logConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-                        poolManager.getPoolStats(), poolManager.isHealthy());
+            poolManager.getPoolStats();
+            poolManager.isHealthy();
         } catch (Exception e) {
             logger.warn("Could not retrieve connection pool status: {}", e.getMessage());
         }
     }
-    
+
     private void logFinalConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
@@ -95,12 +97,12 @@ public class CreateProjectHandler implements RequestHandler<APIGatewayProxyReque
             logger.warn("Could not retrieve final connection pool status: {}", e.getMessage());
         }
     }
-    
+
     private void logConnectionPoolStatusOnError() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.error("Connection pool status on error: {}, healthy: {}", 
-                        poolManager.getPoolStats(), poolManager.isHealthy());
+            logger.error("Connection pool status on error: {}, healthy: {}",
+                    poolManager.getPoolStats(), poolManager.isHealthy());
         } catch (Exception e) {
             logger.error("Could not retrieve connection pool status on error: {}", e.getMessage());
         }

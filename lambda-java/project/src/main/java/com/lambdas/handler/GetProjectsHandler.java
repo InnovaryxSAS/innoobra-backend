@@ -18,28 +18,28 @@ import org.slf4j.MDC;
 import java.util.List;
 
 public class GetProjectsHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(GetProjectsHandler.class);
     private static final ProjectService PROJECT_SERVICE = new ProjectService();
-    
+
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
         MDC.put("requestId", requestId);
-        
+
         try {
             logger.info("Starting projects retrieval process");
             logConnectionPoolStatus();
-            
+
             List<Project> projects = PROJECT_SERVICE.getAllProjects();
             logger.info("Retrieved {} projects successfully", projects.size());
-            
+
             List<ProjectResponseDTO> responseDTOs = DTOMapper.toProjectResponseDTOList(projects);
-            
+
             logFinalConnectionPoolStatus();
-            
+
             return ResponseUtil.createResponse(200, responseDTOs);
-            
+
         } catch (DatabaseException e) {
             logger.error("Database error occurred", e);
             logConnectionPoolStatusOnError();
@@ -51,16 +51,17 @@ public class GetProjectsHandler implements RequestHandler<APIGatewayProxyRequest
             MDC.clear();
         }
     }
-    
+
     private void logConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-                        poolManager.getPoolStats(), poolManager.isHealthy());
+            poolManager.getPoolStats();
+            poolManager.isHealthy();
         } catch (Exception e) {
             logger.warn("Could not retrieve connection pool status: {}", e.getMessage());
         }
     }
-    
+
     private void logFinalConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
@@ -68,12 +69,12 @@ public class GetProjectsHandler implements RequestHandler<APIGatewayProxyRequest
             logger.warn("Could not retrieve final connection pool status: {}", e.getMessage());
         }
     }
-    
+
     private void logConnectionPoolStatusOnError() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.error("Connection pool status on error: {}, healthy: {}", 
-                        poolManager.getPoolStats(), poolManager.isHealthy());
+            logger.error("Connection pool status on error: {}, healthy: {}",
+                    poolManager.getPoolStats(), poolManager.isHealthy());
         } catch (Exception e) {
             logger.error("Could not retrieve connection pool status on error: {}", e.getMessage());
         }

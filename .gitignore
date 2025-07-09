@@ -22,6 +22,4 @@ lambda-java/project/template.yaml
 lambda-java/project/events/
 lambda-java/role/template.yaml
 lambda-java/role/events/
-lambda-java/role/target/
-lambda-java/company/target/
-lambda-java/project/target/
+**/target/
