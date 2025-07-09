@@ -103,7 +103,8 @@ public class UpdateRoleHandler implements RequestHandler<APIGatewayProxyRequestE
     private void logConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-                        poolManager.getPoolStats(), poolManager.isHealthy());
+            poolManager.getPoolStats();
+            poolManager.isHealthy();
         } catch (Exception e) {
             logger.warn("Could not retrieve connection pool status: {}", e.getMessage());
         }
