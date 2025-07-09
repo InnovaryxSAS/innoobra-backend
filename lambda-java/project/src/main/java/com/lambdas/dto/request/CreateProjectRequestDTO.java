@@ -1,47 +1,82 @@
 package com.lambdas.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.lambdas.validation.annotations.ProjectStatusValid;
+import com.lambdas.validation.groups.ValidationGroups;
+import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 
 public class CreateProjectRequestDTO {
 
     @JsonProperty("id")
+    @NotBlank(message = "Project ID cannot be blank", groups = ValidationGroups.Create.class)
+    @Size(max = 255, message = "Project ID cannot exceed 255 characters")
+    @Pattern(regexp = "^[A-Za-z0-9]{1,255}$", message = "Project ID must contain only alphanumeric characters")
     private String id;
 
     @JsonProperty("name")
+    @NotBlank(message = "Project name cannot be blank", groups = ValidationGroups.Create.class)
+    @Size(min = 1, max = 100, message = "Project name must be between 1 and 100 characters")
     private String name;
 
     @JsonProperty("description")
+    @NotBlank(message = "Project description cannot be blank", groups = ValidationGroups.Create.class)
+    @Size(min = 1, max = 500, message = "Project description must be between 1 and 500 characters")
     private String description;
 
     @JsonProperty("address")
+    @Size(max = 150, message = "Address cannot exceed 150 characters")
     private String address;
 
     @JsonProperty("city")
+    @NotBlank(message = "City cannot be blank", groups = ValidationGroups.Create.class)
+    @Size(min = 1, max = 50, message = "City must be between 1 and 50 characters")
     private String city;
 
     @JsonProperty("state")
+    @NotBlank(message = "State cannot be blank", groups = ValidationGroups.Create.class)
+    @Size(min = 1, max = 100, message = "State must be between 1 and 100 characters")
     private String state;
 
     @JsonProperty("country")
+    @NotBlank(message = "Country cannot be blank", groups = ValidationGroups.Create.class)
+    @Pattern(regexp = "^[A-Z]{2,3}$", message = "Country must be a 2 or 3 letter uppercase code")
+    @Size(min = 2, max = 3, message = "Country code must be 2 or 3 characters")
     private String country;
 
+    @JsonProperty("status")
+    @ProjectStatusValid
+    private String status = "active";
+
     @JsonProperty("responsibleUser")
+    @NotBlank(message = "Responsible user cannot be blank", groups = ValidationGroups.Create.class)
+    @Size(max = 255, message = "Responsible user cannot exceed 255 characters")
     private String responsibleUser;
 
     @JsonProperty("dataSource")
+    @NotBlank(message = "Data source cannot be blank", groups = ValidationGroups.Create.class)
+    @Size(max = 255, message = "Data source cannot exceed 255 characters")
     private String dataSource;
 
     @JsonProperty("company")
+    @NotBlank(message = "Company cannot be blank", groups = ValidationGroups.Create.class)
+    @Size(max = 255, message = "Company cannot exceed 255 characters")
     private String company;
 
     @JsonProperty("createdBy")
+    @NotBlank(message = "Created by cannot be blank", groups = ValidationGroups.Create.class)
+    @Size(max = 255, message = "Created by cannot exceed 255 characters")
     private String createdBy;
 
     @JsonProperty("budget")
-    private BigDecimal budget;
+    @NotNull(message = "Budget cannot be null", groups = ValidationGroups.Create.class)
+    @DecimalMin(value = "0.00", message = "Budget must be greater than or equal to 0")
+    @Digits(integer = 13, fraction = 2, message = "Budget must have at most 13 integer digits and 2 decimal places")
+    private BigDecimal budget = BigDecimal.ZERO;
 
     @JsonProperty("inventory")
+    @NotBlank(message = "Inventory cannot be blank", groups = ValidationGroups.Create.class)
+    @Size(min = 1, max = 500, message = "Inventory must be between 1 and 500 characters")
     private String inventory;
 
     // Default constructor
@@ -105,6 +140,14 @@ public class CreateProjectRequestDTO {
         this.country = country;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     public String getResponsibleUser() {
         return responsibleUser;
     }
@@ -153,7 +196,7 @@ public class CreateProjectRequestDTO {
         this.inventory = inventory;
     }
 
-      public static class Builder {
+    public static class Builder {
         private final CreateProjectRequestDTO dto;
 
         public Builder() {
@@ -192,6 +235,11 @@ public class CreateProjectRequestDTO {
 
         public Builder country(String country) {
             dto.setCountry(country);
+            return this;
+        }
+
+        public Builder status(String status) {
+            dto.setStatus(status);
             return this;
         }
 
@@ -234,7 +282,6 @@ public class CreateProjectRequestDTO {
         return new Builder();
     }
 
-
     @Override
     public String toString() {
         return "CreateProjectRequestDTO{" +
@@ -242,6 +289,7 @@ public class CreateProjectRequestDTO {
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", city='" + city + '\'' +
+                ", status='" + status + '\'' +
                 ", company='" + company + '\'' +
                 '}';
     }

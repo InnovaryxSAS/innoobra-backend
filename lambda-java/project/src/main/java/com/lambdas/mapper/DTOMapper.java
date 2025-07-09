@@ -61,58 +61,6 @@ public class DTOMapper {
                 .build();
     }
 
-    public static Project updateProjectUsingSetters(Project existingProject, UpdateProjectRequestDTO dto) {
-        if (existingProject == null || dto == null) {
-            return existingProject;
-        }
-
-        if (dto.getName() != null) {
-            existingProject.setName(dto.getName());
-        }
-        if (dto.getDescription() != null) {
-            existingProject.setDescription(dto.getDescription());
-        }
-        if (dto.getAddress() != null) {
-            existingProject.setAddress(dto.getAddress());
-        }
-        if (dto.getCity() != null) {
-            existingProject.setCity(dto.getCity());
-        }
-        if (dto.getState() != null) {
-            existingProject.setState(dto.getState());
-        }
-        if (dto.getCountry() != null) {
-            existingProject.setCountry(dto.getCountry());
-        }
-        if (dto.getResponsibleUser() != null) {
-            existingProject.setResponsibleUser(dto.getResponsibleUser());
-        }
-        if (dto.getDataSource() != null) {
-            existingProject.setDataSource(dto.getDataSource());
-        }
-        if (dto.getCompany() != null) {
-            existingProject.setCompany(dto.getCompany());
-        }
-        if (dto.getCreatedBy() != null) {
-            existingProject.setCreatedBy(dto.getCreatedBy());
-        }
-        if (dto.getBudget() != null) {
-            existingProject.setBudget(dto.getBudget());
-        }
-        if (dto.getInventory() != null) {
-            existingProject.setInventory(dto.getInventory());
-        }
-        if (dto.getStatus() != null) {
-            try {
-                ProjectStatus status = ProjectStatus.fromValue(dto.getStatus());
-                existingProject.setStatus(status);
-            } catch (IllegalArgumentException e) {
-            }
-        }
-
-        return existingProject;
-    }
-
     public static ProjectResponseDTO toProjectResponseDTO(Project project) {
         if (project == null) {
             return null;

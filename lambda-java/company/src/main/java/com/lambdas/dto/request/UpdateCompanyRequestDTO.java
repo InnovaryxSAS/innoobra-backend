@@ -1,40 +1,57 @@
 package com.lambdas.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.lambdas.validation.annotations.CompanyStatusValid;
+import com.lambdas.validation.groups.ValidationGroups;
+
+import jakarta.validation.constraints.*;
 
 public class UpdateCompanyRequestDTO {
 
     @JsonProperty("name")
+    @Size(min = 1, max = 100, message = "Company name must be between 1 and 100 characters")
     private String name;
 
     @JsonProperty("businessName")
+    @Size(min = 1, max = 100, message = "Business name must be between 1 and 100 characters")
     private String businessName;
 
     @JsonProperty("companyType")
+    @Size(max = 100, message = "Company type cannot exceed 100 characters")
     private String companyType;
 
     @JsonProperty("address")
+    @Size(max = 150, message = "Address cannot exceed 150 characters")
     private String address;
 
     @JsonProperty("phoneNumber")
+    @Pattern(regexp = "^\\+[1-9]\\d{1,14}$", message = "Phone number must be in E.164 format")
+    @Size(max = 20, message = "Phone number cannot exceed 20 characters")
     private String phoneNumber;
 
     @JsonProperty("email")
+    @Email(message = "Email must be valid")
+    @Size(max = 255, message = "Email cannot exceed 255 characters")
     private String email;
 
     @JsonProperty("legalRepresentative")
+    @Size(max = 100, message = "Legal representative cannot exceed 100 characters")
     private String legalRepresentative;
 
     @JsonProperty("city")
+    @Size(min = 1, max = 50, message = "City must be between 1 and 50 characters")
     private String city;
 
     @JsonProperty("state")
+    @Size(min = 1, max = 100, message = "State must be between 1 and 100 characters")
     private String state;
 
     @JsonProperty("country")
+    @Pattern(regexp = "^[A-Z]{2}$", message = "Country code must be two uppercase letters")
     private String country;
 
     @JsonProperty("status")
+    @CompanyStatusValid
     private String status;
 
     // Default constructor

@@ -71,52 +71,6 @@ public class DTOMapper {
         return builder.build();
     }
 
-    public static Company updateCompanyUsingSetters(Company existingCompany, UpdateCompanyRequestDTO dto) {
-        if (existingCompany == null || dto == null) {
-            return existingCompany;
-        }
-
-        if (dto.getName() != null) {
-            existingCompany.setName(dto.getName());
-        }
-        if (dto.getBusinessName() != null) {
-            existingCompany.setBusinessName(dto.getBusinessName());
-        }
-        if (dto.getCompanyType() != null) {
-            existingCompany.setCompanyType(dto.getCompanyType());
-        }
-        if (dto.getAddress() != null) {
-            existingCompany.setAddress(dto.getAddress());
-        }
-        if (dto.getPhoneNumber() != null) {
-            existingCompany.setPhoneNumber(dto.getPhoneNumber());
-        }
-        if (dto.getEmail() != null) {
-            existingCompany.setEmail(dto.getEmail());
-        }
-        if (dto.getLegalRepresentative() != null) {
-            existingCompany.setLegalRepresentative(dto.getLegalRepresentative());
-        }
-        if (dto.getCity() != null) {
-            existingCompany.setCity(dto.getCity());
-        }
-        if (dto.getState() != null) {
-            existingCompany.setState(dto.getState());
-        }
-        if (dto.getCountry() != null) {
-            existingCompany.setCountry(dto.getCountry());
-        }
-        if (dto.getStatus() != null) {
-            try {
-                CompanyStatus status = CompanyStatus.fromValue(dto.getStatus());
-                existingCompany.setStatus(status);
-            } catch (IllegalArgumentException e) {
-            }
-        }
-
-        return existingCompany;
-    }
-
     public static CompanyResponseDTO toResponseDTO(Company company) {
         if (company == null) {
             return null;

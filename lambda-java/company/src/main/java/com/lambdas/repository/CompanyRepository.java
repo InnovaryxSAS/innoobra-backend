@@ -58,7 +58,7 @@ public class CompanyRepository {
             return company;
 
         } catch (SQLException e) {
-            e.printStackTrace(); // Imprime el error en consola
+            e.printStackTrace(); 
 
             if ("23505".equals(e.getSQLState())) {
                 throw new CompanyAlreadyExistsException("Company with ID " + company.getId() + " already exists");
@@ -152,7 +152,7 @@ public class CompanyRepository {
         final String sql = """
                 UPDATE companies
                 SET name = ?, business_name = ?, company_type = ?, address = ?, phone_number = ?, email = ?,
-                    legal_representative = ?, city = ?, state = ?, country = ?, updated_at = ?, status = ?
+                    legal_representative = ?, city = ?, state = ?, country = ?, updated_at = ?, status = ?::company_status
                 WHERE id = ?
                 """;
 
@@ -190,28 +190,51 @@ public class CompanyRepository {
     public boolean deactivate(String id) {
         final String sql = """
                 UPDATE companies
-                SET status = ?, updated_at = ?
-                WHERE id = ? AND status != ?
+                SET status = CAST(? AS company_status), updated_at = ?
+                WHERE id = ? AND status != CAST(? AS company_status)
                 """;
 
         try (Connection conn = getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             LocalDateTime now = LocalDateTime.now();
-            stmt.setString(1, CompanyStatus.INACTIVE.getValue());
+            String inactiveStatus = CompanyStatus.INACTIVE.getValue();
+
+            stmt.setString(1, inactiveStatus);
             stmt.setTimestamp(2, Timestamp.valueOf(now));
             stmt.setString(3, id);
-            stmt.setString(4, CompanyStatus.INACTIVE.getValue());
+            stmt.setString(4, inactiveStatus);
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
-                throw new CompanyNotFoundException("Company with ID " + id + " not found or already inactive");
+                if (!existsById(id)) {
+                    throw new CompanyNotFoundException("Company with ID " + id + " not found");
+                } else {
+                    throw new CompanyNotFoundException("Company with ID " + id + " is already inactive");
+                }
             }
 
             return true;
 
         } catch (SQLException e) {
-            throw new DatabaseException("Error deactivating company", e);
+            throw new DatabaseException("Error deactivating company: " + e.getMessage(), e);
+        }
+    }
+
+    public boolean existsById(String id) {
+        final String sql = "SELECT 1 FROM companies WHERE id = ? LIMIT 1";
+
+        try (Connection conn = getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, id);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException("Error checking if company exists", e);
         }
     }
 
