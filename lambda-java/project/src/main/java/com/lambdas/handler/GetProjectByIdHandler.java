@@ -17,43 +17,44 @@ import org.slf4j.MDC;
 
 import java.util.Optional;
 
-public class GetProjectByIdHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
-    
+public class GetProjectByIdHandler
+        implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+
     private static final Logger logger = LoggerFactory.getLogger(GetProjectByIdHandler.class);
     private static final ProjectService PROJECT_SERVICE = new ProjectService();
-    
+
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
         MDC.put("requestId", requestId);
-        
+
         try {
             logger.info("Starting project retrieval by ID process");
             logConnectionPoolStatus();
-            
+
             String projectId = input.getPathParameters().get("id");
             if (projectId == null || projectId.trim().isEmpty()) {
                 logger.warn("Project ID is missing or empty");
                 return ResponseUtil.createErrorResponse(400, "Project ID is required");
             }
-            
+
             MDC.put("projectId", projectId);
-            
+
             Optional<Project> projectOpt = PROJECT_SERVICE.getProjectById(projectId);
-            
+
             if (projectOpt.isPresent()) {
                 logger.info("Project retrieved successfully with ID: {}", projectId);
-                
+
                 ProjectResponseDTO responseDTO = DTOMapper.toProjectResponseDTO(projectOpt.get());
-                
+
                 logFinalConnectionPoolStatus();
-                
+
                 return ResponseUtil.createResponse(200, responseDTO);
             } else {
                 logger.warn("Project not found with ID: {}", projectId);
                 return ResponseUtil.createErrorResponse(404, "Project not found");
             }
-            
+
         } catch (DatabaseException e) {
             logger.error("Database error occurred", e);
             logConnectionPoolStatusOnError();
@@ -65,16 +66,17 @@ public class GetProjectByIdHandler implements RequestHandler<APIGatewayProxyRequ
             MDC.clear();
         }
     }
-    
+
     private void logConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-                        poolManager.getPoolStats(), poolManager.isHealthy());
+            poolManager.getPoolStats();
+            poolManager.isHealthy();
         } catch (Exception e) {
             logger.warn("Could not retrieve connection pool status: {}", e.getMessage());
         }
     }
-    
+
     private void logFinalConnectionPoolStatus() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
@@ -82,12 +84,12 @@ public class GetProjectByIdHandler implements RequestHandler<APIGatewayProxyRequ
             logger.warn("Could not retrieve final connection pool status: {}", e.getMessage());
         }
     }
-    
+
     private void logConnectionPoolStatusOnError() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.error("Connection pool status on error: {}, healthy: {}", 
-                        poolManager.getPoolStats(), poolManager.isHealthy());
+            logger.error("Connection pool status on error: {}, healthy: {}",
+                    poolManager.getPoolStats(), poolManager.isHealthy());
         } catch (Exception e) {
             logger.error("Could not retrieve connection pool status on error: {}", e.getMessage());
         }
