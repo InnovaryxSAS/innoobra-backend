@@ -1,0 +1,145 @@
+package com.lambdas.handler;
+
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.lambdas.dto.request.UpdateUserRequestDTO;
+import com.lambdas.dto.response.UserResponseDTO;
+import com.lambdas.exception.UserNotFoundException;
+import com.lambdas.exception.DatabaseException;
+import com.lambdas.exception.ValidationException;
+import com.lambdas.mapper.DTOMapper;
+import com.lambdas.model.User;
+import com.lambdas.repository.ConnectionPoolManager;
+import com.lambdas.service.UserService;
+import com.lambdas.service.impl.UserServiceImpl;
+import com.lambdas.util.HttpStatus;
+import com.lambdas.util.LoggingHelper;
+import com.lambdas.util.ResponseUtil;
+import com.lambdas.util.ValidationHelper;
+import com.lambdas.validation.groups.ValidationGroups;
+import org.slf4j.Logger;
+
+import java.util.Optional;
+
+public class UpdateUserHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+
+    private static final Logger logger = LoggingHelper.getLogger(UpdateUserHandler.class);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+            .registerModule(new JavaTimeModule());
+
+    private final UserService userService;
+
+    public UpdateUserHandler() {
+        this.userService = new UserServiceImpl();
+    }
+
+    // Constructor para inyección de dependencias (útil para testing)
+    public UpdateUserHandler(UserService userService) {
+        this.userService = userService;
+    }
+
+    @Override
+    public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
+        String requestId = context.getAwsRequestId();
+        LoggingHelper.initializeRequestContext(requestId);
+
+        try {
+            String userId = null;
+            if (input.getPathParameters() != null) {
+                userId = input.getPathParameters().get("id");
+            }
+            
+            if (userId == null || userId.trim().isEmpty()) {
+                LoggingHelper.logMissingParameter(logger, "User ID");
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "User ID is required");
+            }
+
+            LoggingHelper.addUserId(userId);
+            LoggingHelper.logProcessStart(logger, "user update");
+            logConnectionPoolStatus();
+
+            if (input.getBody() == null || input.getBody().trim().isEmpty()) {
+                LoggingHelper.logEmptyRequestBody(logger);
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Request body is required");
+            }
+
+            UpdateUserRequestDTO requestDTO = OBJECT_MAPPER.readValue(input.getBody(), UpdateUserRequestDTO.class);
+
+            ValidationHelper.validateAndThrow(requestDTO, ValidationGroups.Update.class);
+
+            Optional<User> existingUserOpt = userService.getUserById(userId);
+            if (!existingUserOpt.isPresent()) {
+                LoggingHelper.logEntityNotFound(logger, "User", userId);
+                return ResponseUtil.createErrorResponse(HttpStatus.NOT_FOUND, "User not found");
+            }
+
+            User existingUser = existingUserOpt.get();
+
+            User updatedUser = DTOMapper.updateUserFromDTO(existingUser, requestDTO);
+            User savedUser = userService.updateUser(updatedUser);
+
+            LoggingHelper.logSuccess(logger, "User update", userId);
+
+            UserResponseDTO responseDTO = DTOMapper.toResponseDTO(savedUser);
+
+            logFinalConnectionPoolStatus();
+
+            return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
+
+        } catch (JsonProcessingException e) {
+            LoggingHelper.logJsonParsingError(logger, e.getMessage());
+            return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Invalid JSON format");
+        } catch (ValidationException e) {
+            LoggingHelper.logValidationError(logger, e.getMessage());
+            return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, e.toMap());
+        } catch (UserNotFoundException e) {
+            LoggingHelper.logEntityNotFound(logger, "User", e.getMessage());
+            return ResponseUtil.createErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (DatabaseException e) {
+            LoggingHelper.logDatabaseError(logger, e.getMessage(), e);
+            logConnectionPoolStatusOnError();
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
+        } catch (Exception e) {
+            LoggingHelper.logUnexpectedError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
+        } finally {
+            LoggingHelper.clearContext();
+        }
+    }
+
+    private void logConnectionPoolStatus() {
+        try {
+            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
+            poolManager.getPoolStats();
+            poolManager.isHealthy();
+        } catch (Exception e) {
+            LoggingHelper.logConnectionPoolWarning(logger,
+                    "Could not retrieve connection pool status: " + e.getMessage());
+        }
+    }
+
+    private void logFinalConnectionPoolStatus() {
+        try {
+            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
+        } catch (Exception e) {
+            LoggingHelper.logConnectionPoolWarning(logger,
+                    "Could not retrieve final connection pool status: " + e.getMessage());
+        }
+    }
+
+    private void logConnectionPoolStatusOnError() {
+        try {
+            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
+            LoggingHelper.logConnectionPoolError(logger, poolManager.getPoolStats().toString(),
+                    poolManager.isHealthy());
+        } catch (Exception e) {
+            LoggingHelper.logConnectionPoolWarning(logger,
+                    "Could not retrieve connection pool status on error: " + e.getMessage());
+        }
+    }
+}

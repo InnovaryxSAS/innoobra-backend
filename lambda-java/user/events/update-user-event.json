@@ -1,0 +1,55 @@
+{
+  "resource": "/users/{id}",
+  "path": "/users/USER001",
+  "httpMethod": "PUT",
+  "headers": {
+    "Accept": "application/json",
+    "Content-Type": "application/json",
+    "User-Agent": "aws-sam-cli/1.0"
+  },
+  "multiValueHeaders": {
+    "Accept": [
+      "application/json"
+    ],
+    "Content-Type": [
+      "application/json"
+    ]
+  },
+  "queryStringParameters": null,
+  "multiValueQueryStringParameters": null,
+  "pathParameters": {
+    "id": "USER001"
+  },
+  "stageVariables": null,
+  "requestContext": {
+    "resourceId": "123456",
+    "resourcePath": "/users/{id}",
+    "httpMethod": "PUT",
+    "extendedRequestId": "c6af9ac6-7b61-11e6-9a41-93e8deadbeef",
+    "requestTime": "03/Jul/2025:15:30:00 +0000",
+    "path": "/users/USER001",
+    "accountId": "123456789012",
+    "protocol": "HTTP/1.1",
+    "stage": "Prod",
+    "domainPrefix": "1234567890",
+    "requestTimeEpoch": 1720020600000,
+    "requestId": "c6af9ac6-7b61-11e6-9a41-93e8deadbeef",
+    "identity": {
+      "cognitoIdentityPoolId": null,
+      "accountId": null,
+      "cognitoIdentityId": null,
+      "caller": null,
+      "accessKey": null,
+      "sourceIp": "127.0.0.1",
+      "cognitoAuthenticationType": null,
+      "cognitoAuthenticationProvider": null,
+      "userArn": null,
+      "userAgent": "Custom User Agent String",
+      "user": null
+    },
+    "domainName": "1234567890.execute-api.us-east-1.amazonaws.com",
+    "apiId": "1234567890"
+  },
+  "body": "{\"name\":\"Juan Carlos\",\"lastName\":\"Pérez García\",\"address\":\"Carrera 15 #123-45\",\"phone\":\"+57 301 234 5678\",\"email\":\"juan.perez.updated@company.com\",\"position\":\"Senior Software Developer\",\"status\":\"active\"}",
+  "isBase64Encoded": false
+}
