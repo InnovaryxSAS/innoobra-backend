@@ -121,6 +121,34 @@ variable "lambdas" {
       route_key = "DELETE /user/{id}"
     },
 
+    # === Chapters Lambdas ===
+
+    create_chapter = {
+      handler   = "com.lambdas.handler.CreateChapterHandler::handleRequest"
+      jar_path  = "functions/chapter/chapter-1.0-SNAPSHOT.jar"
+      route_key = "POST /chapter"
+    },
+    get_chapters = {
+      handler   = "com.lambdas.handler.GetChaptersHandler::handleRequest"
+      jar_path  = "functions/chapter/chapter-1.0-SNAPSHOT.jar"
+      route_key = "GET /chapter"
+    },
+    get_chapter_by_id = {
+      handler   = "com.lambdas.handler.GetChapterByIdHandler::handleRequest"
+      jar_path  = "functions/chapter/chapter-1.0-SNAPSHOT.jar"
+      route_key = "GET /chapter/{id}"
+    },
+    update_chapter = {
+      handler   = "com.lambdas.handler.UpdateChapterHandler::handleRequest"
+      jar_path  = "functions/chapter/chapter-1.0-SNAPSHOT.jar"
+      route_key = "PUT /chapter/{id}"
+    },
+    delete_chapter = {
+      handler   = "com.lambdas.handler.DeleteChapterHandler::handleRequest"
+      jar_path  = "functions/chapter/chapter-1.0-SNAPSHOT.jar"
+      route_key = "DELETE /chapter/{id}"
+    },
+
     # === Others Lambdas ===
     
   }
