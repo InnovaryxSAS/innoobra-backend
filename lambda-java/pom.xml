@@ -42,6 +42,7 @@
     <module>project</module>
     <module>role</module>
     <module>user</module>
+    <module>chapter</module>
   </modules>
 
   <dependencies>
