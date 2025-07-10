@@ -14,13 +14,13 @@ public class ValidationException extends RuntimeException {
 
     @JsonProperty("validationErrors")
     private final Set<String> validationErrors;
-    
+
     @JsonProperty("fieldErrors")
     private final Map<String, List<String>> fieldErrors;
-    
+
     @JsonProperty("errorCode")
     private final String errorCode;
-    
+
     @JsonProperty("timestamp")
     private final long timestamp;
 
@@ -68,42 +68,39 @@ public class ValidationException extends RuntimeException {
         super("Validation failed: " + violations.stream()
                 .map(ConstraintViolation::getMessage)
                 .collect(Collectors.joining(", ")));
-        
+
         this.validationErrors = violations.stream()
                 .map(ConstraintViolation::getMessage)
                 .collect(Collectors.toSet());
-        
+
         this.fieldErrors = violations.stream()
                 .collect(Collectors.groupingBy(
-                    violation -> violation.getPropertyPath().toString(),
-                    Collectors.mapping(
-                        ConstraintViolation::getMessage,
-                        Collectors.toList()
-                    )
-                ));
-        
+                        violation -> violation.getPropertyPath().toString(),
+                        Collectors.mapping(
+                                ConstraintViolation::getMessage,
+                                Collectors.toList())));
+
         this.errorCode = "BEAN_VALIDATION_ERROR";
         this.timestamp = System.currentTimeMillis();
     }
 
-    public <T> ValidationException(Set<ConstraintViolation<T>> violations, String errorCode, boolean isConstraintViolation) {
+    public <T> ValidationException(Set<ConstraintViolation<T>> violations, String errorCode,
+            boolean isConstraintViolation) {
         super("Validation failed: " + violations.stream()
                 .map(ConstraintViolation::getMessage)
                 .collect(Collectors.joining(", ")));
-        
+
         this.validationErrors = violations.stream()
                 .map(ConstraintViolation::getMessage)
                 .collect(Collectors.toSet());
-        
+
         this.fieldErrors = violations.stream()
                 .collect(Collectors.groupingBy(
-                    violation -> violation.getPropertyPath().toString(),
-                    Collectors.mapping(
-                        ConstraintViolation::getMessage,
-                        Collectors.toList()
-                    )
-                ));
-        
+                        violation -> violation.getPropertyPath().toString(),
+                        Collectors.mapping(
+                                ConstraintViolation::getMessage,
+                                Collectors.toList())));
+
         this.errorCode = errorCode;
         this.timestamp = System.currentTimeMillis();
     }
@@ -118,8 +115,8 @@ public class ValidationException extends RuntimeException {
         this.timestamp = System.currentTimeMillis();
     }
 
-    public ValidationException(String message, Set<String> validationErrors, 
-                             Map<String, List<String>> fieldErrors, String errorCode) {
+    public ValidationException(String message, Set<String> validationErrors,
+            Map<String, List<String>> fieldErrors, String errorCode) {
         super(message);
         this.validationErrors = validationErrors;
         this.fieldErrors = fieldErrors;
@@ -131,7 +128,8 @@ public class ValidationException extends RuntimeException {
         return new ValidationException(violations, true);
     }
 
-    public static <T> ValidationException fromConstraintViolations(Set<ConstraintViolation<T>> violations, String errorCode) {
+    public static <T> ValidationException fromConstraintViolations(Set<ConstraintViolation<T>> violations,
+            String errorCode) {
         return new ValidationException(violations, errorCode, true);
     }
 
@@ -197,18 +195,18 @@ public class ValidationException extends RuntimeException {
         summary.append("Error Code: ").append(errorCode).append("\n");
         summary.append("Timestamp: ").append(timestamp).append("\n");
         summary.append("Total Errors: ").append(getTotalErrorCount()).append("\n");
-        
+
         if (hasFieldErrors()) {
             summary.append("Field Errors:\n");
             fieldErrors.forEach((field, errors) -> {
                 summary.append("  ").append(field).append(": ").append(errors).append("\n");
             });
         }
-        
+
         if (hasValidationErrors()) {
             summary.append("General Errors: ").append(getErrorsAsString()).append("\n");
         }
-        
+
         return summary.toString();
     }
 
@@ -269,6 +267,18 @@ public class ValidationException extends RuntimeException {
 
     public static ValidationException forRoleUpdate(Set<String> errors) {
         return new ValidationException(errors, "ROLE_UPDATE_ERROR");
+    }
+
+    public static ValidationException forUser(String message) {
+        return new ValidationException(message, "USER_VALIDATION_ERROR");
+    }
+
+    public static ValidationException forUserCreation(Set<String> errors) {
+        return new ValidationException(errors, "USER_CREATION_ERROR");
+    }
+
+    public static ValidationException forUserUpdate(Set<String> errors) {
+        return new ValidationException(errors, "USER_UPDATE_ERROR");
     }
 
     public static ValidationException forRequiredFields(Set<String> missingFields) {
