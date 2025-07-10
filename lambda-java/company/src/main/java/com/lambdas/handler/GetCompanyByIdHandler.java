@@ -9,55 +9,67 @@ import com.lambdas.exception.DatabaseException;
 import com.lambdas.mapper.DTOMapper;
 import com.lambdas.model.Company;
 import com.lambdas.service.CompanyService;
+import com.lambdas.service.impl.CompanyServiceImpl;
+import com.lambdas.util.HttpStatus;
+import com.lambdas.util.LoggingHelper;
 import com.lambdas.util.ResponseUtil;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import java.util.Optional;
 
-public class GetCompanyByIdHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
-    
-    private static final Logger logger = LoggerFactory.getLogger(GetCompanyByIdHandler.class);
-    private static final CompanyService COMPANY_SERVICE = new CompanyService();
-    
+public class GetCompanyByIdHandler
+        implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+
+    private static final Logger logger = LoggingHelper.getLogger(GetCompanyByIdHandler.class);
+
+    private final CompanyService companyService;
+
+    public GetCompanyByIdHandler() {
+        this.companyService = new CompanyServiceImpl();
+    }
+
+    // Constructor para inyección de dependencias (útil para testing)
+    public GetCompanyByIdHandler(CompanyService companyService) {
+        this.companyService = companyService;
+    }
+
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
-        MDC.put("requestId", requestId);
-        
+        LoggingHelper.initializeRequestContext(requestId);
+
         try {
-            logger.info("Starting company retrieval by ID process");
-            
+            LoggingHelper.logProcessStart(logger, "company retrieval by ID");
+
             String companyId = input.getPathParameters().get("id");
             if (companyId == null || companyId.trim().isEmpty()) {
-                logger.warn("Company ID is missing or empty");
-                return ResponseUtil.createErrorResponse(400, "Company ID is required");
+                LoggingHelper.logMissingParameter(logger, "Company ID");
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Company ID is required");
             }
-            
-            MDC.put("companyId", companyId);
-            
-            Optional<Company> companyOpt = COMPANY_SERVICE.getCompanyById(companyId);
-            
+
+            LoggingHelper.addCompanyId(companyId);
+
+            Optional<Company> companyOpt = companyService.getCompanyById(companyId);
+
             if (companyOpt.isPresent()) {
-                logger.info("Company retrieved successfully with ID: {}", companyId);
-                
+                LoggingHelper.logSuccess(logger, "Company retrieval", companyId);
+
                 CompanyResponseDTO responseDTO = DTOMapper.toResponseDTO(companyOpt.get());
-                
-                return ResponseUtil.createResponse(200, responseDTO);
+
+                return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
             } else {
-                logger.warn("Company not found with ID: {}", companyId);
-                return ResponseUtil.createErrorResponse(404, "Company not found");
+                LoggingHelper.logEntityNotFound(logger, "Company", companyId);
+                return ResponseUtil.createErrorResponse(HttpStatus.NOT_FOUND, "Company not found");
             }
-            
+
         } catch (DatabaseException e) {
-            logger.error("Database error occurred", e);
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            LoggingHelper.logDatabaseError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } catch (Exception e) {
-            logger.error("Unexpected error occurred", e);
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            LoggingHelper.logUnexpectedError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } finally {
-            MDC.clear();
+            LoggingHelper.clearContext();
         }
     }
 }

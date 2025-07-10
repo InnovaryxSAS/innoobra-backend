@@ -9,37 +9,46 @@ import com.lambdas.exception.ProjectNotFoundException;
 import com.lambdas.exception.DatabaseException;
 import com.lambdas.repository.ConnectionPoolManager;
 import com.lambdas.service.ProjectService;
+import com.lambdas.service.impl.ProjectServiceImpl;
+import com.lambdas.util.HttpStatus;
+import com.lambdas.util.LoggingHelper;
 import com.lambdas.util.ResponseUtil;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 public class DeleteProjectHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
-    private static final Logger logger = LoggerFactory.getLogger(DeleteProjectHandler.class);
-    private static final ProjectService PROJECT_SERVICE = new ProjectService();
+    private static final Logger logger = LoggingHelper.getLogger(DeleteProjectHandler.class);
+
+    private final ProjectService projectService;
+
+    public DeleteProjectHandler() {
+        this.projectService = new ProjectServiceImpl();
+    }
+
+    // Constructor para inyección de dependencias (útil para testing)
+    public DeleteProjectHandler(ProjectService projectService) {
+        this.projectService = projectService;
+    }
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
-        MDC.put("requestId", requestId);
+        LoggingHelper.initializeRequestContext(requestId);
 
         try {
-            logger.info("Starting project deletion process");
-            logConnectionPoolStatus();
-
             String projectId = input.getPathParameters().get("id");
             if (projectId == null || projectId.trim().isEmpty()) {
-                logger.warn("Project ID is missing or empty");
-                return ResponseUtil.createErrorResponse(400, "Project ID is required");
+                LoggingHelper.logMissingParameter(logger, "Project ID");
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Project ID is required");
             }
 
-            MDC.put("projectId", projectId);
+            LoggingHelper.logProcessStart(logger, "project deletion");
+            logConnectionPoolStatus();
 
-            boolean deleted = PROJECT_SERVICE.deleteProject(projectId);
+            boolean deleted = projectService.deleteProject(projectId);
 
             if (deleted) {
-                logger.info("Project deleted successfully with ID: {}", projectId);
+                LoggingHelper.logSuccess(logger, "Project deletion", projectId);
 
                 DeleteProjectResponseDTO responseDTO = new DeleteProjectResponseDTO.Builder()
                         .message("Project successfully deactivated")
@@ -49,9 +58,9 @@ public class DeleteProjectHandler implements RequestHandler<APIGatewayProxyReque
 
                 logFinalConnectionPoolStatus();
 
-                return ResponseUtil.createResponse(200, responseDTO);
+                return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
             } else {
-                logger.warn("Project not found for deletion with ID: {}", projectId);
+                LoggingHelper.logEntityNotFound(logger, "Project", projectId);
 
                 DeleteProjectResponseDTO responseDTO = new DeleteProjectResponseDTO.Builder()
                         .message("Project not found")
@@ -59,11 +68,11 @@ public class DeleteProjectHandler implements RequestHandler<APIGatewayProxyReque
                         .success(false)
                         .build();
 
-                return ResponseUtil.createResponse(404, responseDTO);
+                return ResponseUtil.createResponse(HttpStatus.NOT_FOUND, responseDTO);
             }
 
         } catch (ProjectNotFoundException e) {
-            logger.warn("Project not found: {}", e.getMessage());
+            LoggingHelper.logEntityNotFound(logger, "Project", e.getMessage());
 
             DeleteProjectResponseDTO responseDTO = new DeleteProjectResponseDTO.Builder()
                     .message(e.getMessage())
@@ -71,16 +80,16 @@ public class DeleteProjectHandler implements RequestHandler<APIGatewayProxyReque
                     .success(false)
                     .build();
 
-            return ResponseUtil.createResponse(404, responseDTO);
+            return ResponseUtil.createResponse(HttpStatus.NOT_FOUND, responseDTO);
         } catch (DatabaseException e) {
-            logger.error("Database error occurred", e);
+            LoggingHelper.logDatabaseError(logger, e.getMessage(), e);
             logConnectionPoolStatusOnError();
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } catch (Exception e) {
-            logger.error("Unexpected error occurred", e);
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            LoggingHelper.logUnexpectedError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } finally {
-            MDC.clear();
+            LoggingHelper.clearContext();
         }
     }
 
@@ -90,7 +99,8 @@ public class DeleteProjectHandler implements RequestHandler<APIGatewayProxyReque
             poolManager.getPoolStats();
             poolManager.isHealthy();
         } catch (Exception e) {
-            logger.warn("Could not retrieve connection pool status: {}", e.getMessage());
+            LoggingHelper.logConnectionPoolWarning(logger,
+                    "Could not retrieve connection pool status: " + e.getMessage());
         }
     }
 
@@ -98,17 +108,19 @@ public class DeleteProjectHandler implements RequestHandler<APIGatewayProxyReque
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
         } catch (Exception e) {
-            logger.warn("Could not retrieve final connection pool status: {}", e.getMessage());
+            LoggingHelper.logConnectionPoolWarning(logger,
+                    "Could not retrieve final connection pool status: " + e.getMessage());
         }
     }
 
     private void logConnectionPoolStatusOnError() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            logger.error("Connection pool status on error: {}, healthy: {}",
-                    poolManager.getPoolStats(), poolManager.isHealthy());
+            LoggingHelper.logConnectionPoolError(logger, poolManager.getPoolStats().toString(),
+                    poolManager.isHealthy());
         } catch (Exception e) {
-            logger.error("Could not retrieve connection pool status on error: {}", e.getMessage());
+            LoggingHelper.logConnectionPoolWarning(logger,
+                    "Could not retrieve connection pool status on error: " + e.getMessage());
         }
     }
 }

@@ -5,52 +5,22 @@ import java.util.Optional;
 
 import com.lambdas.model.Project;
 import com.lambdas.model.ProjectStatus;
-import com.lambdas.repository.ProjectRepository;
-import com.lambdas.util.ValidationHelper;
 
-public class ProjectService {
+public interface ProjectService {
+
+    Project createProject(Project project);
+
+    List<Project> getAllProjects();
+
+    Optional<Project> getProjectById(String id);
+
+    Project updateProject(Project project);
+
+    boolean deleteProject(String id);
+
+    List<Project> getProjectsByStatus(ProjectStatus status);
     
-    private final ProjectRepository repository;
-    
-    public ProjectService() {
-        this.repository = new ProjectRepository();
-    }
-    
-    public ProjectService(ProjectRepository repository) {
-        this.repository = repository;
-    }
-    
-    public Project createProject(Project project) {
-        ValidationHelper.validateAndThrow(project);
-        return repository.save(project);
-    }
-    
-    public List<Project> getAllProjects() {
-        return repository.findAll();
-    }
-    
-    public Optional<Project> getProjectById(String id) {
-        return repository.findById(id);
-    }
-    
-    public Project updateProject(Project project) {
-        ValidationHelper.validateAndThrow(project);
-        return repository.update(project);
-    }
-    
-    public boolean deleteProject(String id) {
-        return repository.deactivate(id);
-    }
-    
-    public List<Project> getProjectsByStatus(ProjectStatus status) {
-        return repository.findByStatus(status);
-    }
-    
-    public List<Project> getProjectsByCompany(String companyId) {
-        return repository.findByCompany(companyId);
-    }
-    
-    public List<Project> getProjectsByResponsibleUser(String userId) {
-        return repository.findByResponsibleUser(userId);
-    }
+    List<Project> getProjectsByCompany(String companyId);
+
+    List<Project> getProjectsByResponsibleUser(String userId);
 }

@@ -15,31 +15,42 @@ import com.lambdas.exception.ValidationException;
 import com.lambdas.mapper.DTOMapper;
 import com.lambdas.model.Company;
 import com.lambdas.service.CompanyService;
+import com.lambdas.service.impl.CompanyServiceImpl;
+import com.lambdas.util.HttpStatus;
+import com.lambdas.util.LoggingHelper;
 import com.lambdas.util.ResponseUtil;
 import com.lambdas.util.ValidationHelper;
 import com.lambdas.validation.groups.ValidationGroups;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 public class CreateCompanyHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
-    private static final Logger logger = LoggerFactory.getLogger(CreateCompanyHandler.class);
-    private static final CompanyService COMPANY_SERVICE = new CompanyService();
+    private static final Logger logger = LoggingHelper.getLogger(CreateCompanyHandler.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new JavaTimeModule());
+    
+    private final CompanyService companyService;
+
+    public CreateCompanyHandler() {
+        this.companyService = new CompanyServiceImpl();
+    }
+
+    // Constructor para inyección de dependencias (útil para testing)
+    public CreateCompanyHandler(CompanyService companyService) {
+        this.companyService = companyService;
+    }
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
-        MDC.put("requestId", requestId);
+        LoggingHelper.initializeRequestContext(requestId);
         
         try {
-            logger.info("Starting company creation process");
+            LoggingHelper.logProcessStart(logger, "company creation");
             
             if (input.getBody() == null || input.getBody().trim().isEmpty()) {
-                logger.warn("Request body is empty or null");
-                return ResponseUtil.createErrorResponse(400, "Request body is required");
+                LoggingHelper.logEmptyRequestBody(logger);
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Request body is required");
             }
             
             CreateCompanyRequestDTO requestDTO = OBJECT_MAPPER.readValue(input.getBody(), CreateCompanyRequestDTO.class);
@@ -48,29 +59,31 @@ public class CreateCompanyHandler implements RequestHandler<APIGatewayProxyReque
             
             Company company = DTOMapper.toCompany(requestDTO);
             
-            Company createdCompany = COMPANY_SERVICE.createCompany(company);
+            Company createdCompany = companyService.createCompany(company);
             
             CompanyResponseDTO responseDTO = DTOMapper.toResponseDTO(createdCompany);
             
-            return ResponseUtil.createResponse(201, responseDTO);
+            LoggingHelper.logSuccess(logger, "Company creation", createdCompany.getId());
+            
+            return ResponseUtil.createResponse(HttpStatus.CREATED, responseDTO);
             
         } catch (JsonProcessingException e) {
-            logger.error("JSON parsing error: {}", e.getMessage());
-            return ResponseUtil.createErrorResponse(400, "Invalid JSON format");
+            LoggingHelper.logJsonParsingError(logger, e.getMessage());
+            return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Invalid JSON format");
         } catch (ValidationException e) {
-            logger.warn("Validation error: {}", e.getMessage());
-            return ResponseUtil.createErrorResponse(400, e.toMap());
+            LoggingHelper.logValidationError(logger, e.getMessage());
+            return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, e.toMap());
         } catch (CompanyAlreadyExistsException e) {
-            logger.warn("Company already exists: {}", e.getMessage());
-            return ResponseUtil.createErrorResponse(409, e.getMessage());
+            LoggingHelper.logEntityAlreadyExists(logger, "Company", e.getMessage());
+            return ResponseUtil.createErrorResponse(HttpStatus.CONFLICT, e.getMessage());
         } catch (DatabaseException e) {
-            logger.error("Database error occurred", e);
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            LoggingHelper.logDatabaseError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } catch (Exception e) {
-            logger.error("Unexpected error occurred", e);
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            LoggingHelper.logUnexpectedError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } finally {
-            MDC.clear();
+            LoggingHelper.clearContext();
         }
     }
 }

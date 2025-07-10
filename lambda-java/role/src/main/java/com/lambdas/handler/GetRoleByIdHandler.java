@@ -8,56 +8,67 @@ import com.lambdas.dto.response.RoleResponseDTO;
 import com.lambdas.exception.DatabaseException;
 import com.lambdas.mapper.DTOMapper;
 import com.lambdas.model.Role;
+import com.lambdas.service.impl.RoleServiceImpl;
 import com.lambdas.service.RoleService;
+import com.lambdas.util.HttpStatus;
+import com.lambdas.util.LoggingHelper;
 import com.lambdas.util.ResponseUtil;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import java.util.Optional;
 
 public class GetRoleByIdHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
-    
-    private static final Logger logger = LoggerFactory.getLogger(GetRoleByIdHandler.class);
-    private static final RoleService ROLE_SERVICE = new RoleService();
-    
+
+    private static final Logger logger = LoggingHelper.getLogger(GetRoleByIdHandler.class);
+
+    private final RoleService roleService;
+
+    public GetRoleByIdHandler() {
+        this.roleService = new RoleServiceImpl();
+    }
+
+    // Constructor para inyección de dependencias (útil para testing)
+    public GetRoleByIdHandler(RoleService roleService) {
+        this.roleService = roleService;
+    }
+
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
-        MDC.put("requestId", requestId);
-        
+        LoggingHelper.initializeRequestContext(requestId);
+
         try {
-            logger.info("Starting role retrieval by ID process");
-            
+            LoggingHelper.logProcessStart(logger, "role retrieval by ID");
+
             String roleId = input.getPathParameters().get("id");
             if (roleId == null || roleId.trim().isEmpty()) {
-                logger.warn("Role ID is missing or empty");
-                return ResponseUtil.createErrorResponse(400, "Role ID is required");
+                LoggingHelper.logMissingParameter(logger, "Role ID");
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Role ID is required");
             }
-            
-            MDC.put("roleId", roleId);
-            
-            Optional<Role> roleOpt = ROLE_SERVICE.getRoleById(roleId);
-            
+
+            LoggingHelper.addUserId(roleId); // Agregamos el roleId al contexto de logging
+
+            Optional<Role> roleOpt = roleService.getRoleById(roleId);
+
             if (roleOpt.isPresent()) {
-                logger.info("Role retrieved successfully with ID: {}", roleId);
-                
+                LoggingHelper.logSuccess(logger, "Role retrieval", roleId);
+
                 RoleResponseDTO responseDTO = DTOMapper.toRoleResponseDTO(roleOpt.get());
-                
-                return ResponseUtil.createResponse(200, responseDTO);
+
+                return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
             } else {
-                logger.warn("Role not found with ID: {}", roleId);
-                return ResponseUtil.createErrorResponse(404, "Role not found");
+                LoggingHelper.logEntityNotFound(logger, "Role", roleId);
+                return ResponseUtil.createErrorResponse(HttpStatus.NOT_FOUND, "Role not found");
             }
-            
+
         } catch (DatabaseException e) {
-            logger.error("Database error occurred", e);
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            LoggingHelper.logDatabaseError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } catch (Exception e) {
-            logger.error("Unexpected error occurred", e);
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            LoggingHelper.logUnexpectedError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } finally {
-            MDC.clear();
+            LoggingHelper.clearContext();
         }
     }
 }

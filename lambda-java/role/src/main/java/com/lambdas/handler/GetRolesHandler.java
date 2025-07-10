@@ -8,42 +8,54 @@ import com.lambdas.dto.response.RoleResponseDTO;
 import com.lambdas.exception.DatabaseException;
 import com.lambdas.mapper.DTOMapper;
 import com.lambdas.model.Role;
+import com.lambdas.service.impl.RoleServiceImpl;
 import com.lambdas.service.RoleService;
+import com.lambdas.util.HttpStatus;
+import com.lambdas.util.LoggingHelper;
 import com.lambdas.util.ResponseUtil;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import java.util.List;
 
 public class GetRolesHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
-    
-    private static final Logger logger = LoggerFactory.getLogger(GetRolesHandler.class);
-    private static final RoleService ROLE_SERVICE = new RoleService();
-    
+
+    private static final Logger logger = LoggingHelper.getLogger(GetRolesHandler.class);
+
+    private final RoleService roleService;
+
+    public GetRolesHandler() {
+        this.roleService = new RoleServiceImpl();
+    }
+
+    // Constructor para inyección de dependencias (útil para testing)
+    public GetRolesHandler(RoleService roleService) {
+        this.roleService = roleService;
+    }
+
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
-        MDC.put("requestId", requestId);
-        
+        LoggingHelper.initializeRequestContext(requestId);
+
         try {
-            logger.info("Starting roles retrieval process");
-            
-            List<Role> roles = ROLE_SERVICE.getAllRoles();
-            logger.info("Retrieved {} roles successfully", roles.size());
-            
+            LoggingHelper.logProcessStart(logger, "roles retrieval");
+
+            List<Role> roles = roleService.getAllRoles();
+
+            LoggingHelper.logSuccessWithCount(logger, "Roles retrieval", roles.size());
+
             List<RoleResponseDTO> responseDTOs = DTOMapper.toRoleResponseDTOList(roles);
-            
-            return ResponseUtil.createResponse(200, responseDTOs);
-            
+
+            return ResponseUtil.createResponse(HttpStatus.OK, responseDTOs);
+
         } catch (DatabaseException e) {
-            logger.error("Database error occurred", e);
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            LoggingHelper.logDatabaseError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } catch (Exception e) {
-            logger.error("Unexpected error occurred", e);
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            LoggingHelper.logUnexpectedError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } finally {
-            MDC.clear();
+            LoggingHelper.clearContext();
         }
     }
 }

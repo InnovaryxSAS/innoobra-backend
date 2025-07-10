@@ -247,6 +247,30 @@ public class ValidationException extends RuntimeException {
         return new ValidationException(errors, "COMPANY_UPDATE_ERROR");
     }
 
+    public static ValidationException forProject(String message) {
+        return new ValidationException(message, "PROJECT_VALIDATION_ERROR");
+    }
+
+    public static ValidationException forProjectCreation(Set<String> errors) {
+        return new ValidationException(errors, "PROJECT_CREATION_ERROR");
+    }
+
+    public static ValidationException forProjectUpdate(Set<String> errors) {
+        return new ValidationException(errors, "PROJECT_UPDATE_ERROR");
+    }
+
+    public static ValidationException forRole(String message) {
+        return new ValidationException(message, "ROLE_VALIDATION_ERROR");
+    }
+
+    public static ValidationException forRoleCreation(Set<String> errors) {
+        return new ValidationException(errors, "ROLE_CREATION_ERROR");
+    }
+
+    public static ValidationException forRoleUpdate(Set<String> errors) {
+        return new ValidationException(errors, "ROLE_UPDATE_ERROR");
+    }
+
     public static ValidationException forRequiredFields(Set<String> missingFields) {
         Set<String> errors = missingFields.stream()
                 .map(field -> "Required field '" + field + "' is missing or empty")

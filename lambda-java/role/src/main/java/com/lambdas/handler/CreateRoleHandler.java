@@ -14,63 +14,76 @@ import com.lambdas.exception.DatabaseException;
 import com.lambdas.exception.ValidationException;
 import com.lambdas.mapper.DTOMapper;
 import com.lambdas.model.Role;
+import com.lambdas.service.impl.RoleServiceImpl;
 import com.lambdas.service.RoleService;
+import com.lambdas.util.HttpStatus;
+import com.lambdas.util.LoggingHelper;
 import com.lambdas.util.ResponseUtil;
 import com.lambdas.util.ValidationHelper;
 import com.lambdas.validation.groups.ValidationGroups;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 public class CreateRoleHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
-    private static final Logger logger = LoggerFactory.getLogger(CreateRoleHandler.class);
-    private static final RoleService ROLE_SERVICE = new RoleService();
+    private static final Logger logger = LoggingHelper.getLogger(CreateRoleHandler.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new JavaTimeModule());
+
+    private final RoleService roleService;
+
+    public CreateRoleHandler() {
+        this.roleService = new RoleServiceImpl();
+    }
+
+    // Constructor para inyección de dependencias (útil para testing)
+    public CreateRoleHandler(RoleService roleService) {
+        this.roleService = roleService;
+    }
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
-        MDC.put("requestId", requestId);
-        
+        LoggingHelper.initializeRequestContext(requestId);
+
         try {
-            logger.info("Starting role creation process");
-            
+            LoggingHelper.logProcessStart(logger, "role creation");
+
             if (input.getBody() == null || input.getBody().trim().isEmpty()) {
-                logger.warn("Request body is empty or null");
-                return ResponseUtil.createErrorResponse(400, "Request body is required");
+                LoggingHelper.logEmptyRequestBody(logger);
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Request body is required");
             }
-            
+
             CreateRoleRequestDTO requestDTO = OBJECT_MAPPER.readValue(input.getBody(), CreateRoleRequestDTO.class);
-            
+
             ValidationHelper.validateAndThrow(requestDTO, ValidationGroups.Create.class);
-            
+
             Role role = DTOMapper.toRole(requestDTO);
-            
-            Role createdRole = ROLE_SERVICE.createRole(role);
-            
+
+            Role createdRole = roleService.createRole(role);
+
+            LoggingHelper.logSuccess(logger, "Role creation", createdRole.getIdRole());
+
             RoleResponseDTO responseDTO = DTOMapper.toRoleResponseDTO(createdRole);
-            
-            return ResponseUtil.createResponse(201, responseDTO);
-            
+
+            return ResponseUtil.createResponse(HttpStatus.CREATED, responseDTO);
+
         } catch (JsonProcessingException e) {
-            logger.error("JSON parsing error: {}", e.getMessage());
-            return ResponseUtil.createErrorResponse(400, "Invalid JSON format");
+            LoggingHelper.logJsonParsingError(logger, e.getMessage());
+            return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Invalid JSON format");
         } catch (ValidationException e) {
-            logger.warn("Validation error: {}", e.getMessage());
-            return ResponseUtil.createErrorResponse(400, e.toMap());
+            LoggingHelper.logValidationError(logger, e.getMessage());
+            return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, e.toMap());
         } catch (RoleAlreadyExistsException e) {
-            logger.warn("Role already exists: {}", e.getMessage());
-            return ResponseUtil.createErrorResponse(409, e.getMessage());
+            LoggingHelper.logEntityAlreadyExists(logger, "Role", e.getMessage());
+            return ResponseUtil.createErrorResponse(HttpStatus.CONFLICT, e.getMessage());
         } catch (DatabaseException e) {
-            logger.error("Database error occurred", e);
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            LoggingHelper.logDatabaseError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } catch (Exception e) {
-            logger.error("Unexpected error occurred", e);
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            LoggingHelper.logUnexpectedError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } finally {
-            MDC.clear();
+            LoggingHelper.clearContext();
         }
     }
 }

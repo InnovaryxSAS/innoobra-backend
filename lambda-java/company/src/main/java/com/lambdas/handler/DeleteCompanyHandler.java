@@ -8,36 +8,47 @@ import com.lambdas.dto.response.DeleteResponseDTO;
 import com.lambdas.exception.CompanyNotFoundException;
 import com.lambdas.exception.DatabaseException;
 import com.lambdas.service.CompanyService;
+import com.lambdas.service.impl.CompanyServiceImpl;
+import com.lambdas.util.HttpStatus;
+import com.lambdas.util.LoggingHelper;
 import com.lambdas.util.ResponseUtil;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 public class DeleteCompanyHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
     
-    private static final Logger logger = LoggerFactory.getLogger(DeleteCompanyHandler.class);
-    private static final CompanyService COMPANY_SERVICE = new CompanyService();
+    private static final Logger logger = LoggingHelper.getLogger(DeleteCompanyHandler.class);
+
+    private final CompanyService companyService;
+
+    public DeleteCompanyHandler() {
+        this.companyService = new CompanyServiceImpl();
+    }
+
+    // Constructor para inyección de dependencias (útil para testing)
+    public DeleteCompanyHandler(CompanyService companyService) {
+        this.companyService = companyService;
+    }
     
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
-        MDC.put("requestId", requestId);
+        LoggingHelper.initializeRequestContext(requestId);
         
         try {
-            logger.info("Starting company deletion process");
+            LoggingHelper.logProcessStart(logger, "company deletion");
             
             String companyId = input.getPathParameters().get("id");
             if (companyId == null || companyId.trim().isEmpty()) {
-                logger.warn("Company ID is missing or empty");
-                return ResponseUtil.createErrorResponse(400, "Company ID is required");
+                LoggingHelper.logMissingParameter(logger, "Company ID");
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Company ID is required");
             }
             
-            MDC.put("companyId", companyId);
+            LoggingHelper.addCompanyId(companyId);
             
-            boolean deleted = COMPANY_SERVICE.deleteCompany(companyId);
+            boolean deleted = companyService.deleteCompany(companyId);
             
             if (deleted) {
-                logger.info("Company deleted successfully with ID: {}", companyId);
+                LoggingHelper.logSuccess(logger, "Company deletion", companyId);
                 
                 DeleteResponseDTO responseDTO = new DeleteResponseDTO.Builder()
                         .message("Company successfully deactivated")
@@ -45,9 +56,9 @@ public class DeleteCompanyHandler implements RequestHandler<APIGatewayProxyReque
                         .success(true)
                         .build();
                 
-                return ResponseUtil.createResponse(200, responseDTO);
+                return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
             } else {
-                logger.warn("Company not found for deletion with ID: {}", companyId);
+                LoggingHelper.logEntityNotFound(logger, "Company", companyId);
                 
                 DeleteResponseDTO responseDTO = new DeleteResponseDTO.Builder()
                         .message("Company not found")
@@ -55,11 +66,11 @@ public class DeleteCompanyHandler implements RequestHandler<APIGatewayProxyReque
                         .success(false)
                         .build();
                 
-                return ResponseUtil.createResponse(404, responseDTO);
+                return ResponseUtil.createResponse(HttpStatus.NOT_FOUND, responseDTO);
             }
             
         } catch (CompanyNotFoundException e) {
-            logger.warn("Company not found: {}", e.getMessage());
+            LoggingHelper.logEntityNotFound(logger, "Company", e.getMessage());
             
             DeleteResponseDTO responseDTO = new DeleteResponseDTO.Builder()
                     .message(e.getMessage())
@@ -67,15 +78,15 @@ public class DeleteCompanyHandler implements RequestHandler<APIGatewayProxyReque
                     .success(false)
                     .build();
                     
-            return ResponseUtil.createResponse(404, responseDTO);
+            return ResponseUtil.createResponse(HttpStatus.NOT_FOUND, responseDTO);
         } catch (DatabaseException e) {
-            logger.error("Database error occurred", e);
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            LoggingHelper.logDatabaseError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } catch (Exception e) {
-            logger.error("Unexpected error occurred", e);
-            return ResponseUtil.createErrorResponse(500, "Internal server error");
+            LoggingHelper.logUnexpectedError(logger, e.getMessage(), e);
+            return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } finally {
-            MDC.clear();
+            LoggingHelper.clearContext();
         }
     }
 }
