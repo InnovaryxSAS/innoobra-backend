@@ -281,6 +281,29 @@ public class ValidationException extends RuntimeException {
         return new ValidationException(errors, "USER_UPDATE_ERROR");
     }
 
+    public static ValidationException forChapter(String message) {
+        return new ValidationException(message, "CHAPTER_VALIDATION_ERROR");
+    }
+
+    public static ValidationException forChapterCreation(Set<String> errors) {
+        return new ValidationException(errors, "CHAPTER_CREATION_ERROR");
+    }
+
+    public static ValidationException forChapterUpdate(Set<String> errors) {
+        return new ValidationException(errors, "CHAPTER_UPDATE_ERROR");
+
+    public static ValidationException forActivity(String message) {
+        return new ValidationException(message, "ACTIVITY_VALIDATION_ERROR");
+    }
+
+    public static ValidationException forActivityCreation(Set<String> errors) {
+        return new ValidationException(errors, "ACTIVITY_CREATION_ERROR");
+    }
+
+    public static ValidationException forActivityUpdate(Set<String> errors) {
+        return new ValidationException(errors, "ACTIVITY_UPDATE_ERROR");
+    }
+
     public static ValidationException forRequiredFields(Set<String> missingFields) {
         Set<String> errors = missingFields.stream()
                 .map(field -> "Required field '" + field + "' is missing or empty")
