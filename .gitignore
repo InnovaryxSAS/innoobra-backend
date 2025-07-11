@@ -16,5 +16,6 @@ crash.log
 *.iml
 .idea/
 .vscode/
-lambda-java/**/test-integration/
+lambda-java/**/events/
+lambda-java/**/template.yaml
 **/target/

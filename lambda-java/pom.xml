@@ -43,6 +43,7 @@
     <module>role</module>
     <module>user</module>
     <module>chapter</module>
+    <module>activity</module>
   </modules>
 
   <dependencies>

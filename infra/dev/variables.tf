@@ -149,6 +149,34 @@ variable "lambdas" {
       route_key = "DELETE /chapter/{id}"
     },
 
+    # === Activity Lambdas ===
+
+    create_activity = {
+      handler   = "com.lambdas.handler.CreateActivityHandler::handleRequest"
+      jar_path  = "functions/activity/activity-1.0-SNAPSHOT.jar"
+      route_key = "POST /activity"
+    },
+    get_activities = {
+      handler   = "com.lambdas.handler.GetActivitiesHandler::handleRequest"
+      jar_path  = "functions/activity/activity-1.0-SNAPSHOT.jar"
+      route_key = "GET /activity"
+    },
+    get_activity_by_id = {
+      handler   = "com.lambdas.handler.GetActivityByIdHandler::handleRequest"
+      jar_path  = "functions/activity/activity-1.0-SNAPSHOT.jar"
+      route_key = "GET /activity/{id}"
+    },
+    update_activity = {
+      handler   = "com.lambdas.handler.UpdateActivityHandler::handleRequest"
+      jar_path  = "functions/activity/activity-1.0-SNAPSHOT.jar"
+      route_key = "PUT /activity/{id}"
+    },
+    delete_activity = {
+      handler   = "com.lambdas.handler.DeleteActivityHandler::handleRequest"
+      jar_path  = "functions/activity/activity-1.0-SNAPSHOT.jar"
+      route_key = "DELETE /activity/{id}"
+    },
+
     # === Others Lambdas ===
     
   }
