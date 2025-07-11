@@ -44,7 +44,7 @@ resource "aws_lambda_function" "lambda" {
   handler       = each.value.handler
   runtime       = "java21"
   filename      = "${path.module}/${each.value.jar_path}"
-  layers = [ aws_lambda_layer_version.commons.arn ]
+  layers = [ aws_lambda_layer_version.common.arn ]
   source_code_hash = filebase64sha256("${path.module}/${each.value.jar_path}")
   role          = aws_iam_role.lambda_exec.arn
   memory_size   = 128
@@ -57,7 +57,7 @@ resource "aws_lambda_function" "lambda" {
 }
 
 resource "aws_lambda_layer_version" "common" {
-  layer_name          = "commons-layer"
+  layer_name          = "common-layer"
   compatible_runtimes = ["java21"]
   filename            = "${path.module}/${var.common.zip_path}"
   source_code_hash    = filebase64sha256("${path.module}/${var.common.zip_path}")
