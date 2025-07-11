@@ -40,10 +40,11 @@ output "endpoint_url" {
 
 resource "aws_lambda_function" "lambda" {
   for_each      = var.lambdas
-  function_name = "${each.key}-${var.environment}"
+  function_name = "${each.key}_${var.environment}"
   handler       = each.value.handler
   runtime       = "java21"
   filename      = "${path.module}/${each.value.jar_path}"
+  layers = [ aws_lambda_layer_version.commons.arn ]
   source_code_hash = filebase64sha256("${path.module}/${each.value.jar_path}")
   role          = aws_iam_role.lambda_exec.arn
   memory_size   = 128
@@ -53,6 +54,13 @@ resource "aws_lambda_function" "lambda" {
       ENV = var.environment
     }
   }
+}
+
+resource "aws_lambda_layer_version" "commons" {
+  layer_name          = "commons-layer"
+  compatible_runtimes = ["java21"]
+  filename            = "${path.module}/${var.commons.zip_path}"
+  source_code_hash    = filebase64sha256("${path.module}/${var.commons.zip_path}")
 }
 
 resource "aws_apigatewayv2_route" "lambda_route" {

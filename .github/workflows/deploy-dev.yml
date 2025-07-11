@@ -32,6 +32,17 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+         
+      - name: Build common jar
+        run: mvn clean package -f lambda-java/common/pom.xml
+
+    
+      - name: Zip common layer
+        run: |
+          mkdir -p infra/dev/layers/common
+          zip -j infra/dev/layers/common/common.zip lambda-java/common/target/common-1.0-SNAPSHOT.jar
+
+
        # 1. Compilar el JAR de company
       - name: Build Lambda jar
         run: mvn clean package -f lambda-java/company/pom.xml
@@ -47,10 +58,50 @@ jobs:
         run: mvn clean package -f lambda-java/project/pom.xml
 
       # 4. Mover el JAR generado de project a la carpeta de Terraform
-      - name: Move project lambda.jar to Terraform dir
+      - name: Move project lambda to Terraform dir
         run: |
           mkdir -p infra/dev/functions/project
           mv lambda-java/project/target/project-1.0-SNAPSHOT.jar infra/dev/functions/project/project-1.0-SNAPSHOT.jar
+
+      # 5. Compilar el JAR de role
+      - name: Build Project Lambda jar
+        run: mvn clean package -f lambda-java/role/pom.xml
+
+      # 6. Mover el JAR generado de role a la carpeta de Terraform
+      - name: Move role lambda to Terraform dir
+        run: |
+          mkdir -p infra/dev/functions/role
+          mv lambda-java/role/target/role-1.0-SNAPSHOT.jar infra/dev/functions/role/role-1.0-SNAPSHOT.jar
+
+      # 7. Compilar el JAR de User
+      - name: Build user Lambda jar
+        run: mvn clean package -f lambda-java/user/pom.xml
+
+      # 8. Mover el JAR generado de User a la carpeta de Terraform
+      - name: Move user lambda to Terraform dir
+        run: |
+          mkdir -p infra/dev/functions/user
+          mv lambda-java/user/target/user-1.0-SNAPSHOT.jar infra/dev/functions/user/user-1.0-SNAPSHOT.jar
+
+      # 9. Compilar el JAR de Chapter
+      - name: Build chapter Lambda jar
+        run: mvn clean package -f lambda-java/chapter/pom.xml
+
+      # 10. Mover el JAR generado de Chapter a la carpeta de Terraform
+      - name: Move chapter lambda to Terraform dir
+        run: |
+          mkdir -p infra/dev/functions/chapter
+          mv lambda-java/chapter/target/chapter-1.0-SNAPSHOT.jar infra/dev/functions/chapter/chapter-1.0-SNAPSHOT.jar
+
+      # 9. Compilar el JAR de Activity
+      - name: Build activity Lambda jar
+        run: mvn clean package -f lambda-java/activity/pom.xml
+
+      # 10. Mover el JAR generado de Activity a la carpeta de Terraform
+      - name: Move activity lambda.jar to Terraform dir
+        run: |
+          mkdir -p infra/dev/functions/activity
+          mv lambda-java/activity/target/activity-1.0-SNAPSHOT.jar infra/dev/functions/activity/activity-1.0-SNAPSHOT.jar
 
       - name: Terraform Init
         run: terraform init

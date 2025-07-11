@@ -181,3 +181,10 @@ variable "lambdas" {
     
   }
 }
+variable "common" {
+  description = "Config del Lambda Layer de utilidades comunes"
+  type = object({ zip_path = string })
+  default = {
+    zip_path = "layers/common/common.zip"
+  }
+}

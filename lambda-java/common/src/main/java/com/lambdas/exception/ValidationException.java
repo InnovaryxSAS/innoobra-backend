@@ -291,6 +291,7 @@ public class ValidationException extends RuntimeException {
 
     public static ValidationException forChapterUpdate(Set<String> errors) {
         return new ValidationException(errors, "CHAPTER_UPDATE_ERROR");
+    }    
 
     public static ValidationException forActivity(String message) {
         return new ValidationException(message, "ACTIVITY_VALIDATION_ERROR");
