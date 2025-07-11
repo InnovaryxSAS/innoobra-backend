@@ -56,11 +56,11 @@ resource "aws_lambda_function" "lambda" {
   }
 }
 
-resource "aws_lambda_layer_version" "commons" {
+resource "aws_lambda_layer_version" "common" {
   layer_name          = "commons-layer"
   compatible_runtimes = ["java21"]
-  filename            = "${path.module}/${var.commons.zip_path}"
-  source_code_hash    = filebase64sha256("${path.module}/${var.commons.zip_path}")
+  filename            = "${path.module}/${var.common.zip_path}"
+  source_code_hash    = filebase64sha256("${path.module}/${var.common.zip_path}")
 }
 
 resource "aws_apigatewayv2_route" "lambda_route" {
