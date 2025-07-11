@@ -149,32 +149,32 @@ variable "lambdas" {
       route_key = "DELETE /chapter/{id}"
     },
 
-    # === Activity Lambdas ===
+    # === Attribute Lambdas ===
 
-    create_activity = {
-      handler   = "com.lambdas.handler.CreateActivityHandler::handleRequest"
-      jar_path  = "functions/activity/activity-1.0-SNAPSHOT.jar"
-      route_key = "POST /activity"
+    create_attribute = {
+      handler   = "com.lambdas.handler.CreateAttributeHandler::handleRequest"
+      jar_path  = "functions/attribute/attribute-1.0-SNAPSHOT.jar"
+      route_key = "POST /attribute"
     },
-    get_activities = {
-      handler   = "com.lambdas.handler.GetActivitiesHandler::handleRequest"
-      jar_path  = "functions/activity/activity-1.0-SNAPSHOT.jar"
-      route_key = "GET /activity"
+    get_attributes = {
+      handler   = "com.lambdas.handler.GetAttributesHandler::handleRequest"
+      jar_path  = "functions/attribute/attribute-1.0-SNAPSHOT.jar"
+      route_key = "GET /attribute"
     },
-    get_activity_by_id = {
-      handler   = "com.lambdas.handler.GetActivityByIdHandler::handleRequest"
-      jar_path  = "functions/activity/activity-1.0-SNAPSHOT.jar"
-      route_key = "GET /activity/{id}"
+    get_attribute_by_id = {
+      handler   = "com.lambdas.handler.GetAttributeByIdHandler::handleRequest"
+      jar_path  = "functions/attribute/attribute-1.0-SNAPSHOT.jar"
+      route_key = "GET /attribute/{id}"
     },
-    update_activity = {
-      handler   = "com.lambdas.handler.UpdateActivityHandler::handleRequest"
-      jar_path  = "functions/activity/activity-1.0-SNAPSHOT.jar"
-      route_key = "PUT /activity/{id}"
+    update_attribute = {
+      handler   = "com.lambdas.handler.UpdateAttributeHandler::handleRequest"
+      jar_path  = "functions/attribute/attribute-1.0-SNAPSHOT.jar"
+      route_key = "PUT /attribute/{id}"
     },
-    delete_activity = {
-      handler   = "com.lambdas.handler.DeleteActivityHandler::handleRequest"
-      jar_path  = "functions/activity/activity-1.0-SNAPSHOT.jar"
-      route_key = "DELETE /activity/{id}"
+    delete_attribute = {
+      handler   = "com.lambdas.handler.DeleteAttributeHandler::handleRequest"
+      jar_path  = "functions/attribute/attribute-1.0-SNAPSHOT.jar"
+      route_key = "DELETE /attribute/{id}"
     },
 
     # === Others Lambdas ===

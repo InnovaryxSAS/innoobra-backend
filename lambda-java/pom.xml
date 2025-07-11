@@ -44,6 +44,7 @@
     <module>user</module>
     <module>chapter</module>
     <module>activity</module>
+    <module>attribute</module>
   </modules>
 
   <dependencies>
