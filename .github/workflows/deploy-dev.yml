@@ -33,14 +33,20 @@ jobs:
           java-version: '21'
 
          
-      - name: Build & Install common
-        run: mvn clean install -DskipTests -f lambda-java/common/pom.xml
+      - name: Install zip utility
+        run: sudo apt-get update && sudo apt-get install -y zip
+
+      - name: Install parent POM
+        run: mvn clean install -DskipTests -f lambda-java/pom.xml
+
+      - name: Build & package common layer
+        run: mvn clean package -DskipTests -f lambda-java/common/pom.xml
 
       - name: Zip common layer
         run: |
           mkdir -p infra/dev/layers/common
           zip -j infra/dev/layers/common/common.zip \
-              lambda-java/common/target/common-1.0-SNAPSHOT.jar
+            lambda-java/common/target/common-1.0-SNAPSHOT.jar
 
 
        # 1. Compilar el JAR de company
