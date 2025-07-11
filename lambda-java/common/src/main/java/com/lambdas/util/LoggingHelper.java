@@ -9,6 +9,11 @@ public final class LoggingHelper {
     private static final String REQUEST_ID_KEY = "requestId";
     private static final String COMPANY_ID_KEY = "companyId";
     private static final String USER_ID_KEY = "userId";
+    private static final String ACTIVITY_ID_KEY = "activityId";
+    private static final String ATTRIBUTE_ID_KEY = "attributeId";
+    private static final String CHAPTER_ID_KEY = "chapterId";
+    private static final String PROJECT_ID_KEY = "projectId";
+    private static final String ROLE_ID_KEY = "roleId";
     
     private LoggingHelper() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
@@ -27,6 +32,36 @@ public final class LoggingHelper {
     public static void addUserId(String userId) {
         if (userId != null && !userId.trim().isEmpty()) {
             MDC.put(USER_ID_KEY, userId);
+        }
+    }
+
+    public static void addActivityId(String activityId) {
+        if (activityId != null && !activityId.trim().isEmpty()) {
+            MDC.put(ACTIVITY_ID_KEY, activityId);
+        }
+    }
+
+    public static void addAttributeId(String attributeId) {
+        if (attributeId != null && !attributeId.trim().isEmpty()) {
+            MDC.put(ATTRIBUTE_ID_KEY, attributeId);
+        }
+    }
+
+    public static void addChapterId(String chapterId) {
+        if (chapterId != null && !chapterId.trim().isEmpty()) {
+            MDC.put(CHAPTER_ID_KEY, chapterId);
+        }
+    }
+
+    public static void addProjectId(String projectId) {
+        if (projectId != null && !projectId.trim().isEmpty()) {
+            MDC.put(PROJECT_ID_KEY, projectId);
+        }
+    }
+
+    public static void addRoleId(String roleId) {
+        if (roleId != null && !roleId.trim().isEmpty()) {
+            MDC.put(ROLE_ID_KEY, roleId);
         }
     }
 
