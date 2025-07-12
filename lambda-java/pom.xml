@@ -45,6 +45,7 @@
     <module>chapter</module>
     <module>activity</module>
     <module>attribute</module>
+    <module>apudetail</module>
   </modules>
 
   <dependencies>

@@ -5,16 +5,17 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 public final class LoggingHelper {
-    
+
     private static final String REQUEST_ID_KEY = "requestId";
     private static final String COMPANY_ID_KEY = "companyId";
     private static final String USER_ID_KEY = "userId";
     private static final String ACTIVITY_ID_KEY = "activityId";
     private static final String ATTRIBUTE_ID_KEY = "attributeId";
+    private static final String APU_DETAIL_ID_KEY = "apuDetailId";
     private static final String CHAPTER_ID_KEY = "chapterId";
     private static final String PROJECT_ID_KEY = "projectId";
     private static final String ROLE_ID_KEY = "roleId";
-    
+
     private LoggingHelper() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
@@ -44,6 +45,12 @@ public final class LoggingHelper {
     public static void addAttributeId(String attributeId) {
         if (attributeId != null && !attributeId.trim().isEmpty()) {
             MDC.put(ATTRIBUTE_ID_KEY, attributeId);
+        }
+    }
+
+    public static void addApuDetailId(String apuDetailId) {
+        if (apuDetailId != null && !apuDetailId.trim().isEmpty()) {
+            MDC.put(APU_DETAIL_ID_KEY, apuDetailId);
         }
     }
 
@@ -125,8 +132,8 @@ public final class LoggingHelper {
         return LoggerFactory.getLogger(clazz);
     }
 
-    public static <T> T executeWithLogging(String requestId, String operation, 
-                                         Logger logger, LoggingOperation<T> operation1) throws Exception {
+    public static <T> T executeWithLogging(String requestId, String operation,
+            Logger logger, LoggingOperation<T> operation1) throws Exception {
         try {
             initializeRequestContext(requestId);
             logProcessStart(logger, operation);
