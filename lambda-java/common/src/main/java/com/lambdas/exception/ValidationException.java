@@ -291,7 +291,7 @@ public class ValidationException extends RuntimeException {
 
     public static ValidationException forChapterUpdate(Set<String> errors) {
         return new ValidationException(errors, "CHAPTER_UPDATE_ERROR");
-    }    
+    }
 
     public static ValidationException forActivity(String message) {
         return new ValidationException(message, "ACTIVITY_VALIDATION_ERROR");
@@ -303,6 +303,30 @@ public class ValidationException extends RuntimeException {
 
     public static ValidationException forActivityUpdate(Set<String> errors) {
         return new ValidationException(errors, "ACTIVITY_UPDATE_ERROR");
+    }
+
+    public static ValidationException forAttribute(String message) {
+        return new ValidationException(message, "ATTRIBUTE_VALIDATION_ERROR");
+    }
+
+    public static ValidationException forAttributeCreation(Set<String> errors) {
+        return new ValidationException(errors, "ATTRIBUTE_CREATION_ERROR");
+    }
+
+    public static ValidationException forAttributeUpdate(Set<String> errors) {
+        return new ValidationException(errors, "ATTRIBUTE_UPDATE_ERROR");
+    }
+
+    public static ValidationException forApuDetail(String message) {
+        return new ValidationException(message, "APU_DETAIL_VALIDATION_ERROR");
+    }
+
+    public static ValidationException forApuDetailCreation(Set<String> errors) {
+        return new ValidationException(errors, "APU_DETAIL_CREATION_ERROR");
+    }
+
+    public static ValidationException forApuDetailUpdate(Set<String> errors) {
+        return new ValidationException(errors, "APU_DETAIL_UPDATE_ERROR");
     }
 
     public static ValidationException forRequiredFields(Set<String> missingFields) {
