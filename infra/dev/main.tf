@@ -2,90 +2,114 @@ provider "aws" {
   region  = "us-east-1"
 }
 
-resource "aws_iam_role" "lambda_exec" {
-  name = "lambda_exec_role"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Action = "sts:AssumeRole"
-      Principal = {
-        Service = "lambda.amazonaws.com"
-      }
-      Effect = "Allow"
-      Sid    = ""
-    }]
-  })
+# 1) Secrets Manager (usuario + contraseña RDS)
+module "secrets" {
+  source      = "./modules/secrets"
+  db_username = var.db_username
+  db_password = var.db_password    # sólo para inicializar
 }
 
-resource "aws_iam_role_policy_attachment" "lambda_logs" {
-  role       = aws_iam_role.lambda_exec.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+# 2) VPC + subnets + route tables
+module "vpc" {
+  source          = "./modules/vpc"
+  vpc_cidr        = var.vpc_cidr
+  az              = var.az
+  public_subnets  = var.public_subnets
+  private_subnets = var.private_subnets
+}
+
+# 3) NAT instance económica
+module "nat" {
+  source                 = "./modules/nat"
+  public_subnet_id       = module.vpc.public_subnet_ids[0]
+  private_route_table_id = module.vpc.private_route_table_id
+}
+
+# 4) Security Groups
+module "security" {
+  source = "./modules/security"
+  vpc_id = module.vpc.vpc_id
+}
+
+# 5) RDS Postgres en subred privada
+module "rds" {
+  source                 = "./modules/rds"
+  db_name                = var.db_name
+  db_username            = var.db_username
+  db_password_secret_arn = module.secrets.secret_arn
+  subnet_ids             = module.vpc.private_subnet_ids
+  security_group_id      = module.security.rds_sg_id
 }
 
 
-resource "aws_apigatewayv2_api" "http_api" {
-  name          = "http-api-budget"
-  protocol_type = "HTTP"
+# 6) Lambda + HTTP API + integración con RDS y Secrets
+module "lambda" {
+  source         = "./modules/lambda"
+
+  # Variables propias del módulo
+  environment    = var.environment
+  lambdas        = var.lambdas
+  common         = var.common
+
+  # Networking
+  vpc_subnet_ids = module.vpc.private_subnet_ids
+  lambda_sg_id   = module.security.lambda_sg_id
+
+  # Base de datos & secretos
+  db_secret_arn  = module.secrets.secret_arn
+  db_endpoint    = module.rds.db_address
+  db_name        = var.db_name
+  db_username    = var.db_username
+
+  # Performance Lambdas
+  memory_size    = var.lambda_memory
+  timeout        = var.lambda_timeout
 }
 
-resource "aws_apigatewayv2_stage" "default" {
-  api_id      = aws_apigatewayv2_api.http_api.id
-  name        = "$default"
-  auto_deploy = true
+###########################################
+# (Opcional) Outputs globales
+###########################################
+output "rds_endpoint" {
+  description = "Endpoint de la base de datos RDS"
+  value       = module.rds.db_address
 }
 
-output "endpoint_url" {
-  value = aws_apigatewayv2_api.http_api.api_endpoint
+output "api_url" {
+  description = "URL pública del HTTP API Gateway"
+  value       = module.lambda.endpoint_url
 }
 
-resource "aws_lambda_function" "lambda" {
-  for_each      = var.lambdas
-  function_name = "${each.key}_${var.environment}"
-  handler       = each.value.handler
-  runtime       = "java21"
-  filename      = "${path.module}/${each.value.jar_path}"
-  layers = [ aws_lambda_layer_version.common.arn ]
-  source_code_hash = filebase64sha256("${path.module}/${each.value.jar_path}")
-  role          = aws_iam_role.lambda_exec.arn
-  memory_size   = 128
-  timeout       = 15
-  environment {
-    variables = {
-      ENV = var.environment
-    }
-  }
-}
 
-resource "aws_lambda_layer_version" "common" {
-  layer_name          = "common-layer"
-  compatible_runtimes = ["java21"]
-  filename            = "${path.module}/${var.common.zip_path}"
-  source_code_hash    = filebase64sha256("${path.module}/${var.common.zip_path}")
-}
 
-resource "aws_apigatewayv2_route" "lambda_route" {
-  for_each  = var.lambdas
-  api_id    = aws_apigatewayv2_api.http_api.id
-  route_key = each.value.route_key
-  target    = "integrations/${aws_apigatewayv2_integration.lambda_integration[each.key].id}"
-}
 
-resource "aws_apigatewayv2_integration" "lambda_integration" {
-  for_each               = var.lambdas
-  api_id                 = aws_apigatewayv2_api.http_api.id
-  integration_type       = "AWS_PROXY"
-  integration_uri        = aws_lambda_function.lambda[each.key].invoke_arn
-  integration_method     = "POST"               
-  payload_format_version = "2.0"
-}
 
-resource "aws_lambda_permission" "api_gw" {
-  for_each      = var.lambdas
-  statement_id  = "AllowExecutionFromAPIGateway-${each.key}-${var.environment}"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.lambda[each.key].function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*"
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

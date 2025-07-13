@@ -177,6 +177,34 @@ variable "lambdas" {
       route_key = "DELETE /attribute/{id}"
     },
 
+    # === APU_DETAIL Lambdas ===
+
+    create_apudetail = {
+      handler   = "com.lambdas.handler.CreateApuDetailHandler::handleRequest"
+      jar_path  = "functions/apudetail/apudetail-1.0-SNAPSHOT.jar"
+      route_key = "POST /apudetail"
+    },
+    get_apudetails = {
+      handler   = "com.lambdas.handler.GetApuDetailsHandler::handleRequest"
+      jar_path  = "functions/apudetail/apudetail-1.0-SNAPSHOT.jar"
+      route_key = "GET /apudetail"
+    },
+    get_apudetail_by_id = {
+      handler   = "com.lambdas.handler.GetApuDetailByIdHandler::handleRequest"
+      jar_path  = "functions/apudetail/apudetail-1.0-SNAPSHOT.jar"
+      route_key = "GET /apudetail/{id}"
+    },
+    update_apudetail = {
+      handler   = "com.lambdas.handler.UpdateApuDetailHandler::handleRequest"
+      jar_path  = "functions/apudetail/apudetail-1.0-SNAPSHOT.jar"
+      route_key = "PUT /apudetail/{id}"
+    },
+    delete_apudetail = {
+      handler   = "com.lambdas.handler.DeleteApuDetailHandler::handleRequest"
+      jar_path  = "functions/apudetail/apudetail-1.0-SNAPSHOT.jar"
+      route_key = "DELETE /apudetail/{id}"
+    },
+
     # === Others Lambdas ===
     
   }
@@ -187,4 +215,73 @@ variable "common" {
   default = {
     zip_path = "layers/common/common.zip"
   }
+}
+
+# ----------------------------------------
+# 2) AWS & VPC
+# ----------------------------------------
+variable "region" {
+  description = "AWS region to deploy into"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "vpc_cidr" {
+  description = "CIDR block for the VPC"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+variable "az" {
+  description = "Availability Zone"
+  type        = string
+  default     = "us-east-1a"
+}
+
+variable "public_subnets" {
+  description = "CIDRs for public subnets"
+  type        = list(string)
+  default     = ["10.0.101.0/24"]
+}
+
+variable "private_subnets" {
+  description = "CIDRs for private subnets"
+  type        = list(string)
+  default     = ["10.0.1.0/24"]
+}
+
+# ----------------------------------------
+# 3) RDS DB
+# ----------------------------------------
+variable "db_username" {
+  description = "Master username for RDS"
+  type        = string
+  default     = "admin"
+}
+
+variable "db_password" {
+  description = "Initial RDS password (only to bootstrap Secrets Manager)"
+  type        = string
+  default     = "password-dev"
+}
+
+variable "db_name" {
+  description = "Name of the PostgreSQL database"
+  type        = string
+  default     = "innobra_dev"
+}
+
+# ----------------------------------------
+# 4) Lambda performance
+# ----------------------------------------
+variable "lambda_memory" {
+  description = "Memory (MB) for each Lambda function"
+  type        = number
+  default     = 128
+}
+
+variable "lambda_timeout" {
+  description = "Timeout (seconds) for each Lambda function"
+  type        = number
+  default     = 30
 }
