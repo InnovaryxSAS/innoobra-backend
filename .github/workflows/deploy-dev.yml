@@ -135,7 +135,7 @@ jobs:
         working-directory: infra/dev
         run: terraform init -input=false
 
-            - name: Terraform State Migration
+      - name: Terraform State Migration
         working-directory: infra/dev
         run: |
           # 1) Listamos solo las funcs que están en el state
