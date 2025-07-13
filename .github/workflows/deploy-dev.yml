@@ -99,20 +99,49 @@ jobs:
           mkdir -p infra/dev/functions/chapter
           mv lambda-java/chapter/target/chapter-1.0-SNAPSHOT.jar infra/dev/functions/chapter/chapter-1.0-SNAPSHOT.jar
 
-      # 9. Compilar el JAR de Activity
+      # 11. Compilar el JAR de Activity
       - name: Build activity Lambda jar
         run: mvn clean package -f lambda-java/activity/pom.xml
 
-      # 10. Mover el JAR generado de Activity a la carpeta de Terraform
+      # 12. Mover el JAR generado de Activity a la carpeta de Terraform
       - name: Move activity lambda.jar to Terraform dir
         run: |
           mkdir -p infra/dev/functions/activity
           mv lambda-java/activity/target/activity-1.0-SNAPSHOT.jar infra/dev/functions/activity/activity-1.0-SNAPSHOT.jar
 
+      # 13. Compilar el JAR de Attribute
+      - name: Build attributte Lambda jar
+        run: mvn clean package -f lambda-java/attribute/pom.xml
+
+      # 14. Mover el JAR generado de attribute a la carpeta de Terraform
+      - name: Move attribute lambda.jar to Terraform dir
+        run: |
+          mkdir -p infra/dev/functions/attribute
+          mv lambda-java/attribute/target/attribute-1.0-SNAPSHOT.jar infra/dev/functions/attribute/attribute-1.0-SNAPSHOT.jar
+
+      # 15. Compilar el JAR de ApuDetail
+      - name: Build ApuDetail Lambda jar
+        run: mvn clean package -f lambda-java/apudetail/pom.xml
+
+      # 16. Mover el JAR generado de apudetail a la carpeta de Terraform
+      - name: Move ApuDetail lambda.jar to Terraform dir
+        run: |
+          mkdir -p infra/dev/functions/apudetail
+          mv lambda-java/apudetail/target/apudetail-1.0-SNAPSHOT.jar infra/dev/functions/apudetail/apudetail-1.0-SNAPSHOT.jar
+
+
       - name: Terraform Init
-        run: terraform init
         working-directory: infra/dev
+        run: terraform init -input=false
+
+      - name: Terraform Plan
+        working-directory: infra/dev
+        run: |
+          terraform plan \
+            -input=false \
+            -out=tfplan
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        if: github.ref == 'refs/heads/dev'   # opcional: sólo aplica en dev
         working-directory: infra/dev
+        run: terraform apply -input=false -auto-approve tfplan
