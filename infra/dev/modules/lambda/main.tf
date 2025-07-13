@@ -62,9 +62,11 @@ output "endpoint_url" {
 resource "aws_lambda_layer_version" "common" {
   layer_name          = "common-layer"
   compatible_runtimes = ["java21"]
-  filename            = "${path.module}/${var.common.zip_path}"
-  source_code_hash    = filebase64sha256("${path.module}/${var.common.zip_path}")
+  # path.root apunta al directorio raíz (infra/dev)
+  filename         = "${path.root}/${var.common.zip_path}"
+  source_code_hash = filebase64sha256("${path.root}/${var.common.zip_path}")
 }
+
 
 ##############################################################################
 # 4) Funciones Lambda + VPC + DB
