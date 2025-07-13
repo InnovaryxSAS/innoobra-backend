@@ -145,32 +145,32 @@ jobs:
                     create_chapter get_chapters get_chapter_by_id update_chapter delete_chapter \
                     create_attribute get_attributes get_attribute_by_id update_attribute delete_attribute; do
 
-            # Mueve la función Lambda
             terraform state mv \
               "aws_lambda_function.lambda[\"${fn}_dev\"]" \
-              "module.lambda.aws_lambda_function.this[\"${fn}\"]"
+              "module.lambda.aws_lambda_function.this[\"${fn}_dev\"]"
 
-            # Mueve el permiso de API Gateway
             terraform state mv \
               "aws_lambda_permission.api_gw[\"${fn}_dev\"]" \
-              "module.lambda.aws_lambda_permission.api_gw[\"${fn}\"]"
+              "module.lambda.aws_lambda_permission.api_gw[\"${fn}_dev\"]"
 
-            # Mueve la integración HTTP/API
             terraform state mv \
               "aws_apigatewayv2_integration.lambda_integration[\"${fn}_dev\"]" \
-              "module.lambda.aws_apigatewayv2_integration.lambda_integration[\"${fn}\"]"
+              "module.lambda.aws_apigatewayv2_integration.lambda_integration[\"${fn}_dev\"]"
 
-            # Mueve la ruta HTTP/API
             terraform state mv \
               "aws_apigatewayv2_route.lambda_route[\"${fn}_dev\"]" \
-              "module.lambda.aws_apigatewayv2_route.lambda_route[\"${fn}\"]"
+              "module.lambda.aws_apigatewayv2_route.lambda_route[\"${fn}_dev\"]"
 
           done
 
-          # Finalmente, layer, API y stage globales
-          terraform state mv aws_lambda_layer_version.common               module.lambda.aws_lambda_layer_version.common
-          terraform state mv aws_apigatewayv2_api.http_api               module.lambda.aws_apigatewayv2_api.http_api
-          terraform state mv aws_apigatewayv2_stage.default              module.lambda.aws_apigatewayv2_stage.default
+          # Mueve layer, API y stage
+          terraform state mv aws_lambda_layer_version.common \
+            module.lambda.aws_lambda_layer_version.common
+          terraform state mv aws_apigatewayv2_api.http_api \
+            module.lambda.aws_apigatewayv2_api.http_api
+          terraform state mv aws_apigatewayv2_stage.default \
+            module.lambda.aws_apigatewayv2_stage.default
+
 
 
 
