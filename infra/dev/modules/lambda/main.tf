@@ -77,7 +77,7 @@ locals {
 
 resource "aws_lambda_function" "this" {
   for_each         = local.functions
-  function_name    = "${each.key}-${var.environment}"
+  function_name    = "${each.key}_${var.environment}"
   filename         = "${path.root}/${each.value.jar_path}"
   handler          = each.value.handler
   runtime          = "java21"
