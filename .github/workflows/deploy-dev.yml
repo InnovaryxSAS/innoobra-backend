@@ -138,38 +138,43 @@ jobs:
       - name: State Migration
         working-directory: infra/dev
         run: |
-          for fn in create_company get_companies get_companiesID update_company delete_company \
-                    create_project get_projects get_project_by_id update_project delete_project \
-                    create_role get_roles get_role_by_id update_role delete_role \
-                    create_user get_users get_user_by_id update_user delete_user \
-                    create_chapter get_chapters get_chapter_by_id update_chapter delete_chapter \
-                    create_attribute get_attributes get_attribute_by_id update_attribute delete_attribute; do
+          # 1) Inspecciona tu state para confirmar los keys:
+          terraform state list | grep aws_lambda_function.lambda
+
+          # 2) Mueve cada función y sus permisos/integraciones/rutas
+          for fn in \
+            create_company get_companies get_companiesID update_company delete_company \
+            create_project get_projects get_project_by_id update_project delete_project \
+            create_role get_roles get_role_by_id update_role delete_role \
+            create_user get_users get_user_by_id update_user delete_user \
+            create_chapter get_chapters get_chapter_by_id update_chapter delete_chapter \
+            create_attribute get_attributes get_attribute_by_id update_attribute delete_attribute
+          do
+            terraform state mv \
+              "aws_lambda_function.lambda[\"${fn}\"]" \
+              "module.lambda.aws_lambda_function.this[\"${fn}\"]"
 
             terraform state mv \
-              "aws_lambda_function.lambda[\"${fn}_dev\"]" \
-              "module.lambda.aws_lambda_function.this[\"${fn}_dev\"]"
+              "aws_lambda_permission.api_gw[\"${fn}\"]" \
+              "module.lambda.aws_lambda_permission.api_gw[\"${fn}\"]"
 
             terraform state mv \
-              "aws_lambda_permission.api_gw[\"${fn}_dev\"]" \
-              "module.lambda.aws_lambda_permission.api_gw[\"${fn}_dev\"]"
+              "aws_apigatewayv2_integration.lambda_integration[\"${fn}\"]" \
+              "module.lambda.aws_apigatewayv2_integration.lambda_integration[\"${fn}\"]"
 
             terraform state mv \
-              "aws_apigatewayv2_integration.lambda_integration[\"${fn}_dev\"]" \
-              "module.lambda.aws_apigatewayv2_integration.lambda_integration[\"${fn}_dev\"]"
-
-            terraform state mv \
-              "aws_apigatewayv2_route.lambda_route[\"${fn}_dev\"]" \
-              "module.lambda.aws_apigatewayv2_route.lambda_route[\"${fn}_dev\"]"
-
+              "aws_apigatewayv2_route.lambda_route[\"${fn}\"]" \
+              "module.lambda.aws_apigatewayv2_route.lambda_route[\"${fn}\"]"
           done
 
-          # Mueve layer, API y stage
+          # 3) Mueve el layer, la API y el stage
           terraform state mv aws_lambda_layer_version.common \
             module.lambda.aws_lambda_layer_version.common
           terraform state mv aws_apigatewayv2_api.http_api \
             module.lambda.aws_apigatewayv2_api.http_api
           terraform state mv aws_apigatewayv2_stage.default \
             module.lambda.aws_apigatewayv2_stage.default
+
 
 
 
