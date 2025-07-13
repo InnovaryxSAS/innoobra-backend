@@ -135,19 +135,21 @@ jobs:
         working-directory: infra/dev
         run: terraform init -input=false
 
-      - name: Terraform State Migration
+            - name: Terraform State Migration
         working-directory: infra/dev
         run: |
-          # Lista sólo las Lambdas que realmente están en state
+          # 1) Listamos solo las funcs que están en el state
           existing_fns=$(terraform state list \
                         | grep '^aws_lambda_function.lambda\["' \
                         | sed -E 's/.*\["([^"]+)"\].*/\1/')
 
+          # 2) Por cada función, movemos Lambda, permiso, integración y ruta
           for fn in $existing_fns; do
-            echo "Migrando Lambda $fn …"
+            echo "Migrando $fn …"
+
             terraform state mv \
               "aws_lambda_function.lambda[\"$fn\"]" \
-              "module.lambda.aws_lambda_function.this[\"$fn\"]"
+              "module.lambda.aws_lambda_function.this[\"$fn\"]" || true
 
             terraform state mv \
               "aws_lambda_permission.api_gw[\"$fn\"]" \
@@ -162,7 +164,7 @@ jobs:
               "module.lambda.aws_apigatewayv2_route.lambda_route[\"$fn\"]" || true
           done
 
-          # Finalmente mueve los recursos únicos de módulo
+          # 3) Finalmente movemos la capa y el HTTP API
           terraform state mv aws_lambda_layer_version.common \
             module.lambda.aws_lambda_layer_version.common || true
 
@@ -171,7 +173,6 @@ jobs:
 
           terraform state mv aws_apigatewayv2_stage.default \
             module.lambda.aws_apigatewayv2_stage.default || true
-
 
       - name: Terraform Plan
         working-directory: infra/dev
