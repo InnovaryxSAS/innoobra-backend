@@ -138,7 +138,6 @@ jobs:
       - name: State Migration
         working-directory: infra/dev
         run: |
-          # Mapea las Lambdas y sus permisos/integraciones/rutas al nuevo módulo
           for fn in create_company get_companies get_companiesID update_company delete_company \
                     create_project get_projects get_project_by_id update_project delete_project \
                     create_role get_roles get_role_by_id update_role delete_role \
@@ -146,28 +145,33 @@ jobs:
                     create_chapter get_chapters get_chapter_by_id update_chapter delete_chapter \
                     create_attribute get_attributes get_attribute_by_id update_attribute delete_attribute; do
 
+            # Mueve la función Lambda
             terraform state mv \
-              "aws_lambda_function.lambda[\"$fn\"]" \
-              "module.lambda.aws_lambda_function.this[\"$fn\"]"
+              "aws_lambda_function.lambda[\"${fn}_dev\"]" \
+              "module.lambda.aws_lambda_function.this[\"${fn}\"]"
 
+            # Mueve el permiso de API Gateway
             terraform state mv \
-              "aws_lambda_permission.api_gw[\"$fn\"]" \
-              "module.lambda.aws_lambda_permission.api_gw[\"$fn\"]"
+              "aws_lambda_permission.api_gw[\"${fn}_dev\"]" \
+              "module.lambda.aws_lambda_permission.api_gw[\"${fn}\"]"
 
+            # Mueve la integración HTTP/API
             terraform state mv \
-              "aws_apigatewayv2_integration.lambda_integration[\"$fn\"]" \
-              "module.lambda.aws_apigatewayv2_integration.lambda_integration[\"$fn\"]"
+              "aws_apigatewayv2_integration.lambda_integration[\"${fn}_dev\"]" \
+              "module.lambda.aws_apigatewayv2_integration.lambda_integration[\"${fn}\"]"
 
+            # Mueve la ruta HTTP/API
             terraform state mv \
-              "aws_apigatewayv2_route.lambda_route[\"$fn\"]" \
-              "module.lambda.aws_apigatewayv2_route.lambda_route[\"$fn\"]"
+              "aws_apigatewayv2_route.lambda_route[\"${fn}_dev\"]" \
+              "module.lambda.aws_apigatewayv2_route.lambda_route[\"${fn}\"]"
 
           done
 
-          # Mapea la capa, la API y el stage fuera del bucle
+          # Finalmente, layer, API y stage globales
           terraform state mv aws_lambda_layer_version.common               module.lambda.aws_lambda_layer_version.common
           terraform state mv aws_apigatewayv2_api.http_api               module.lambda.aws_apigatewayv2_api.http_api
           terraform state mv aws_apigatewayv2_stage.default              module.lambda.aws_apigatewayv2_stage.default
+
 
 
       - name: Terraform Plan
