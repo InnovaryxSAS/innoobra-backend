@@ -19,18 +19,18 @@ import org.slf4j.Logger;
 import java.util.List;
 import java.util.Map;
 
-public class GetUsersHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+public class GetUserHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
     
-    private static final Logger logger = LoggingHelper.getLogger(GetUsersHandler.class);
+    private static final Logger logger = LoggingHelper.getLogger(GetUserHandler.class);
 
     private final UserService userService;
 
-    public GetUsersHandler() {
+    public GetUserHandler() {
         this.userService = new UserServiceImpl();
     }
 
     // Constructor para inyección de dependencias (útil para testing)
-    public GetUsersHandler(UserService userService) {
+    public GetUserHandler(UserService userService) {
         this.userService = userService;
     }
     

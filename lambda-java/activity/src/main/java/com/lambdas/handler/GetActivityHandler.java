@@ -4,12 +4,12 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
-import com.lambdas.dto.response.ApuDetailResponseDTO;
+import com.lambdas.dto.response.ActivityResponseDTO;
 import com.lambdas.exception.DatabaseException;
 import com.lambdas.mapper.DTOMapper;
-import com.lambdas.model.ApuDetail;
-import com.lambdas.service.ApuDetailService;
-import com.lambdas.service.impl.ApuDetailServiceImpl;
+import com.lambdas.model.Activity;
+import com.lambdas.service.ActivityService;
+import com.lambdas.service.impl.ActivityServiceImpl;
 import com.lambdas.util.HttpStatus;
 import com.lambdas.util.LoggingHelper;
 import com.lambdas.util.ResponseUtil;
@@ -17,19 +17,19 @@ import org.slf4j.Logger;
 
 import java.util.List;
 
-public class GetApuDetailsHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+public class GetActivityHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
     
-    private static final Logger logger = LoggingHelper.getLogger(GetApuDetailsHandler.class);
+    private static final Logger logger = LoggingHelper.getLogger(GetActivityHandler.class);
 
-    private final ApuDetailService apuDetailService;
+    private final ActivityService activityService;
 
-    public GetApuDetailsHandler() {
-        this.apuDetailService = new ApuDetailServiceImpl();
+    public GetActivityHandler() {
+        this.activityService = new ActivityServiceImpl();
     }
 
     // Constructor para inyección de dependencias (útil para testing)
-    public GetApuDetailsHandler(ApuDetailService apuDetailService) {
-        this.apuDetailService = apuDetailService;
+    public GetActivityHandler(ActivityService activityService) {
+        this.activityService = activityService;
     }
     
     @Override
@@ -38,8 +38,12 @@ public class GetApuDetailsHandler implements RequestHandler<APIGatewayProxyReque
         LoggingHelper.initializeRequestContext(requestId);
         
         try {
-            List<ApuDetail> apuDetails = apuDetailService.getAllApuDetails();
-            List<ApuDetailResponseDTO> responseDTOs = DTOMapper.toResponseDTOList(apuDetails);
+            LoggingHelper.logProcessStart(logger, "activities retrieval");
+            
+            List<Activity> activities = activityService.getAllActivities();
+            LoggingHelper.logSuccessWithCount(logger, "Activities retrieval", activities.size());
+            
+            List<ActivityResponseDTO> responseDTOs = DTOMapper.toResponseDTOList(activities);
             return ResponseUtil.createResponse(HttpStatus.OK, responseDTOs);
             
         } catch (DatabaseException e) {

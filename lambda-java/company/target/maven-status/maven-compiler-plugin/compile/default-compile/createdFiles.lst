@@ -1,9 +1,9 @@
 com\lambdas\handler\CreateCompanyHandler.class
+com\lambdas\handler\GetCompanyHandler.class
 com\lambdas\Handler.class
 com\lambdas\repository\CompanyRepository.class
 com\lambdas\model\Company$Builder.class
 com\lambdas\handler\GetCompanyByIdHandler.class
-com\lambdas\handler\GetCompaniesHandler.class
 com\lambdas\dto\response\CompanyResponseDTO$Builder.class
 com\lambdas\repository\impl\CompanyRepositoryImpl.class
 com\lambdas\dto\response\DeleteResponseDTO.class

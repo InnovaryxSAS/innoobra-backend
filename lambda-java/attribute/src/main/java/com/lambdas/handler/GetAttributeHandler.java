@@ -4,12 +4,12 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
-import com.lambdas.dto.response.CompanyResponseDTO;
+import com.lambdas.dto.response.AttributeResponseDTO;
 import com.lambdas.exception.DatabaseException;
 import com.lambdas.mapper.DTOMapper;
-import com.lambdas.model.Company;
-import com.lambdas.service.CompanyService;
-import com.lambdas.service.impl.CompanyServiceImpl;
+import com.lambdas.model.Attribute;
+import com.lambdas.service.AttributeService;
+import com.lambdas.service.impl.AttributeServiceImpl;
 import com.lambdas.util.HttpStatus;
 import com.lambdas.util.LoggingHelper;
 import com.lambdas.util.ResponseUtil;
@@ -17,19 +17,19 @@ import org.slf4j.Logger;
 
 import java.util.List;
 
-public class GetCompaniesHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+public class GetAttributeHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
     
-    private static final Logger logger = LoggingHelper.getLogger(GetCompaniesHandler.class);
+    private static final Logger logger = LoggingHelper.getLogger(GetAttributeHandler.class);
 
-    private final CompanyService companyService;
+    private final AttributeService attributeService;
 
-    public GetCompaniesHandler() {
-        this.companyService = new CompanyServiceImpl();
+    public GetAttributeHandler() {
+        this.attributeService = new AttributeServiceImpl();
     }
 
     // Constructor para inyección de dependencias (útil para testing)
-    public GetCompaniesHandler(CompanyService companyService) {
-        this.companyService = companyService;
+    public GetAttributeHandler(AttributeService attributeService) {
+        this.attributeService = attributeService;
     }
     
     @Override
@@ -38,13 +38,8 @@ public class GetCompaniesHandler implements RequestHandler<APIGatewayProxyReques
         LoggingHelper.initializeRequestContext(requestId);
         
         try {
-            LoggingHelper.logProcessStart(logger, "companies retrieval");
-            
-            List<Company> companies = companyService.getAllCompanies();
-            LoggingHelper.logSuccessWithCount(logger, "Companies retrieval", companies.size());
-            
-            List<CompanyResponseDTO> responseDTOs = DTOMapper.toResponseDTOList(companies);
-            
+            List<Attribute> attributes = attributeService.getAllAttributes();
+            List<AttributeResponseDTO> responseDTOs = DTOMapper.toResponseDTOList(attributes);
             return ResponseUtil.createResponse(HttpStatus.OK, responseDTOs);
             
         } catch (DatabaseException e) {
