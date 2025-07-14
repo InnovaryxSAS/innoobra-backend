@@ -1,5 +1,5 @@
 data "aws_secretsmanager_secret_version" "db" {
-  secret_id = var.db_password_secret_arn
+  secret_id = module.secrets.aws_secretsmanager_secret.db.id
 }
 
 locals {
