@@ -77,64 +77,8 @@ resource "aws_lambda_layer_version" "common" {
 
 locals {
   lambda_to_folder = {
-    # Company
-    "create_company"       = "company"
-    "get_company"        = "company"
-    "update_company"       = "company"
-    "delete_company"       = "company"
-
-    # Project
-    "create_project"       = "project"
-    "get_project"         = "project"
-    "update_project"       = "project"
-    "delete_project"       = "project"
-
-    # ApuDetail
-    "create_apudetail"     = "apudetail"
-    "get_apudetail"       = "apudetail"
-    "update_apudetail"     = "apudetail"
-    "delete_apudetail"     = "apudetail"
-
-    # Chapter
-    "create_chapter"       = "chapter"
-    "get_chapter"         = "chapter"
-    "update_chapter"       = "chapter"
-    "delete_chapter"       = "chapter"
-
-    # Activity
-    "create_activity"      = "activity"
-    "get_activity"       = "activity"
-    "update_activity"      = "activity"
-    "delete_activity"      = "activity"
-
-    # Attribute
-    "create_attribute"     = "attribute"
-    "get_attribute"       = "attribute"
-    "update_attribute"     = "attribute"
-    "delete_attribute"     = "attribute"
-
-    # Role
-    "create_role"          = "role"
-    "get_role"            = "role"
-    "update_role"          = "role"
-    "delete_role"          = "role"
-
-    # User
-    "create_user"          = "user"
-    "get_user"            = "user"
-    "update_user"          = "user"
-    "delete_user"          = "user"
-
-    # ActivityById etc., si tienes keys como get_activity_by_id:
-    "get_activity_by_id"   = "activity"
-    "get_chapter_by_id"    = "chapter"
-    "get_project_by_id"    = "project"
-    "get_role_by_id"       = "role"
-    "get_user_by_id"       = "user"
-    "get_attribute_by_id"  = "attribute"
-    "get_apudetail_by_id"  = "apudetail"
-    "get_company_by_id"    = "company"
-    # …y así con TODAS tus keys en var.lambdas
+    for key, value in var.lambdas : 
+      key => regex("^functions/([^/]+)/", value.jar_path)[0]
   }
 }
 
