@@ -166,9 +166,9 @@ jobs:
             done
           done
 
-      - name: Upload to S3
+      - name: Upload Lambdas & Layers
         run: |
-          aws s3 cp infra/dev/functions/ s3://$LAMBDA_BUCKET/lambdas/ --recursive --exclude "*" --include "*.zip"
+          aws s3 sync infra/dev/functions/ s3://$LAMBDA_BUCKET/lambdas/
           aws s3 cp infra/dev/layers/common/common.zip s3://$LAMBDA_BUCKET/common-layers/common.zip
 
 
@@ -190,8 +190,4 @@ jobs:
           TF_VAR_lambda_bucket: ${{ secrets.LAMBDA_BUCKET }}
         run: terraform apply -input=false -parallelism=5 -auto-approve tfplan
 
-      - name: Upload Lambdas & Layers
-        run: |
-          aws s3 cp infra/dev/functions/ s3://$LAMBDA_BUCKET/lambdas/ --recursive
-          aws s3 cp infra/dev/layers/common/common.zip \
-            s3://$LAMBDA_BUCKET/common-layers/common.zip
+
