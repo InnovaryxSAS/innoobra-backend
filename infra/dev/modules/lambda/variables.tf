@@ -7,6 +7,7 @@ variable "lambdas" {
     route_key = string
   }))
 }
+
 variable "vpc_subnet_ids"{ type = list(string) }
 variable "lambda_sg_id"  { type = string }
 variable "db_secret_arn" { type = string }
