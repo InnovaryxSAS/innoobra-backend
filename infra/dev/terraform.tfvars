@@ -1,0 +1,1 @@
+lambda_bucket = "mi-bucket-de-lambdas"

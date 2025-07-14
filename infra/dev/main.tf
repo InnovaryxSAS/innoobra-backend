@@ -65,6 +65,7 @@ module "lambda" {
   # Performance Lambdas
   memory_size    = var.lambda_memory
   timeout        = var.lambda_timeout
+  lambda_bucket = var.lambda_bucket
 }
 
 ###########################################

@@ -139,17 +139,7 @@ jobs:
         working-directory: infra/dev
         run: terraform plan -input=false -out=tfplan
 
-       # DEBUG: imprimimos el comando que vamos a ejecutar
-      - name: Debug Terraform Apply command
-        if: github.ref == 'refs/heads/dev'
-        working-directory: infra/dev
-        run: |
-          echo "RUNNING 👉 terraform apply -input=false -parallelism=5 -auto-approve tfplan"
-
       - name: Terraform Apply
         if: github.ref == 'refs/heads/dev'
         working-directory: infra/dev
-        # FORZAMOS el paralelismo también vía env var, por si acaso
-        env:
-          TF_PARALLELISM: "5"
         run: terraform apply -input=false -parallelism=5 -auto-approve tfplan

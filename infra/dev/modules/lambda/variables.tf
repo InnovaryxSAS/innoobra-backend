@@ -22,3 +22,7 @@ variable "timeout" {
   type        = number
   default     = 30
 }
+variable "lambda_bucket" {
+  description = "Bucket donde subimos los .zip de las Lambdas"
+  type        = string
+}
