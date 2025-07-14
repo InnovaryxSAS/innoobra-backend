@@ -22,7 +22,7 @@ variable "lambdas" {
       jar_path  = "functions/company/company-1.0-SNAPSHOT.jar"
       route_key = "GET /company"
     },
-    get_companyID = {
+    get_company_by_id = {
       handler   = "com.lambdas.handler.GetCompanyByIdHandler::handleRequest"
       jar_path  = "functions/company/company-1.0-SNAPSHOT.jar"
       route_key = "GET /company/{id}"
