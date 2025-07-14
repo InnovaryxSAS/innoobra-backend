@@ -70,7 +70,6 @@ resource "aws_lambda_layer_version" "common" {
   source_code_hash = filebase64sha256("${path.root}/${var.common.zip_path}")
 }
 
-
 ##############################################################################
 # 4) Funciones Lambda + VPC + DB
 ##############################################################################
