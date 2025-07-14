@@ -313,7 +313,3 @@ variable "lambda_timeout" {
   type        = number
   default     = 30
 }
-// modules/secrets/outputs.tf
-output "db_secret_arn" {
-  value = aws_secretsmanager_secret.db.arn
-}
