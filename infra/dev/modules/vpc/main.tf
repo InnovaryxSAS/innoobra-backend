@@ -61,7 +61,3 @@ resource "aws_route_table_association" "private_assoc" {
   route_table_id = aws_route_table.private.id
 }
 
-// 3) Exportamos sus IDs para que otros módulos los consuman
-output "private_subnet_ids" {
-  value = aws_subnet.private[*].id
-}
