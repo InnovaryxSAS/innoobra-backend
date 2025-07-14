@@ -86,8 +86,6 @@ resource "aws_lambda_function" "this" {
   for_each         = var.lambdas
   function_name    = "${each.key}_${var.environment}"
   filename         = "functions/${local.lambda_to_folder[each.key]}/${each.key}.zip"
-  s3_bucket        = var.lambda_bucket
-  s3_key           = "lambdas/${each.key}.zip"
   handler          = each.value.handler
   runtime          = "java21"
   role             = aws_iam_role.lambda_exec.arn
