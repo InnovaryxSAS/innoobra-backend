@@ -1,3 +1,5 @@
+data "aws_availability_zones" "available" {}
+
 resource "aws_vpc" "this" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
@@ -15,11 +17,15 @@ resource "aws_subnet" "public" {
 }
 
 resource "aws_subnet" "private" {
-  for_each          = toset(var.private_subnets)
-  vpc_id            = aws_vpc.this.id
-  cidr_block        = each.value
-  availability_zone = var.az
-  tags              = { Name = "private-${each.value}" }
+  count                   = 2
+  vpc_id                  = aws_vpc.this.id
+  cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index + 1)
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name = "private-${cidrsubnet(var.vpc_cidr, 8, count.index + 1)}"
+  }
 }
 
 resource "aws_internet_gateway" "this" {
@@ -53,4 +59,9 @@ resource "aws_route_table_association" "private_assoc" {
   for_each       = aws_subnet.private
   subnet_id      = each.value.id
   route_table_id = aws_route_table.private.id
+}
+
+// 3) Exportamos sus IDs para que otros módulos los consuman
+output "private_subnet_ids" {
+  value = aws_subnet.private[*].id
 }
