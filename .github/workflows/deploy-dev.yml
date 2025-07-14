@@ -12,6 +12,9 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+      LAMBDA_BUCKET: mi-bucket-de-lambdas
 
     steps:
       - name: Checkout
