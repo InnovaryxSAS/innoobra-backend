@@ -12,6 +12,7 @@ data "aws_iam_policy_document" "assume_lambda" {
   }
 }
 
+
 resource "aws_iam_role" "lambda_exec" {
   name               = "lambda_exec_role-${var.environment}"
   assume_role_policy = data.aws_iam_policy_document.assume_lambda.json
@@ -73,12 +74,15 @@ resource "aws_lambda_layer_version" "common" {
 ##############################################################################
 # 4) Funciones Lambda + VPC + DB
 ##############################################################################
+
+
 locals {
-  functions = var.lambdas
+  folder = regexreplace(each.key, "^[a-z]+_", "")
 }
 
+
 resource "aws_lambda_function" "this" {
-  for_each         = local.functions
+  for_each         = var.lambdas
   function_name    = "${each.key}_${var.environment}"
   filename         = null
   s3_bucket        = var.lambda_bucket
@@ -112,7 +116,7 @@ resource "aws_lambda_function" "this" {
 # 5) Integración con API Gateway y permisos
 ##############################################################################
 resource "aws_apigatewayv2_integration" "lambda_integration" {
-  for_each               = local.functions
+  for_each               = var.lambdas
   api_id                 = aws_apigatewayv2_api.http_api.id
   integration_type       = "AWS_PROXY"
   integration_method     = "POST"
@@ -121,14 +125,14 @@ resource "aws_apigatewayv2_integration" "lambda_integration" {
 }
 
 resource "aws_apigatewayv2_route" "lambda_route" {
-  for_each  = local.functions
+  for_each  = var.lambdas
   api_id    = aws_apigatewayv2_api.http_api.id
   route_key = each.value.route_key
   target    = "integrations/${aws_apigatewayv2_integration.lambda_integration[each.key].id}"
 }
 
 resource "aws_lambda_permission" "api_gw" {
-  for_each      = local.functions
+  for_each      = var.lambdas
   statement_id  = "AllowExecutionFromAPIGateway-${each.key}-${var.environment}"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.this[each.key].function_name
