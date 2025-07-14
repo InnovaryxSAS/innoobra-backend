@@ -18,3 +18,7 @@ variable "security_group_id" {
   type        = string
   description = "Security Group ID allowing Lambda access"
 }
+variable "db_secret_arn" {
+  type        = string
+  description = "ARN (o ID) del secreto en Secrets Manager que contiene la contraseña para la BD"
+}

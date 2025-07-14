@@ -1,6 +1,7 @@
 data "aws_secretsmanager_secret_version" "db" {
-  secret_id = module.secrets.aws_secretsmanager_secret.db.id
+  secret_id = var.db_secret_arn
 }
+
 
 locals {
   db_creds = jsondecode(data.aws_secretsmanager_secret_version.db.secret_string)
@@ -19,7 +20,7 @@ resource "aws_db_instance" "this" {
   allocated_storage      = 20
   db_name                = var.db_name
   username               = var.db_username
-  password               = local.db_creds["password"]
+  password = data.aws_secretsmanager_secret_version.db.secret_string
   publicly_accessible    = false
   vpc_security_group_ids = [var.security_group_id]
   db_subnet_group_name   = aws_db_subnet_group.this.name
