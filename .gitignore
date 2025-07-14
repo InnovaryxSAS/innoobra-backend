@@ -8,6 +8,9 @@
 *.zip
 *.jar
 
+!functions/**/*.zip
+!functions/**/*.jar
+
 # Archivos de log
 crash.log
 
