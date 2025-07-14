@@ -147,9 +147,8 @@ resource "aws_lambda_function" "this" {
   handler          = each.value.handler
   runtime          = "java21"
   role             = aws_iam_role.lambda_exec.arn
-  source_code_hash = filebase64sha256(
-    "functions/${local.lambda_to_folder[each.key]}/${each.key}.zip"
-  )
+  source_code_hash = filebase64sha256("${path.module}/../../functions/${local.lambda_to_folder[each.key]}/${each.key}.zip")
+
   layers           = [aws_lambda_layer_version.common.arn]
 
   vpc_config {
