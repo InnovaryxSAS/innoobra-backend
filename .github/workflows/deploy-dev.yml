@@ -207,4 +207,4 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/dev'
         working-directory: infra/dev
-        run: terraform apply -input=false -auto-approve tfplan
+        run: terraform apply -input=false -parallelism=5 -auto-approve tfplan
