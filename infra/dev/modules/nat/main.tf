@@ -1,21 +1,9 @@
-data "aws_ami" "nat" {
-  most_recent = true
-  # owners omitido, no hace falta si fijo el ID
-  filter {
-    name   = "image-id"
-    values = ["ami-024cf76afbc833688"]   # pega aquí el ID que copiaste
-  }
-}
-
-
-
-
 resource "aws_eip" "nat" {
   domain = "vpc"
 }
 
 resource "aws_instance" "this" {
-  ami                         = data.aws_ami.nat.id
+  ami                         = "ami-024cf76afbc833688"
   instance_type               = "t3.nano"
   subnet_id                   = var.public_subnet_id
   associate_public_ip_address = true

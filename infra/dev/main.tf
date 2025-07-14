@@ -36,10 +36,10 @@ module "rds" {
   source                 = "./modules/rds"
   db_name                = var.db_name
   db_username            = var.db_username
-  db_password_secret_arn = module.secrets.secret_arn
+  db_password_secret_arn = module.secrets.db_secret_arn
   subnet_ids             = module.vpc.private_subnet_ids
   security_group_id      = module.security.rds_sg_id
-  db_secret_arn = module.secrets.db_secret_arn
+  db_secret_arn          = module.secrets.db_secret_arn
 }
 
 
@@ -57,7 +57,7 @@ module "lambda" {
   lambda_sg_id   = module.security.lambda_sg_id
 
   # Base de datos & secretos
-  db_secret_arn  = module.secrets.secret_arn
+  db_secret_arn  = module.secrets.db_secret_arn
   db_endpoint    = module.rds.db_address
   db_name        = var.db_name
   db_username    = var.db_username

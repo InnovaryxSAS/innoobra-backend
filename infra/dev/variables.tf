@@ -282,10 +282,10 @@ variable "private_subnets" {
 # 3) RDS DB
 # ----------------------------------------
 variable "db_username" {
-  description = "Master username for RDS"
-  type        = string
-  default     = "admin"
+  type    = string
+  default = "innobra_user"
 }
+
 
 variable "db_password" {
   description = "Initial RDS password (only to bootstrap Secrets Manager)"

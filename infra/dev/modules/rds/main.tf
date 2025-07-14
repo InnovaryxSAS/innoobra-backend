@@ -18,12 +18,11 @@ resource "aws_db_subnet_group" "this" {
 resource "aws_db_instance" "this" {
   identifier             = "innobra-dev-db"
   engine                 = "postgres"
-  engine_version         = "13.4"
   instance_class         = "db.t3.micro"
   allocated_storage      = 20
   db_name                = var.db_name
   username               = var.db_username
-  password = data.aws_secretsmanager_secret_version.db.secret_string
+  password               = local.db_creds.password
   publicly_accessible    = false
   vpc_security_group_ids = [var.security_group_id]
   db_subnet_group_name   = aws_db_subnet_group.this.name
