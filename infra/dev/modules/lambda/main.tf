@@ -75,6 +75,71 @@ resource "aws_lambda_layer_version" "common" {
 # 4) Funciones Lambda + VPC + DB
 ##############################################################################
 
+
+
+locals {
+  lambda_to_folder = {
+    # Company
+    "create_company"       = "company"
+    "get_companies"        = "company"
+    "update_company"       = "company"
+    "delete_company"       = "company"
+
+    # Project
+    "create_project"       = "project"
+    "get_projects"         = "project"
+    "update_project"       = "project"
+    "delete_project"       = "project"
+
+    # ApuDetail
+    "create_apudetail"     = "apudetail"
+    "get_apudetails"       = "apudetail"
+    "update_apudetail"     = "apudetail"
+    "delete_apudetail"     = "apudetail"
+
+    # Chapter
+    "create_chapter"       = "chapter"
+    "get_chapters"         = "chapter"
+    "update_chapter"       = "chapter"
+    "delete_chapter"       = "chapter"
+
+    # Activity
+    "create_activity"      = "activity"
+    "get_activities"       = "activity"
+    "update_activity"      = "activity"
+    "delete_activity"      = "activity"
+
+    # Attribute
+    "create_attribute"     = "attribute"
+    "get_attributes"       = "attribute"
+    "update_attribute"     = "attribute"
+    "delete_attribute"     = "attribute"
+
+    # Role
+    "create_role"          = "role"
+    "get_roles"            = "role"
+    "update_role"          = "role"
+    "delete_role"          = "role"
+
+    # User
+    "create_user"          = "user"
+    "get_users"            = "user"
+    "update_user"          = "user"
+    "delete_user"          = "user"
+
+    # ActivityById etc., si tienes keys como get_activity_by_id:
+    "get_activity_by_id"   = "activity"
+    "get_chapter_by_id"    = "chapter"
+    "get_project_by_id"    = "project"
+    "get_role_by_id"       = "role"
+    "get_user_by_id"       = "user"
+    "get_attribute_by_id"  = "attribute"
+    "get_apudetail_by_id"  = "apudetail"
+    "get_company_by_id"    = "company"
+    # …y así con TODAS tus keys en var.lambdas
+  }
+}
+
 resource "aws_lambda_function" "this" {
   for_each         = var.lambdas
   function_name    = "${each.key}_${var.environment}"
@@ -85,7 +150,7 @@ resource "aws_lambda_function" "this" {
   runtime          = "java21"
   role             = aws_iam_role.lambda_exec.arn
   source_code_hash = filebase64sha256(
-    "functions/${split("_", each.key)[1]}/${each.key}.zip"
+    "functions/${local.lambda_to_folder[each.key]}/${each.key}.zip"
   )
   layers           = [aws_lambda_layer_version.common.arn]
 
