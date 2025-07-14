@@ -1,11 +1,14 @@
 data "aws_ami" "nat" {
   most_recent = true
-  owners      = ["amazon"]
+  # owners omitido, no hace falta si fijo el ID
   filter {
-    name   = "name"
-    values = ["amzn-ami-vpc-nat*"]
+    name   = "image-id"
+    values = ["ami-024cf76afbc833688"]   # pega aquí el ID que copiaste
   }
 }
+
+
+
 
 resource "aws_eip" "nat" {
   domain = "vpc"
