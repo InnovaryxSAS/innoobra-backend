@@ -137,46 +137,67 @@ jobs:
 
       - name: State Migration
         working-directory: infra/dev
+        shell: bash
         run: |
-          # 1) Inspecciona tu state para confirmar los keys:
-          terraform state list | grep aws_lambda_function.lambda
+          set -euo pipefail
 
-          # 2) Mueve cada función y sus permisos/integraciones/rutas
-          for fn in \
-            create_company get_companies get_companiesID update_company delete_company \
-            create_project get_projects get_project_by_id update_project delete_project \
-            create_role get_roles get_role_by_id update_role delete_role \
-            create_user get_users get_user_by_id update_user delete_user \
-            create_chapter get_chapters get_chapter_by_id update_chapter delete_chapter \
+          echo "=== Terraform state list ==="
+          terraform state list
+
+          # Lista de funciones a migrar
+          FNS=(
+            create_company get_companies get_companiesID update_company delete_company
+            create_project get_projects get_project_by_id update_project delete_project
+            create_role get_roles get_role_by_id update_role delete_role
+            create_user get_users get_user_by_id update_user delete_user
+            create_chapter get_chapters get_chapter_by_id update_chapter delete_chapter
             create_attribute get_attributes get_attribute_by_id update_attribute delete_attribute
-          do
-            terraform state mv \
-              "aws_lambda_function.lambda[\"${fn}\"]" \
-              "module.lambda.aws_lambda_function.this[\"${fn}\"]"
+          )
 
-            terraform state mv \
-              "aws_lambda_permission.api_gw[\"${fn}\"]" \
-              "module.lambda.aws_lambda_permission.api_gw[\"${fn}\"]"
+          for fn in "${FNS[@]}"; do
+            echo "→ Moviendo Lambda: $fn"
+            if terraform state list | grep -q "aws_lambda_function.lambda\\\[\"$fn\"\\\]"; then
+              terraform state mv \
+                "aws_lambda_function.lambda[\"$fn\"]" \
+                "module.lambda.aws_lambda_function.this[\"$fn\"]"
+            else
+              echo "   • aws_lambda_function.lambda[\"$fn\"] no existe, salto..."
+            fi
 
-            terraform state mv \
-              "aws_apigatewayv2_integration.lambda_integration[\"${fn}\"]" \
-              "module.lambda.aws_apigatewayv2_integration.lambda_integration[\"${fn}\"]"
+            echo "   Moviendo Permission API GW: $fn"
+            if terraform state list | grep -q "aws_lambda_permission.api_gw\\\[\"$fn\"\\\]"; then
+              terraform state mv \
+                "aws_lambda_permission.api_gw[\"$fn\"]" \
+                "module.lambda.aws_lambda_permission.api_gw[\"$fn\"]"
+            else
+              echo "   • aws_lambda_permission.api_gw[\"$fn\"] no existe, salto..."
+            fi
 
-            terraform state mv \
-              "aws_apigatewayv2_route.lambda_route[\"${fn}\"]" \
-              "module.lambda.aws_apigatewayv2_route.lambda_route[\"${fn}\"]"
+            echo "   Moviendo Integration: $fn"
+            if terraform state list | grep -q "aws_apigatewayv2_integration.lambda_integration\\\[\"$fn\"\\\]"; then
+              terraform state mv \
+                "aws_apigatewayv2_integration.lambda_integration[\"$fn\"]" \
+                "module.lambda.aws_apigatewayv2_integration.lambda_integration[\"$fn\"]"
+            else
+              echo "   • aws_apigatewayv2_integration.lambda_integration[\"$fn\"] no existe, salto..."
+            fi
+
+            echo "   Moviendo Route: $fn"
+            if terraform state list | grep -q "aws_apigatewayv2_route.lambda_route\\\[\"$fn\"\\\]"; then
+              terraform state mv \
+                "aws_apigatewayv2_route.lambda_route[\"$fn\"]" \
+                "module.lambda.aws_apigatewayv2_route.lambda_route[\"$fn\"]"
+            else
+              echo "   • aws_apigatewayv2_route.lambda_route[\"$fn\"] no existe, salto..."
+            fi
           done
 
-          # 3) Mueve el layer, la API y el stage
-          terraform state mv aws_lambda_layer_version.common \
-            module.lambda.aws_lambda_layer_version.common
-          terraform state mv aws_apigatewayv2_api.http_api \
-            module.lambda.aws_apigatewayv2_api.http_api
-          terraform state mv aws_apigatewayv2_stage.default \
-            module.lambda.aws_apigatewayv2_stage.default
+          echo "→ Moviendo common layer, API y stage"
+          terraform state mv aws_lambda_layer_version.common module.lambda.aws_lambda_layer_version.common || echo "   • Layer no existe, salto..."
+          terraform state mv aws_apigatewayv2_api.http_api    module.lambda.aws_apigatewayv2_api.http_api    || echo "   • API no existe, salto..."
+          terraform state mv aws_apigatewayv2_stage.default  module.lambda.aws_apigatewayv2_stage.default  || echo "   • Stage no existe, salto..."
 
-
-
+          echo "Estado migrado con éxito (o saltado lo que no existía)."
 
 
       - name: Terraform Plan
