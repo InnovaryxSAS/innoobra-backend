@@ -130,6 +130,11 @@ jobs:
           mv lambda-java/apudetail/target/apudetail-1.0-SNAPSHOT.jar infra/dev/functions/apudetail/apudetail-1.0-SNAPSHOT.jar
 
 
+      - name: Upload Lambdas & Layers
+        run: |
+          aws s3 cp infra/dev/functions/     s3://$LAMBDA_BUCKET/lambdas/     --recursive
+          aws s3 cp infra/dev/layers/common/ s3://$LAMBDA_BUCKET/common-layers/ --recursive
+
        # ————— Terraform —————
       - name: Terraform Init
         working-directory: infra/dev
@@ -142,4 +147,6 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/dev'
         working-directory: infra/dev
+        env:
+          TF_VAR_lambda_bucket: ${{ secrets.LAMBDA_BUCKET }}
         run: terraform apply -input=false -parallelism=5 -auto-approve tfplan

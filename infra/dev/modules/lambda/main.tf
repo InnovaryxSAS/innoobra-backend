@@ -64,7 +64,9 @@ resource "aws_lambda_layer_version" "common" {
   layer_name          = "common-layer"
   compatible_runtimes = ["java21"]
   # path.root apunta al directorio raíz (infra/dev)
-  filename         = "${path.root}/${var.common.zip_path}"
+  filename         = null
+  s3_bucket        = var.lambda_bucket
+  s3_key           = "common-layers/common.zip"
   source_code_hash = filebase64sha256("${path.root}/${var.common.zip_path}")
 }
 
@@ -79,7 +81,9 @@ locals {
 resource "aws_lambda_function" "this" {
   for_each         = local.functions
   function_name    = "${each.key}_${var.environment}"
-  filename         = "${path.root}/${each.value.jar_path}"
+  filename         = null
+  s3_bucket        = var.lambda_bucket
+  s3_key           = "lambdas/${each.key}.zip"
   handler          = each.value.handler
   runtime          = "java21"
   role             = aws_iam_role.lambda_exec.arn
