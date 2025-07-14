@@ -75,7 +75,6 @@ resource "aws_lambda_layer_version" "common" {
 # 4) Funciones Lambda + VPC + DB
 ##############################################################################
 
-
 locals {
   lambda_to_folder = {
     # Company
