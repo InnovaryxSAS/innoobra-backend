@@ -75,7 +75,6 @@ resource "aws_lambda_layer_version" "common" {
 # 4) Funciones Lambda + VPC + DB
 ##############################################################################
 
-
 resource "aws_lambda_function" "this" {
   for_each         = var.lambdas
   function_name    = "${each.key}_${var.environment}"
