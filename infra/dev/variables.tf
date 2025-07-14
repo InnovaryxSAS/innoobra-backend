@@ -17,12 +17,12 @@ variable "lambdas" {
       jar_path  = "functions/company/company-1.0-SNAPSHOT.jar"
       route_key = "POST /company"
     },
-    get_companies = {
+    get_company = {
       handler   = "com.lambdas.handler.GetCompanyHandler::handleRequest"
       jar_path  = "functions/company/company-1.0-SNAPSHOT.jar"
       route_key = "GET /company"
     },
-    get_companiesID = {
+    get_companyID = {
       handler   = "com.lambdas.handler.GetCompanyByIdHandler::handleRequest"
       jar_path  = "functions/company/company-1.0-SNAPSHOT.jar"
       route_key = "GET /company/{id}"
@@ -44,7 +44,7 @@ variable "lambdas" {
     jar_path  = "functions/project/project-1.0-SNAPSHOT.jar"
     route_key = "POST /project"
     },
-    get_projects = {
+    get_project = {
       handler   = "com.lambdas.handler.GetProjectHandler::handleRequest"
       jar_path  = "functions/project/project-1.0-SNAPSHOT.jar"
       route_key = "GET /project"
@@ -72,7 +72,7 @@ variable "lambdas" {
       jar_path  = "functions/role/role-1.0-SNAPSHOT.jar"
       route_key = "POST /role"
     },
-    get_roles = {
+    get_role = {
       handler   = "com.lambdas.handler.GetRoleHandler::handleRequest"
       jar_path  = "functions/role/role-1.0-SNAPSHOT.jar"
       route_key = "GET /role"
@@ -100,7 +100,7 @@ variable "lambdas" {
       jar_path  = "functions/user/user-1.0-SNAPSHOT.jar"
       route_key = "POST /user"
     },
-    get_users = {
+    get_user = {
       handler   = "com.lambdas.handler.GetUserHandler::handleRequest"
       jar_path  = "functions/user/user-1.0-SNAPSHOT.jar"
       route_key = "GET /user"
@@ -128,7 +128,7 @@ variable "lambdas" {
       jar_path  = "functions/chapter/chapter-1.0-SNAPSHOT.jar"
       route_key = "POST /chapter"
     },
-    get_chapters = {
+    get_chapter = {
       handler   = "com.lambdas.handler.GetChapterHandler::handleRequest"
       jar_path  = "functions/chapter/chapter-1.0-SNAPSHOT.jar"
       route_key = "GET /chapter"
@@ -156,7 +156,7 @@ variable "lambdas" {
       jar_path  = "functions/activity/activity-1.0-SNAPSHOT.jar"
       route_key = "POST /activity"
     },
-    get_activities = {
+    get_activity = {
       handler   = "com.lambdas.handler.GetActivityHandler::handleRequest"
       jar_path  = "functions/activity/activity-1.0-SNAPSHOT.jar"
       route_key = "GET /activity"
@@ -184,7 +184,7 @@ variable "lambdas" {
       jar_path  = "functions/attribute/attribute-1.0-SNAPSHOT.jar"
       route_key = "POST /attribute"
     },
-    get_attributes = {
+    get_attribute = {
       handler   = "com.lambdas.handler.GetAttributeHandler::handleRequest"
       jar_path  = "functions/attribute/attribute-1.0-SNAPSHOT.jar"
       route_key = "GET /attribute"
@@ -212,7 +212,7 @@ variable "lambdas" {
       jar_path  = "functions/apudetail/apudetail-1.0-SNAPSHOT.jar"
       route_key = "POST /apudetail"
     },
-    get_apudetails = {
+    get_apudetail = {
       handler   = "com.lambdas.handler.GetApuDetailHandler::handleRequest"
       jar_path  = "functions/apudetail/apudetail-1.0-SNAPSHOT.jar"
       route_key = "GET /apudetail"
