@@ -39,7 +39,7 @@ module "rds" {
   db_password_secret_arn = module.secrets.secret_arn
   subnet_ids             = module.vpc.private_subnet_ids
   security_group_id      = module.security.rds_sg_id
-  db_secret_arn = module.secrets.aws_secretsmanager_secret.db.arn
+  db_secret_arn = module.secrets.db_secret_arn
 }
 
 
