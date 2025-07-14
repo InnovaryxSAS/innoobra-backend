@@ -4,12 +4,12 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
-import com.lambdas.dto.response.ChapterResponseDTO;
+import com.lambdas.dto.response.ApuDetailResponseDTO;
 import com.lambdas.exception.DatabaseException;
 import com.lambdas.mapper.DTOMapper;
-import com.lambdas.model.Chapter;
-import com.lambdas.service.ChapterService;
-import com.lambdas.service.impl.ChapterServiceImpl;
+import com.lambdas.model.ApuDetail;
+import com.lambdas.service.ApuDetailService;
+import com.lambdas.service.impl.ApuDetailServiceImpl;
 import com.lambdas.util.HttpStatus;
 import com.lambdas.util.LoggingHelper;
 import com.lambdas.util.ResponseUtil;
@@ -17,18 +17,19 @@ import org.slf4j.Logger;
 
 import java.util.List;
 
-public class GetChaptersHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+public class GetApuDetailHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
     
-    private static final Logger logger = LoggingHelper.getLogger(GetChaptersHandler.class);
+    private static final Logger logger = LoggingHelper.getLogger(GetApuDetailHandler.class);
 
-    private final ChapterService chapterService;
+    private final ApuDetailService apuDetailService;
 
-    public GetChaptersHandler() {
-        this.chapterService = new ChapterServiceImpl();
+    public GetApuDetailHandler() {
+        this.apuDetailService = new ApuDetailServiceImpl();
     }
 
-    public GetChaptersHandler(ChapterService chapterService) {
-        this.chapterService = chapterService;
+    // Constructor para inyección de dependencias (útil para testing)
+    public GetApuDetailHandler(ApuDetailService apuDetailService) {
+        this.apuDetailService = apuDetailService;
     }
     
     @Override
@@ -37,12 +38,8 @@ public class GetChaptersHandler implements RequestHandler<APIGatewayProxyRequest
         LoggingHelper.initializeRequestContext(requestId);
         
         try {
-            LoggingHelper.logProcessStart(logger, "chapters retrieval");
-            
-            List<Chapter> chapters = chapterService.getAllChapters();
-            LoggingHelper.logSuccessWithCount(logger, "Chapters retrieval", chapters.size());
-            
-            List<ChapterResponseDTO> responseDTOs = DTOMapper.toResponseDTOList(chapters);
+            List<ApuDetail> apuDetails = apuDetailService.getAllApuDetails();
+            List<ApuDetailResponseDTO> responseDTOs = DTOMapper.toResponseDTOList(apuDetails);
             return ResponseUtil.createResponse(HttpStatus.OK, responseDTOs);
             
         } catch (DatabaseException e) {

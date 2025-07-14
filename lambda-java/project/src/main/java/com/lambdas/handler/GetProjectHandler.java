@@ -18,18 +18,18 @@ import org.slf4j.Logger;
 
 import java.util.List;
 
-public class GetProjectsHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+public class GetProjectHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
-    private static final Logger logger = LoggingHelper.getLogger(GetProjectsHandler.class);
+    private static final Logger logger = LoggingHelper.getLogger(GetProjectHandler.class);
 
     private final ProjectService projectService;
 
-    public GetProjectsHandler() {
+    public GetProjectHandler() {
         this.projectService = new ProjectServiceImpl();
     }
 
     // Constructor para inyección de dependencias (útil para testing)
-    public GetProjectsHandler(ProjectService projectService) {
+    public GetProjectHandler(ProjectService projectService) {
         this.projectService = projectService;
     }
 

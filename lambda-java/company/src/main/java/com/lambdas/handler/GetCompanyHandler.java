@@ -4,12 +4,12 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
-import com.lambdas.dto.response.RoleResponseDTO;
+import com.lambdas.dto.response.CompanyResponseDTO;
 import com.lambdas.exception.DatabaseException;
 import com.lambdas.mapper.DTOMapper;
-import com.lambdas.model.Role;
-import com.lambdas.service.impl.RoleServiceImpl;
-import com.lambdas.service.RoleService;
+import com.lambdas.model.Company;
+import com.lambdas.service.CompanyService;
+import com.lambdas.service.impl.CompanyServiceImpl;
 import com.lambdas.util.HttpStatus;
 import com.lambdas.util.LoggingHelper;
 import com.lambdas.util.ResponseUtil;
@@ -17,37 +17,36 @@ import org.slf4j.Logger;
 
 import java.util.List;
 
-public class GetRolesHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+public class GetCompanyHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+    
+    private static final Logger logger = LoggingHelper.getLogger(GetCompanyHandler.class);
 
-    private static final Logger logger = LoggingHelper.getLogger(GetRolesHandler.class);
+    private final CompanyService companyService;
 
-    private final RoleService roleService;
-
-    public GetRolesHandler() {
-        this.roleService = new RoleServiceImpl();
+    public GetCompanyHandler() {
+        this.companyService = new CompanyServiceImpl();
     }
 
     // Constructor para inyección de dependencias (útil para testing)
-    public GetRolesHandler(RoleService roleService) {
-        this.roleService = roleService;
+    public GetCompanyHandler(CompanyService companyService) {
+        this.companyService = companyService;
     }
-
+    
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
         LoggingHelper.initializeRequestContext(requestId);
-
+        
         try {
-            LoggingHelper.logProcessStart(logger, "roles retrieval");
-
-            List<Role> roles = roleService.getAllRoles();
-
-            LoggingHelper.logSuccessWithCount(logger, "Roles retrieval", roles.size());
-
-            List<RoleResponseDTO> responseDTOs = DTOMapper.toRoleResponseDTOList(roles);
-
+            LoggingHelper.logProcessStart(logger, "companies retrieval");
+            
+            List<Company> companies = companyService.getAllCompanies();
+            LoggingHelper.logSuccessWithCount(logger, "Companies retrieval", companies.size());
+            
+            List<CompanyResponseDTO> responseDTOs = DTOMapper.toResponseDTOList(companies);
+            
             return ResponseUtil.createResponse(HttpStatus.OK, responseDTOs);
-
+            
         } catch (DatabaseException e) {
             LoggingHelper.logDatabaseError(logger, e.getMessage(), e);
             return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");

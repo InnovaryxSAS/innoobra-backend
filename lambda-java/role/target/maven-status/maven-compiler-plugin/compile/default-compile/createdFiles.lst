@@ -10,13 +10,13 @@ com\lambdas\validation\validators\RoleStatusValidator.class
 com\lambdas\handler\CreateRoleHandler.class
 com\lambdas\model\RoleStatus.class
 com\lambdas\handler\DeleteRoleHandler.class
+com\lambdas\handler\GetRoleHandler.class
 com\lambdas\service\impl\RoleServiceImpl.class
 com\lambdas\validation\annotations\RoleStatusValid.class
 com\lambdas\handler\GetRoleByIdHandler.class
 com\lambdas\repository\impl\RoleRepositoryImpl.class
 com\lambdas\dto\response\DeleteRoleResponseDTO.class
 com\lambdas\exception\RoleAlreadyExistsException.class
-com\lambdas\handler\GetRolesHandler.class
 com\lambdas\mapper\DTOMapper.class
 com\lambdas\model\Role.class
 com\lambdas\model\Role$Builder.class

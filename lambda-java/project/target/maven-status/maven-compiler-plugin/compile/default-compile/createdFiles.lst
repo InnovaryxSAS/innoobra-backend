@@ -14,12 +14,12 @@ com\lambdas\service\ProjectService.class
 com\lambdas\exception\ProjectAlreadyExistsException.class
 com\lambdas\dto\request\UpdateProjectRequestDTO$Builder.class
 com\lambdas\Handler.class
+com\lambdas\handler\GetProjectHandler.class
 com\lambdas\exception\CompanyNotFoundException.class
 com\lambdas\model\Project.class
 com\lambdas\model\ProjectStatus.class
 com\lambdas\mapper\DTOMapper.class
 com\lambdas\handler\GetProjectByIdHandler.class
-com\lambdas\handler\GetProjectsHandler.class
 com\lambdas\validation\annotations\ProjectStatusValid.class
 com\lambdas\dto\response\ProjectResponseDTO$Builder.class
 com\lambdas\repository\ProjectRepository.class

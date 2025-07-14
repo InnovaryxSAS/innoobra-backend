@@ -32,7 +32,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("GetUsersHandler Tests")
-class GetUsersHandlerTest {
+class GetUserHandlerTest {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new JavaTimeModule());
@@ -43,11 +43,11 @@ class GetUsersHandlerTest {
     @Mock
     private Context context;
 
-    private GetUsersHandler handler;
+    private GetUserHandler handler;
 
     @BeforeEach
     void setUp() {
-        handler = new GetUsersHandler(userService);
+        handler = new GetUserHandler(userService);
         when(context.getAwsRequestId()).thenReturn("test-request-id");
     }
 
