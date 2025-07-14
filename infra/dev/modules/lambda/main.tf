@@ -76,7 +76,6 @@ resource "aws_lambda_layer_version" "common" {
 ##############################################################################
 
 
-
 locals {
   lambda_to_folder = {
     # Company
