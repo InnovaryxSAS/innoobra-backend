@@ -79,49 +79,49 @@ locals {
   lambda_to_folder = {
     # Company
     "create_company"       = "company"
-    "get_companies"        = "company"
+    "get_company"        = "company"
     "update_company"       = "company"
     "delete_company"       = "company"
 
     # Project
     "create_project"       = "project"
-    "get_projects"         = "project"
+    "get_project"         = "project"
     "update_project"       = "project"
     "delete_project"       = "project"
 
     # ApuDetail
     "create_apudetail"     = "apudetail"
-    "get_apudetails"       = "apudetail"
+    "get_apudetail"       = "apudetail"
     "update_apudetail"     = "apudetail"
     "delete_apudetail"     = "apudetail"
 
     # Chapter
     "create_chapter"       = "chapter"
-    "get_chapters"         = "chapter"
+    "get_chapter"         = "chapter"
     "update_chapter"       = "chapter"
     "delete_chapter"       = "chapter"
 
     # Activity
     "create_activity"      = "activity"
-    "get_activities"       = "activity"
+    "get_activity"       = "activity"
     "update_activity"      = "activity"
     "delete_activity"      = "activity"
 
     # Attribute
     "create_attribute"     = "attribute"
-    "get_attributes"       = "attribute"
+    "get_attribute"       = "attribute"
     "update_attribute"     = "attribute"
     "delete_attribute"     = "attribute"
 
     # Role
     "create_role"          = "role"
-    "get_roles"            = "role"
+    "get_role"            = "role"
     "update_role"          = "role"
     "delete_role"          = "role"
 
     # User
     "create_user"          = "user"
-    "get_users"            = "user"
+    "get_user"            = "user"
     "update_user"          = "user"
     "delete_user"          = "user"
 
