@@ -71,6 +71,7 @@ module "lambda" {
 ###########################################
 # (Opcional) Outputs globales
 ###########################################
+
 output "rds_endpoint" {
   description = "Endpoint de la base de datos RDS"
   value       = module.rds.db_address
