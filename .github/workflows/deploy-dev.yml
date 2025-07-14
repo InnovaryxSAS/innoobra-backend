@@ -136,10 +136,24 @@ jobs:
           mv lambda-java/apudetail/target/apudetail-1.0-SNAPSHOT.jar infra/dev/functions/apudetail/apudetail-1.0-SNAPSHOT.jar
 
 
-      - name: Upload Lambdas & Layers
+      - name: Zip Lambdas
         run: |
-          aws s3 cp infra/dev/functions/     s3://$LAMBDA_BUCKET/lambdas/     --recursive
-          aws s3 cp infra/dev/layers/common/ s3://$LAMBDA_BUCKET/common-layers/ --recursive
+          cd infra/dev/functions
+          for fn in */ ; do
+            fn=${fn%/}
+            jar="functions/$fn/$fn-1.0-SNAPSHOT.jar"
+            zip="functions/$fn/$fn.zip"
+            if [ -f "$jar" ]; then
+              zip -j "$zip" "$jar"
+            fi
+          done
+
+      - name: Upload Lambdas & Layer to S3
+        env:
+          LAMBDA_BUCKET: ${{ secrets.LAMBDA_BUCKET }}
+        run: |
+          aws s3 cp infra/dev/functions/ s3://$LAMBDA_BUCKET/lambdas/ --recursive --exclude "*" --include "*.zip"
+          aws s3 cp infra/dev/layers/common/common.zip s3://$LAMBDA_BUCKET/common-layers/common.zip
 
        # ————— Terraform —————
       - name: Terraform Init
