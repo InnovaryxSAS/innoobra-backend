@@ -287,11 +287,6 @@ variable "db_username" {
 }
 
 
-variable "db_password" {
-  description = "Initial RDS password (only to bootstrap Secrets Manager)"
-  type        = string
-}
-
 variable "db_name" {
   description = "Name of the PostgreSQL database"
   type        = string

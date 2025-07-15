@@ -5,8 +5,7 @@ provider "aws" {
 # 1) Secrets Manager (usuario + contraseña RDS)
 module "secrets" {
   source      = "./modules/secrets"
-  db_username = var.db_username
-  db_password = var.db_password    # sólo para inicializar
+  db_username = var.db_username  # sólo para inicializar
 }
 
 # 2) VPC + subnets + route tables

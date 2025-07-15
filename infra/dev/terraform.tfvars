@@ -1,2 +1,2 @@
 lambda_bucket = "mi-bucket-de-lambdas"
-db_host_value = "innobra-dev.xxxxxx.us-east-1.rds.amazonaws.com"
+db_host_value = "innobra-dev-db.cydaace0gm0e.us-east-1.rds.amazonaws.com"
