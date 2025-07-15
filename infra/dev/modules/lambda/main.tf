@@ -137,6 +137,7 @@ resource "aws_lambda_function" "this" {
 ##############################################################################
 # 5) Integración con API Gateway y permisos
 ##############################################################################
+
 resource "aws_apigatewayv2_integration" "lambda_integration" {
   for_each               = var.lambdas
   api_id                 = aws_apigatewayv2_api.http_api.id
