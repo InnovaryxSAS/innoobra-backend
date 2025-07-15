@@ -41,7 +41,6 @@ module "rds" {
   db_secret_arn          = module.secrets.db_secret_arn
 }
 
-
 # 6) Lambda + HTTP API + integración con RDS y Secrets
 module "lambda" {
   source         = "./modules/lambda"
