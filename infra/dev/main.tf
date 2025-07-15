@@ -67,6 +67,7 @@ module "lambda" {
   lambda_bucket = var.lambda_bucket
 }
 
+
 ###########################################
 # (Opcional) Outputs globales
 ###########################################
