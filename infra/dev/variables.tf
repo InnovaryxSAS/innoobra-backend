@@ -290,7 +290,6 @@ variable "db_username" {
 variable "db_password" {
   description = "Initial RDS password (only to bootstrap Secrets Manager)"
   type        = string
-  default     = "password-dev"
 }
 
 variable "db_name" {
@@ -318,3 +317,7 @@ variable "lambda_bucket" {
   type = string
 }
 
+variable "db_host_value" {
+  description = "RDS endpoint para entorno dev"
+  type        = string
+}
