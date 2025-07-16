@@ -16,10 +16,6 @@
   <name>chapter</name>
   <description>Chapter Lambda functions</description>
 
-  <properties>
-    <lambda.main.class>com.lambdas.chapter.ChaptersHandler</lambda.main.class>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>com.lambdas</groupId>
@@ -46,12 +42,6 @@
             </goals>
             <configuration>
               <createDependencyReducedPom>false</createDependencyReducedPom>
-              <transformers>
-                <!-- Este sí está permitido y es necesario -->
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>${lambda.main.class}</mainClass>
-                </transformer>
-              </transformers>
             </configuration>
           </execution>
         </executions>
