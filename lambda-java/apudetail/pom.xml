@@ -31,7 +31,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
       </plugin>
       
-     <plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <executions>
@@ -42,6 +42,15 @@
             </goals>
             <configuration>
               <createDependencyReducedPom>false</createDependencyReducedPom>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                    <excludes>
+                        <exclude>META-INF/*</exclude>
+                        <exclude>META-INF/versions/**</exclude>
+                    </excludes>
+                </filter>
+              </filters>
             </configuration>
           </execution>
         </executions>
