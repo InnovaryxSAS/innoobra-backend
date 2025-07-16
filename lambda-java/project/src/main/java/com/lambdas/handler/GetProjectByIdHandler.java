@@ -18,7 +18,8 @@ import org.slf4j.Logger;
 
 import java.util.Optional;
 
-public class GetProjectByIdHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+public class GetProjectByIdHandler
+        implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
     private static final Logger logger = LoggingHelper.getLogger(GetProjectByIdHandler.class);
 
@@ -46,7 +47,6 @@ public class GetProjectByIdHandler implements RequestHandler<APIGatewayProxyRequ
             }
 
             LoggingHelper.logProcessStart(logger, "project retrieval by ID");
-            logConnectionPoolStatus();
 
             Optional<Project> projectOpt = projectService.getProjectById(projectId);
 
@@ -54,8 +54,6 @@ public class GetProjectByIdHandler implements RequestHandler<APIGatewayProxyRequ
                 LoggingHelper.logSuccess(logger, "Project retrieval", projectId);
 
                 ProjectResponseDTO responseDTO = DTOMapper.toProjectResponseDTO(projectOpt.get());
-
-                logFinalConnectionPoolStatus();
 
                 return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
             } else {
@@ -75,34 +73,16 @@ public class GetProjectByIdHandler implements RequestHandler<APIGatewayProxyRequ
         }
     }
 
-    private void logConnectionPoolStatus() {
-        try {
-            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            poolManager.getPoolStats();
-            poolManager.isHealthy();
-        } catch (Exception e) {
-            LoggingHelper.logConnectionPoolWarning(logger,
-                    "Could not retrieve connection pool status: " + e.getMessage());
-        }
-    }
-
-    private void logFinalConnectionPoolStatus() {
-        try {
-            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-        } catch (Exception e) {
-            LoggingHelper.logConnectionPoolWarning(logger,
-                    "Could not retrieve final connection pool status: " + e.getMessage());
-        }
-    }
-
     private void logConnectionPoolStatusOnError() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            LoggingHelper.logConnectionPoolError(logger, poolManager.getPoolStats().toString(),
-                    poolManager.isHealthy());
+            if (!poolManager.isHealthy()) {
+                LoggingHelper.logConnectionPoolError(logger,
+                        poolManager.getPoolStats().toString(), false);
+            }
         } catch (Exception e) {
             LoggingHelper.logConnectionPoolWarning(logger,
-                    "Could not retrieve connection pool status on error: " + e.getMessage());
+                    "Connection pool health check failed: " + e.getMessage());
         }
     }
 }

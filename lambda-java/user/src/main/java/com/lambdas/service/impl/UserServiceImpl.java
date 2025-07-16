@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import com.lambdas.model.User;
-import com.lambdas.model.UserStatus;
 import com.lambdas.repository.UserRepository;
 import com.lambdas.repository.impl.UserRepositoryImpl;
 import com.lambdas.service.UserService;

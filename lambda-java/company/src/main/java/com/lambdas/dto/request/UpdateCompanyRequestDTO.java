@@ -2,7 +2,6 @@ package com.lambdas.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.lambdas.validation.annotations.CompanyStatusValid;
-import com.lambdas.validation.groups.ValidationGroups;
 
 import jakarta.validation.constraints.*;
 
