@@ -8,10 +8,7 @@ import com.lambdas.dto.request.UpdateProjectRequestDTO;
 import com.lambdas.dto.response.ProjectResponseDTO;
 import com.lambdas.model.Project;
 import com.lambdas.model.ProjectStatus;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DTOMapper {
 
     public static Project toProject(CreateProjectRequestDTO dto) {

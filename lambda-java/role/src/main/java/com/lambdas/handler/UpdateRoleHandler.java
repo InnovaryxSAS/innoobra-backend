@@ -57,7 +57,6 @@ public class UpdateRoleHandler implements RequestHandler<APIGatewayProxyRequestE
 
             LoggingHelper.addUserId(roleId); // Agregamos el roleId al contexto de logging
             LoggingHelper.logProcessStart(logger, "role update");
-            logConnectionPoolStatus();
 
             if (input.getBody() == null || input.getBody().trim().isEmpty()) {
                 LoggingHelper.logEmptyRequestBody(logger);
@@ -84,8 +83,6 @@ public class UpdateRoleHandler implements RequestHandler<APIGatewayProxyRequestE
 
             RoleResponseDTO responseDTO = DTOMapper.toRoleResponseDTO(savedRole);
 
-            logFinalConnectionPoolStatus();
-
             return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
 
         } catch (JsonProcessingException e) {
@@ -109,34 +106,16 @@ public class UpdateRoleHandler implements RequestHandler<APIGatewayProxyRequestE
         }
     }
 
-    private void logConnectionPoolStatus() {
-        try {
-            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            poolManager.getPoolStats();
-            poolManager.isHealthy();
-        } catch (Exception e) {
-            LoggingHelper.logConnectionPoolWarning(logger,
-                    "Could not retrieve connection pool status: " + e.getMessage());
-        }
-    }
-
-    private void logFinalConnectionPoolStatus() {
-        try {
-            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-        } catch (Exception e) {
-            LoggingHelper.logConnectionPoolWarning(logger,
-                    "Could not retrieve final connection pool status: " + e.getMessage());
-        }
-    }
-
     private void logConnectionPoolStatusOnError() {
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            LoggingHelper.logConnectionPoolError(logger, poolManager.getPoolStats().toString(),
-                    poolManager.isHealthy());
+            if (!poolManager.isHealthy()) {
+                LoggingHelper.logConnectionPoolError(logger,
+                        poolManager.getPoolStats().toString(), false);
+            }
         } catch (Exception e) {
             LoggingHelper.logConnectionPoolWarning(logger,
-                    "Could not retrieve connection pool status on error: " + e.getMessage());
+                    "Connection pool health check failed: " + e.getMessage());
         }
     }
 }

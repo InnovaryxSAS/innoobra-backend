@@ -8,7 +8,6 @@ import com.lambdas.dto.response.UserResponseDTO;
 import com.lambdas.exception.DatabaseException;
 import com.lambdas.mapper.DTOMapper;
 import com.lambdas.model.User;
-import com.lambdas.model.UserStatus;
 import com.lambdas.service.UserService;
 import com.lambdas.service.impl.UserServiceImpl;
 import com.lambdas.util.HttpStatus;
@@ -17,7 +16,6 @@ import com.lambdas.util.ResponseUtil;
 import org.slf4j.Logger;
 
 import java.util.List;
-import java.util.Map;
 
 public class GetUserHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
     
