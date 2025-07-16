@@ -12,12 +12,6 @@ public class ConnectionPoolManager {
     private HikariDataSource dataSource;
     private final Object lock = new Object();
 
-    //private static final String LOCAL_DB_URL = "jdbc:postgresql://localhost:5432/inno_obra";
-    private static final String LOCAL_DB_URL = "jdbc:postgresql://host.docker.internal:5432/inno_obra";
-    private static final String LOCAL_DB_USERNAME = "postgres";
-    private static final String LOCAL_DB_PASSWORD = "2616";
-    private static final String LOCAL_DB_SSL_MODE = "disable";
-
     private ConnectionPoolManager() {
         initializePool();
     }
@@ -37,23 +31,26 @@ public class ConnectionPoolManager {
         try {
             HikariConfig config = new HikariConfig();
 
-            String dbUrl = getConfigValue("DB_URL", LOCAL_DB_URL);
-            String dbUsername = getConfigValue("DB_USERNAME", LOCAL_DB_USERNAME);
-            String dbPassword = getConfigValue("DB_PASSWORD", LOCAL_DB_PASSWORD);
-            String sslMode = getConfigValue("DB_SSL_MODE", LOCAL_DB_SSL_MODE);
+            SecretsManagerUtil.DatabaseCredentials creds = SecretsManagerUtil.getCredentials();
 
-            config.setJdbcUrl(dbUrl);
-            config.setUsername(dbUsername);
-            config.setPassword(dbPassword);
+            if (creds == null) {
+                throw new RuntimeException("❌ No se pudieron obtener las credenciales de Secrets Manager");
+            }
+
+            config.setJdbcUrl(creds.getUrl());
+            config.setUsername(creds.getUsername());
+            config.setPassword(creds.getPassword());
+
+            if (creds.getUrl().contains("localhost") || creds.getUrl().contains("127.0.0.1")) {
+                throw new RuntimeException("❌ ERROR: Se está usando URL local! URL: " + creds.getUrl());
+            }
 
             config.setMinimumIdle(2);
             config.setMaximumPoolSize(10);
-
             config.setConnectionTimeout(20000);
             config.setIdleTimeout(300000);
             config.setMaxLifetime(600000);
             config.setLeakDetectionThreshold(60000);
-
             config.setPoolName("CompanyManagementPool");
             config.setConnectionTestQuery("SELECT 1");
             config.setValidationTimeout(5000);
@@ -64,30 +61,14 @@ public class ConnectionPoolManager {
             config.addDataSourceProperty("useServerPrepStmts", "true");
             config.addDataSourceProperty("reWriteBatchedInserts", "true");
             config.addDataSourceProperty("applicationName", "CompanyManagement");
-
-            config.addDataSourceProperty("sslmode", sslMode);
+            config.addDataSourceProperty("sslmode", "require");
 
             this.dataSource = new HikariDataSource(config);
 
-            System.out.println("Database connection initialized:");
-            System.out.println("URL: " + dbUrl);
-            System.out.println("Username: " + dbUsername);
-            System.out.println("SSL Mode: " + sslMode);
-
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("Failed to initialize connection pool", e);
         }
-    }
-
-    private String getConfigValue(String key, String defaultValue) {
-        String value = System.getenv(key);
-        if (value == null || value.trim().isEmpty()) {
-            value = System.getProperty(key);
-        }
-        if (value == null || value.trim().isEmpty()) {
-            value = defaultValue;
-        }
-        return value;
     }
 
     public Connection getConnection() throws SQLException {
@@ -98,6 +79,7 @@ public class ConnectionPoolManager {
                 }
             }
         }
+        
         return dataSource.getConnection();
     }
 
