@@ -139,31 +139,23 @@ jobs:
       - name: Zip Lambdas
         run: |
           cd infra/dev/functions
-          for action in create get update delete; do
-            for folder in */; do
-              folder=${folder%/}                     # ej. "company"
-              # build the key that Terraform espera:
-              key="${action}_${folder}"              # ej. "get_company"
-              # para los get_*_by_id añade también esa variante:
-              sub_actions=( "" )
-              if [[ "$action" == "get" ]]; then
-                sub_actions=( "${folder}_by_id" "" )
+          for folder in */; do
+            folder=${folder%/}
+            for action in create get update delete; do
+              zipname="${action}_${folder}.zip"
+              jarname="${folder}-1.0-SNAPSHOT.jar"
+              if [ -f "$folder/$jarname" ]; then
+                zip -j "$folder/$zipname" "$folder/$jarname"
+              else
+                zip -j "$folder/$zipname" /dev/null
               fi
-
-              for sub in "${sub_actions[@]}"; do
-                # construye el nombre final:
-                full_key="${action}_${sub:+${folder}_}${sub%"_"}${sub:+}"
-                zip_path="${folder}/${full_key}.zip"
-                jar_path="${folder}/${folder}-1.0-SNAPSHOT.jar"
-
-                if [ -f "$jar_path" ]; then
-                  zip -j "$zip_path" "$jar_path"
-                  echo "Generado $zip_path"
-                else
-                  echo "$jar_path no existe, salto $full_key"
-                fi
-              done
             done
+            # Variante get_by_id si aplica
+            if [ -f "$folder/${folder}-1.0-SNAPSHOT.jar" ]; then
+              zip -j "$folder/get_${folder}_by_id.zip" "$folder/$jarname"
+            else
+              zip -j "$folder/get_${folder}_by_id.zip" /dev/null
+            fi
           done
 
       - name: Refresh AWS credentials
