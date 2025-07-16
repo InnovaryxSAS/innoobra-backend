@@ -1,6 +1,5 @@
 com\lambdas\handler\CreateCompanyHandler.class
 com\lambdas\handler\GetCompanyHandler.class
-com\lambdas\Handler.class
 com\lambdas\repository\CompanyRepository.class
 com\lambdas\model\Company$Builder.class
 com\lambdas\handler\GetCompanyByIdHandler.class

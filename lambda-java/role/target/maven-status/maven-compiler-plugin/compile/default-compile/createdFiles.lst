@@ -1,4 +1,3 @@
-com\lambdas\Handler.class
 com\lambdas\dto\response\RoleResponseDTO.class
 com\lambdas\dto\response\DeleteRoleResponseDTO$Builder.class
 com\lambdas\dto\response\RoleResponseDTO$Builder.class
