@@ -70,7 +70,7 @@ module "lambda" {
 }
 
 module "endpoints" {
-  source             = "./endpoints"
+  source             = "./modules/endpoints"
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnet_ids
   lambda_sg_id       = module.security.lambda_sg_id
