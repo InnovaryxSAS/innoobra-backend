@@ -175,16 +175,15 @@ jobs:
         run: |
           for folder in infra/dev/functions/*; do
             fname=$(basename "$folder")
-            # Detecta el nombre del JAR y la clase handler principal por convención
             jarfile="$folder/${fname}-1.0-SNAPSHOT.jar"
             if [ -f "$jarfile" ]; then
-              # Busca la clase handler principal (CreateXxxHandler) según el nombre del folder
-              handler_class="com/lambdas/handler/Create${fname^}Handler.class"
+              # Capitaliza el primer carácter del nombre del folder
+              capname="$(echo ${fname:0:1} | tr '[:lower:]' '[:upper:]')${fname:1}"
+              handler_class="com/lambdas/handler/Create${capname}Handler.class"
               unzip -p "$folder/create_${fname}.zip" "${fname}-1.0-SNAPSHOT.jar" > temp.jar
               echo "Validando handler $handler_class en $jarfile"
               jar tf temp.jar | grep "$handler_class" || (echo "Handler class $handler_class NOT found!" && exit 1)
             fi
-          done
           done
 
       - name: Refresh AWS credentials
