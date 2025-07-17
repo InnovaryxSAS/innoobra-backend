@@ -105,11 +105,12 @@ locals {
 resource "aws_lambda_function" "this" {
   for_each         = var.lambdas
   function_name    = "${each.key}_${var.environment}"
-  filename         = each.value.jar_path
+  s3_bucket        = var.lambda_bucket
+  s3_key           = each.value.jar_path
   handler          = each.value.handler
   runtime          = "java21"
   role             = aws_iam_role.lambda_exec.arn
-  source_code_hash = filebase64sha256(each.value.jar_path)
+  source_code_hash = null
   layers           = [aws_lambda_layer_version.common.arn]
 
   vpc_config {
