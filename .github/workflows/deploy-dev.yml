@@ -45,32 +45,19 @@ jobs:
       - name: Install parent POM
         run: mvn clean install -DskipTests -f lambda-java/pom.xml
 
-      # Compilar todos los JARs, empaquetar en ZIPs y subirlos a S3 (dinámico)
-      - name: Build, zip and upload all Lambda JARs
+      # Compilar todos los JARs y subirlos directamente a S3 (sin ZIPs para lambdas Java)
+      - name: Build and upload all Lambda JARs
         run: |
           for module in $(ls lambda-java | grep -v common); do
             if [ -f "lambda-java/$module/pom.xml" ]; then
               mvn clean package -DskipTests -f lambda-java/$module/pom.xml
-              actions="create get update delete"
-              for action in $actions; do
-                zipname="${action}_${module}.zip"
-                jarname="${module}-1.0-SNAPSHOT.jar"
-                mkdir -p infra/dev/functions/$module
-                if [ -f "lambda-java/$module/target/$jarname" ]; then
-                  zip -j "infra/dev/functions/$module/$zipname" "lambda-java/$module/target/$jarname"
-                  aws s3 cp "infra/dev/functions/$module/$zipname" "s3://$LAMBDA_BUCKET/lambdas/$module/$zipname"
-                fi
-              done
-              # ZIP especial para get_<modulo>_by_id
-              zipname="get_${module}_by_id.zip"
               jarname="${module}-1.0-SNAPSHOT.jar"
-              if [ -f "lambda-java/$module/target/$jarname" ]; then
-                zip -j "infra/dev/functions/$module/$zipname" "lambda-java/$module/target/$jarname"
-                aws s3 cp "infra/dev/functions/$module/$zipname" "s3://$LAMBDA_BUCKET/lambdas/$module/$zipname"
-              fi
+              mkdir -p infra/dev/functions/$module
+              cp "lambda-java/$module/target/$jarname" "infra/dev/functions/$module/$jarname"
+              aws s3 cp "infra/dev/functions/$module/$jarname" "s3://$LAMBDA_BUCKET/lambdas/$module/$jarname"
             fi
           done
-          # Subir la capa común
+          # Subir la capa común como ZIP
           mvn clean package -DskipTests -f lambda-java/common/pom.xml
           mkdir -p infra/dev/layers/common
           zip -j infra/dev/layers/common/common.zip lambda-java/common/target/common-1.0-SNAPSHOT.jar
