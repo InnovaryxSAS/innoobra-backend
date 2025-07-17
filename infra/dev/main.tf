@@ -15,6 +15,9 @@ module "vpc" {
   az              = var.az
   public_subnets  = var.public_subnets
   private_subnets = var.private_subnets
+  environment    = var.environment
+  region         = var.region
+  lambda_sg_id   = var.lambda_sg_id
 }
 
 # 3) NAT instance económica
@@ -65,6 +68,15 @@ module "lambda" {
   timeout        = var.lambda_timeout
   lambda_bucket = var.lambda_bucket
 }
+
+module "endpoints" {
+  source             = "./endpoints"
+  vpc_id             = module.vpc.vpc_id
+  private_subnet_ids = module.vpc.private_subnet_ids
+  lambda_sg_id       = module.security.lambda_sg_id
+  region             = var.region
+}
+
 
 ###########################################
 # (Opcional) Outputs globales
