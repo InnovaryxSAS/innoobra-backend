@@ -317,7 +317,3 @@ variable "db_host_value" {
   type        = string
 }
 
-variable "lambda_sg_id" {
-  description = "Security Group ID for Lambda functions"
-  type        = string
-}

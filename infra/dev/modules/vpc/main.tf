@@ -61,19 +61,6 @@ resource "aws_route_table_association" "private_assoc" {
   route_table_id = aws_route_table.private.id
 }
 
-resource "aws_vpc_endpoint" "secretsmanager" {
-  vpc_id            = aws_vpc.this.id
-  service_name      = "com.amazonaws.${var.region}.secretsmanager"
-  vpc_endpoint_type = "Interface"
-  subnet_ids        = aws_subnet.private[*].id
-  security_group_ids = [var.lambda_sg_id]  
 
-  private_dns_enabled = true
-
-  tags = {
-    Name        = "secretsmanager-endpoint"
-    Environment = var.environment
-  }
-}
 
 

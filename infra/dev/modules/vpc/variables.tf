@@ -21,4 +21,3 @@ variable "environment"   { type = string }
 
 variable "region"   { type = string }
 
-variable "lambda_sg_id"  { type = string }

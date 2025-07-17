@@ -17,7 +17,6 @@ module "vpc" {
   private_subnets = var.private_subnets
   environment    = var.environment
   region         = var.region
-  lambda_sg_id   = var.lambda_sg_id
 }
 
 # 3) NAT instance económica
@@ -90,6 +89,15 @@ output "rds_endpoint" {
 output "api_url" {
   description = "URL pública del HTTP API Gateway"
   value       = module.lambda.endpoint_url
+}
+
+# VPC Endpoint para Secrets Manager
+resource "aws_vpc_endpoint" "secretsmanager" {
+  vpc_id            = module.vpc.vpc_id
+  service_name      = "com.amazonaws.${var.region}.secretsmanager"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = module.vpc.private_subnet_ids
+  security_group_ids = [module.security.lambda_sg_id]
 }
 
 
