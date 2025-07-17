@@ -100,6 +100,9 @@ resource "aws_vpc_endpoint" "secretsmanager" {
   vpc_endpoint_type = "Interface"
   subnet_ids        = module.vpc.private_subnet_ids
   security_group_ids = [module.security.lambda_sg_id]
+  tags = {
+    Name = "secretsmanager-endpoint-${var.environment}"
+  }
 }
 
 
