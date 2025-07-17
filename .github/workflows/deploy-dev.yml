@@ -218,4 +218,40 @@ jobs:
           TF_VAR_lambda_bucket: ${{ secrets.LAMBDA_BUCKET }}
         run: terraform apply -input=false -parallelism=5 -auto-approve tfplan
 
+      - name: Validate AWS Lambda handler configuration
+        run: |
+          for folder in infra/dev/functions/*; do
+            fname=$(basename "$folder")
+            # Nombre de la función Lambda (ajusta si usas prefijos/sufijos)
+            lambda_name="$fname-dev"
+            jarfile="$folder/${fname}-1.0-SNAPSHOT.jar"
+            srcdir="lambda-java/$fname/src/main/java/com/lambdas/handler"
+            # Detecta handlers en el JAR
+            if [ -f "$jarfile" ] && [ -d "$srcdir" ]; then
+              unzip -p "$folder/create_${fname}.zip" "${fname}-1.0-SNAPSHOT.jar" > temp.jar
+              handlers="$(find "$srcdir" -name '*Handler.java' -exec basename {} .java \;)"
+              # Intenta obtener el handler configurado en AWS
+              aws lambda get-function-configuration --function-name "$lambda_name" --query 'Handler' --output text > handler.txt 2> /dev/null
+              if [ $? -ne 0 ]; then
+                echo "[WARN] Lambda $lambda_name no existe aún, se omite la validación de handler."
+                continue
+              fi
+              configured_handler=$(cat handler.txt)
+              found=0
+              for handler in $handlers; do
+                expected_handler="com.lambdas.handler.${handler}::handleRequest"
+                if [ "$configured_handler" = "$expected_handler" ]; then
+                  found=1
+                  break
+                fi
+              done
+              if [ $found -eq 0 ]; then
+                echo "[ERROR] Handler configurado '$configured_handler' en Lambda $lambda_name no coincide con los handlers detectados en el JAR ($handlers)."
+                exit 1
+              else
+                echo "[OK] Handler configurado '$configured_handler' en Lambda $lambda_name es válido."
+              fi
+            fi
+          done
+
 
