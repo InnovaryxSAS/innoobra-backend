@@ -17,3 +17,8 @@ variable "az" {
   type        = string
   description = "Availability Zone for all subnets"
 }
+variable "environment"   { type = string }
+
+variable "region"   { type = string }
+
+variable "lambda_sg_id"  { type = string }
