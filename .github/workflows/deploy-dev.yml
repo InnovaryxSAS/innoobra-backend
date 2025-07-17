@@ -135,7 +135,6 @@ jobs:
           mkdir -p infra/dev/functions/apudetail
           mv lambda-java/apudetail/target/apudetail-1.0-SNAPSHOT.jar infra/dev/functions/apudetail/apudetail-1.0-SNAPSHOT.jar
 
-      - name: Clean old Lambda ZIPs and JARs
       - name: Clean old Lambda ZIPs
         run: find infra/dev/functions -name "*.zip" -delete
 
