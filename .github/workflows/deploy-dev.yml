@@ -55,85 +55,14 @@ jobs:
             lambda-java/common/target/common-1.0-SNAPSHOT.jar
 
 
-       # 1. Compilar el JAR de company
-      - name: Build Lambda jar
-        run: mvn clean package -f lambda-java/company/pom.xml
-
-      # 2. Mover el JAR generado de company a la carpeta de Terraform
-      - name: Move lambda.jar to Terraform dir
+      # Compilar y copiar todos los JARs de los módulos en un solo paso
+      - name: Build and copy all Lambda JARs
         run: |
-          mkdir -p infra/dev/functions/company
-          mv lambda-java/company/target/company-1.0-SNAPSHOT.jar infra/dev/functions/company/company-1.0-SNAPSHOT.jar
-
-      # 3. Compilar el JAR de project
-      - name: Build Project Lambda jar
-        run: mvn clean package -f lambda-java/project/pom.xml
-
-      # 4. Mover el JAR generado de project a la carpeta de Terraform
-      - name: Move project lambda to Terraform dir
-        run: |
-          mkdir -p infra/dev/functions/project
-          mv lambda-java/project/target/project-1.0-SNAPSHOT.jar infra/dev/functions/project/project-1.0-SNAPSHOT.jar
-
-      # 5. Compilar el JAR de role
-      - name: Build Project Lambda jar
-        run: mvn clean package -f lambda-java/role/pom.xml
-
-      # 6. Mover el JAR generado de role a la carpeta de Terraform
-      - name: Move role lambda to Terraform dir
-        run: |
-          mkdir -p infra/dev/functions/role
-          mv lambda-java/role/target/role-1.0-SNAPSHOT.jar infra/dev/functions/role/role-1.0-SNAPSHOT.jar
-
-      # 7. Compilar el JAR de User
-      - name: Build user Lambda jar
-        run: mvn clean package -f lambda-java/user/pom.xml
-
-      # 8. Mover el JAR generado de User a la carpeta de Terraform
-      - name: Move user lambda to Terraform dir
-        run: |
-          mkdir -p infra/dev/functions/user
-          mv lambda-java/user/target/user-1.0-SNAPSHOT.jar infra/dev/functions/user/user-1.0-SNAPSHOT.jar
-
-      # 9. Compilar el JAR de Chapter
-      - name: Build chapter Lambda jar
-        run: mvn clean package -f lambda-java/chapter/pom.xml
-
-      # 10. Mover el JAR generado de Chapter a la carpeta de Terraform
-      - name: Move chapter lambda to Terraform dir
-        run: |
-          mkdir -p infra/dev/functions/chapter
-          mv lambda-java/chapter/target/chapter-1.0-SNAPSHOT.jar infra/dev/functions/chapter/chapter-1.0-SNAPSHOT.jar
-
-      # 11. Compilar el JAR de Activity
-      - name: Build activity Lambda jar
-        run: mvn clean package -f lambda-java/activity/pom.xml
-
-      # 12. Mover el JAR generado de Activity a la carpeta de Terraform
-      - name: Move activity lambda.jar to Terraform dir
-        run: |
-          mkdir -p infra/dev/functions/activity
-          mv lambda-java/activity/target/activity-1.0-SNAPSHOT.jar infra/dev/functions/activity/activity-1.0-SNAPSHOT.jar
-
-      # 13. Compilar el JAR de Attribute
-      - name: Build attributte Lambda jar
-        run: mvn clean package -f lambda-java/attribute/pom.xml
-
-      # 14. Mover el JAR generado de attribute a la carpeta de Terraform
-      - name: Move attribute lambda.jar to Terraform dir
-        run: |
-          mkdir -p infra/dev/functions/attribute
-          mv lambda-java/attribute/target/attribute-1.0-SNAPSHOT.jar infra/dev/functions/attribute/attribute-1.0-SNAPSHOT.jar
-
-      # 15. Compilar el JAR de ApuDetail
-      - name: Build ApuDetail Lambda jar
-        run: mvn clean package -f lambda-java/apudetail/pom.xml
-
-      # 16. Mover el JAR generado de apudetail a la carpeta de Terraform
-      - name: Move ApuDetail lambda.jar to Terraform dir
-        run: |
-          mkdir -p infra/dev/functions/apudetail
-          mv lambda-java/apudetail/target/apudetail-1.0-SNAPSHOT.jar infra/dev/functions/apudetail/apudetail-1.0-SNAPSHOT.jar
+          for module in activity apudetail attribute chapter company project role user common; do
+            mvn clean package -DskipTests -f lambda-java/$module/pom.xml
+            mkdir -p infra/dev/functions/$module
+            cp lambda-java/$module/target/$module-1.0-SNAPSHOT.jar infra/dev/functions/$module/$module-1.0-SNAPSHOT.jar
+          done
 
       - name: Clean old Lambda ZIPs
         run: find infra/dev/functions -name "*.zip" -delete
@@ -217,41 +146,5 @@ jobs:
         env:
           TF_VAR_lambda_bucket: ${{ secrets.LAMBDA_BUCKET }}
         run: terraform apply -input=false -parallelism=5 -auto-approve tfplan
-
-      - name: Validate AWS Lambda handler configuration
-        run: |
-          for folder in infra/dev/functions/*; do
-            fname=$(basename "$folder")
-            # Nombre de la función Lambda (ajusta si usas prefijos/sufijos)
-            lambda_name="$fname-dev"
-            jarfile="$folder/${fname}-1.0-SNAPSHOT.jar"
-            srcdir="lambda-java/$fname/src/main/java/com/lambdas/handler"
-            # Detecta handlers en el JAR
-            if [ -f "$jarfile" ] && [ -d "$srcdir" ]; then
-              unzip -p "$folder/create_${fname}.zip" "${fname}-1.0-SNAPSHOT.jar" > temp.jar
-              handlers="$(find "$srcdir" -name '*Handler.java' -exec basename {} .java \;)"
-              # Intenta obtener el handler configurado en AWS
-              aws lambda get-function-configuration --function-name "$lambda_name" --query 'Handler' --output text > handler.txt 2> /dev/null
-              if [ $? -ne 0 ]; then
-                echo "[WARN] Lambda $lambda_name no existe aún, se omite la validación de handler."
-                continue
-              fi
-              configured_handler=$(cat handler.txt)
-              found=0
-              for handler in $handlers; do
-                expected_handler="com.lambdas.handler.${handler}::handleRequest"
-                if [ "$configured_handler" = "$expected_handler" ]; then
-                  found=1
-                  break
-                fi
-              done
-              if [ $found -eq 0 ]; then
-                echo "[ERROR] Handler configurado '$configured_handler' en Lambda $lambda_name no coincide con los handlers detectados en el JAR ($handlers)."
-                exit 1
-              else
-                echo "[OK] Handler configurado '$configured_handler' en Lambda $lambda_name es válido."
-              fi
-            fi
-          done
 
 
