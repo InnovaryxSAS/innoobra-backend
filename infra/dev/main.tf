@@ -29,7 +29,7 @@ module "nat" {
 # 4) Security Groups
 module "security" {
   source = "./modules/security"
-  vpc_id = module.vpc.vpc_id
+  vpc_id        = module.vpc.vpc_id
 }
 
 # 5) RDS Postgres en subred privada
