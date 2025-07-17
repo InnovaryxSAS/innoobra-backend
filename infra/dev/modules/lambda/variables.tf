@@ -27,3 +27,13 @@ variable "lambda_bucket" {
   description = "Bucket donde subimos los .zip de las Lambdas"
   type        = string
 }
+
+variable "region" {
+  description = "AWS region for resources"
+  type        = string
+}
+
+variable "vpc_id" {
+  description = "The ID of the VPC where resources will be deployed"
+  type        = string
+}

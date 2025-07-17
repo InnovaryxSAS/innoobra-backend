@@ -66,6 +66,8 @@ module "lambda" {
   memory_size    = var.lambda_memory
   timeout        = var.lambda_timeout
   lambda_bucket = var.lambda_bucket
+  vpc_id        = module.vpc.vpc_id
+  region        = var.region
 }
 
 module "endpoints" {
