@@ -171,6 +171,7 @@ jobs:
                 unzip -l "$zipfile"
               fi
             done
+          done
       - name: Validate handler class in company JAR
         run: |
           for folder in infra/dev/functions/*; do
