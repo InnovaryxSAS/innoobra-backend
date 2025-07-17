@@ -172,18 +172,19 @@ jobs:
               fi
             done
           done
-      - name: Validate handler class in company JAR
+      - name: Validate all handler classes in each Lambda JAR
         run: |
           for folder in infra/dev/functions/*; do
             fname=$(basename "$folder")
             jarfile="$folder/${fname}-1.0-SNAPSHOT.jar"
-            if [ -f "$jarfile" ]; then
-              # Capitaliza el primer carácter del nombre del folder
-              capname="$(echo ${fname:0:1} | tr '[:lower:]' '[:upper:]')${fname:1}"
-              handler_class="com/lambdas/handler/Create${capname}Handler.class"
+            srcdir="lambda-java/$fname/src/main/java/com/lambdas/handler"
+            if [ -f "$jarfile" ] && [ -d "$srcdir" ]; then
               unzip -p "$folder/create_${fname}.zip" "${fname}-1.0-SNAPSHOT.jar" > temp.jar
-              echo "Validando handler $handler_class en $jarfile"
-              jar tf temp.jar | grep "$handler_class" || (echo "Handler class $handler_class NOT found!" && exit 1)
+              for handler in $(find "$srcdir" -name '*Handler.java' -exec basename {} .java \;); do
+                handler_class="com/lambdas/handler/${handler}.class"
+                echo "Validando handler $handler_class en $jarfile"
+                jar tf temp.jar | grep "$handler_class" || (echo "Handler class $handler_class NOT found!" && exit 1)
+              done
             fi
           done
 
