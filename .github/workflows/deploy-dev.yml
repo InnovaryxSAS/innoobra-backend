@@ -45,13 +45,22 @@ jobs:
       - name: Install parent POM
         run: mvn clean install -DskipTests -f lambda-java/pom.xml
 
-      # Compilar todos los JARs y subirlos directamente a S3 (dinámico)
-      - name: Build and upload all Lambda JARs
+      # Compilar todos los JARs, empaquetar en ZIPs y subirlos a S3 (dinámico)
+      - name: Build, zip and upload all Lambda JARs
         run: |
           for module in $(ls lambda-java | grep -v common); do
             if [ -f "lambda-java/$module/pom.xml" ]; then
               mvn clean package -DskipTests -f lambda-java/$module/pom.xml
-              aws s3 cp lambda-java/$module/target/$module-1.0-SNAPSHOT.jar s3://$LAMBDA_BUCKET/lambdas/$module/$module-1.0-SNAPSHOT.jar
+              actions="create get update delete get_by_id"
+              for action in $actions; do
+                zipname="${action}_${module}.zip"
+                jarname="${module}-1.0-SNAPSHOT.jar"
+                mkdir -p infra/dev/functions/$module
+                if [ -f "lambda-java/$module/target/$jarname" ]; then
+                  zip -j "infra/dev/functions/$module/$zipname" "lambda-java/$module/target/$jarname"
+                  aws s3 cp "infra/dev/functions/$module/$zipname" "s3://$LAMBDA_BUCKET/lambdas/$module/$zipname"
+                fi
+              done
             fi
           done
           # Subir la capa común
