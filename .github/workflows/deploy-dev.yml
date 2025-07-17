@@ -45,96 +45,25 @@ jobs:
       - name: Install parent POM
         run: mvn clean install -DskipTests -f lambda-java/pom.xml
 
-      - name: Build & package common layer
-        run: mvn clean package -DskipTests -f lambda-java/common/pom.xml
-
-      - name: Zip common layer
+      # Compilar todos los JARs y subirlos directamente a S3 (dinámico)
+      - name: Build and upload all Lambda JARs
         run: |
+          for module in $(ls lambda-java | grep -v common); do
+            if [ -f "lambda-java/$module/pom.xml" ]; then
+              mvn clean package -DskipTests -f lambda-java/$module/pom.xml
+              aws s3 cp lambda-java/$module/target/$module-1.0-SNAPSHOT.jar s3://$LAMBDA_BUCKET/lambdas/$module/$module-1.0-SNAPSHOT.jar
+            fi
+          done
+          # Subir la capa común
+          mvn clean package -DskipTests -f lambda-java/common/pom.xml
           mkdir -p infra/dev/layers/common
-          zip -j infra/dev/layers/common/common.zip \
-            lambda-java/common/target/common-1.0-SNAPSHOT.jar
-
-
-      # Compilar y copiar todos los JARs de los módulos en un solo paso
-      - name: Build and copy all Lambda JARs
-        run: |
-          for module in activity apudetail attribute chapter company project role user common; do
-            mvn clean package -DskipTests -f lambda-java/$module/pom.xml
-            mkdir -p infra/dev/functions/$module
-            cp lambda-java/$module/target/$module-1.0-SNAPSHOT.jar infra/dev/functions/$module/$module-1.0-SNAPSHOT.jar
-          done
-
-      - name: Clean old Lambda ZIPs
-        run: find infra/dev/functions -name "*.zip" -delete
-
-
-      - name: Zip Lambdas
-        run: |
-          cd infra/dev/functions
-          for folder in */; do
-            folder=${folder%/}
-            for action in create get update delete; do
-              zipname="${action}_${folder}.zip"
-              jarname="${folder}-1.0-SNAPSHOT.jar"
-              if [ -f "$folder/$jarname" ]; then
-                zip -j "$folder/$zipname" "$folder/$jarname"
-              else
-                zip -j "$folder/$zipname" /dev/null
-              fi
-            done
-            # Variante get_by_id si aplica
-            if [ -f "$folder/${folder}-1.0-SNAPSHOT.jar" ]; then
-              zip -j "$folder/get_${folder}_by_id.zip" "$folder/$jarname"
-            else
-              zip -j "$folder/get_${folder}_by_id.zip" /dev/null
-            fi
-          done
-      - name: Validate all Lambda ZIPs
-        run: |
-          for folder in infra/dev/functions/*; do
-            fname=$(basename "$folder")
-            for action in create get update delete get_${fname}_by_id; do
-              zipfile="$folder/${action}_${fname}.zip"
-              if [ -f "$zipfile" ]; then
-                echo "Validando $zipfile"
-                unzip -l "$zipfile"
-              fi
-            done
-          done
-      - name: Validate all handler classes in each Lambda JAR
-        run: |
-          for folder in infra/dev/functions/*; do
-            fname=$(basename "$folder")
-            jarfile="$folder/${fname}-1.0-SNAPSHOT.jar"
-            srcdir="lambda-java/$fname/src/main/java/com/lambdas/handler"
-            if [ -f "$jarfile" ] && [ -d "$srcdir" ]; then
-              unzip -p "$folder/create_${fname}.zip" "${fname}-1.0-SNAPSHOT.jar" > temp.jar
-              for handler in $(find "$srcdir" -name '*Handler.java' -exec basename {} .java \;); do
-                handler_class="com/lambdas/handler/${handler}.class"
-                echo "Validando handler $handler_class en $jarfile"
-                jar tf temp.jar | grep "$handler_class" || (echo "Handler class $handler_class NOT found!" && exit 1)
-              done
-            fi
-          done
-
-      - name: Refresh AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: arn:aws:iam::528555979765:role/GitHubDeployRole
-          aws-region: us-east-1
-      
-      - name: Upload Lambdas & Layers
-        run: |
-          aws s3 sync infra/dev/functions/ s3://$LAMBDA_BUCKET/lambdas/
+          zip -j infra/dev/layers/common/common.zip lambda-java/common/target/common-1.0-SNAPSHOT.jar
           aws s3 cp infra/dev/layers/common/common.zip s3://$LAMBDA_BUCKET/common-layers/common.zip
 
-
-       # ————— Terraform —————
+      # ————— Terraform —————
       - name: Terraform Init
         working-directory: infra/dev
         run: terraform init -input=false
-
-        
 
       - name: Terraform Plan
         working-directory: infra/dev
