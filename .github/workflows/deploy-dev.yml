@@ -157,6 +157,18 @@ jobs:
               zip -j "$folder/get_${folder}_by_id.zip" /dev/null
             fi
           done
+      - name: Validate all Lambda ZIPs
+        run: |
+          for folder in infra/dev/functions/*; do
+            fname=$(basename "$folder")
+            for action in create get update delete get_${fname}_by_id; do
+              zipfile="$folder/${action}_${fname}.zip"
+              if [ -f "$zipfile" ]; then
+                echo "Validando $zipfile"
+                unzip -l "$zipfile"
+              fi
+            done
+          done
 
       - name: Refresh AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
