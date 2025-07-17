@@ -60,6 +60,24 @@ resource "aws_iam_role_policy" "lambda_ec2" {
   })
 }
 
+resource "aws_iam_role_policy" "lambda_ssm" {
+  name = "LambdaSSMParameterAccess-${var.environment}"
+  role = aws_iam_role.lambda_exec.id
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "ssm:GetParameter",
+          "ssm:GetParameters",
+          "ssm:GetParametersByPath"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
 
 ##############################################################################
 # 2) API Gateway HTTP
