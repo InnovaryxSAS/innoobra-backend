@@ -159,11 +159,4 @@ resource "aws_lambda_permission" "api_gw" {
   source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*"
 }
 
-# VPC Endpoint para Secrets Manager
-resource "aws_vpc_endpoint" "secretsmanager" {
-  vpc_id            = var.vpc_id
-  service_name      = "com.amazonaws.${var.region}.secretsmanager"
-  vpc_endpoint_type = "Interface"
-  subnet_ids        = var.vpc_subnet_ids
-  security_group_ids = [var.lambda_sg_id]
-}
+
