@@ -95,12 +95,6 @@ resource "aws_lambda_layer_version" "common" {
 # 4) Funciones Lambda + VPC + DB
 ##############################################################################
 
-locals {
-  lambda_to_folder = {
-    for key, value in var.lambdas : 
-      key => regex("^functions/([^/]+)/", value.jar_path)[0]
-  }
-}
 
 resource "aws_lambda_function" "this" {
   for_each         = var.lambdas
