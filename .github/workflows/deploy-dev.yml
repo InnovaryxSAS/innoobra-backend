@@ -51,7 +51,7 @@ jobs:
           for module in $(ls lambda-java | grep -v common); do
             if [ -f "lambda-java/$module/pom.xml" ]; then
               mvn clean package -DskipTests -f lambda-java/$module/pom.xml
-              actions="create get update delete get_by_id"
+              actions="create get update delete"
               for action in $actions; do
                 zipname="${action}_${module}.zip"
                 jarname="${module}-1.0-SNAPSHOT.jar"
@@ -61,6 +61,13 @@ jobs:
                   aws s3 cp "infra/dev/functions/$module/$zipname" "s3://$LAMBDA_BUCKET/lambdas/$module/$zipname"
                 fi
               done
+              # ZIP especial para get_<modulo>_by_id
+              zipname="get_${module}_by_id.zip"
+              jarname="${module}-1.0-SNAPSHOT.jar"
+              if [ -f "lambda-java/$module/target/$jarname" ]; then
+                zip -j "infra/dev/functions/$module/$zipname" "lambda-java/$module/target/$jarname"
+                aws s3 cp "infra/dev/functions/$module/$zipname" "s3://$LAMBDA_BUCKET/lambdas/$module/$zipname"
+              fi
             fi
           done
           # Subir la capa común
