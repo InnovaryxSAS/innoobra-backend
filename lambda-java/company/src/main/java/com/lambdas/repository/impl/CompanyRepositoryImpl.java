@@ -89,13 +89,14 @@ public class CompanyRepositoryImpl implements CompanyRepository {
                 SELECT id, tax_id, nit, name, business_name, company_type, address, phone_number, email,
                        legal_representative, city, state, country, created_at, updated_at, status
                 FROM companies
-                WHERE id = ?
+                WHERE id = ?::uuid
                 """;
 
         try (Connection conn = getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setObject(1, id, java.sql.Types.OTHER);
+            // Set UUID parameter as string and cast to UUID in SQL
+            stmt.setString(1, id.toString());
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -173,9 +174,9 @@ public class CompanyRepositoryImpl implements CompanyRepository {
         
         final String sql = """
                 UPDATE companies
-                SET tax_id = ?, nit = ?, name = ?, business_name = ?, company_type = ?, address = ?, phone_number = ?, email = ?,
+                SET tax_id = ?::uuid, nit = ?, name = ?, business_name = ?, company_type = ?, address = ?, phone_number = ?, email = ?,
                     legal_representative = ?, city = ?, state = ?, country = ?, updated_at = ?, status = ?::status_enum
-                WHERE id = ?
+                WHERE id = ?::uuid
                 """;
 
         try (Connection conn = getConnection();
@@ -183,7 +184,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
 
             company.setUpdatedAt(LocalDateTime.now());
 
-            stmt.setObject(1, company.getTaxId(), java.sql.Types.OTHER); // UUID as Object
+            stmt.setString(1, company.getTaxId() != null ? company.getTaxId().toString() : null);
             stmt.setString(2, company.getNit());
             stmt.setString(3, company.getName());
             stmt.setString(4, company.getBusinessName());
@@ -197,7 +198,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
             stmt.setString(12, company.getCountry());
             stmt.setTimestamp(13, Timestamp.valueOf(company.getUpdatedAt()));
             stmt.setString(14, company.getStatus().getValue());
-            stmt.setObject(15, company.getId(), java.sql.Types.OTHER);
+            stmt.setString(15, company.getId().toString());
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
@@ -222,7 +223,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
         final String sql = """
                 UPDATE companies
                 SET status = CAST(? AS status_enum), updated_at = ?
-                WHERE id = ? AND status != CAST(? AS status_enum)
+                WHERE id = ?::uuid AND status != CAST(? AS status_enum)
                 """;
 
         try (Connection conn = getConnection();
@@ -233,7 +234,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
 
             stmt.setString(1, inactiveStatus);
             stmt.setTimestamp(2, Timestamp.valueOf(now));
-            stmt.setObject(3, id, java.sql.Types.OTHER);
+            stmt.setString(3, id.toString());
             stmt.setString(4, inactiveStatus);
 
             int rowsAffected = stmt.executeUpdate();
@@ -254,12 +255,12 @@ public class CompanyRepositoryImpl implements CompanyRepository {
 
     @Override
     public boolean existsById(UUID id) {
-        final String sql = "SELECT 1 FROM companies WHERE id = ? LIMIT 1";
+        final String sql = "SELECT 1 FROM companies WHERE id = ?::uuid LIMIT 1";
 
         try (Connection conn = getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setObject(1, id, java.sql.Types.OTHER);
+            stmt.setString(1, id.toString());
 
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();
@@ -271,12 +272,12 @@ public class CompanyRepositoryImpl implements CompanyRepository {
     }
 
     public boolean existsTaxIdById(UUID taxId) {
-        final String sql = "SELECT 1 FROM taxes WHERE id = ? LIMIT 1";
+        final String sql = "SELECT 1 FROM taxes WHERE id = ?::uuid LIMIT 1";
 
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setObject(1, taxId, java.sql.Types.OTHER); // UUID as Object
+            stmt.setString(1, taxId.toString());
 
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();
@@ -298,8 +299,8 @@ public class CompanyRepositoryImpl implements CompanyRepository {
     }
 
     private void setCompanyParameters(PreparedStatement stmt, Company company) throws SQLException {
-        stmt.setObject(1, company.getId(), java.sql.Types.OTHER);
-        stmt.setObject(2, company.getTaxId(), java.sql.Types.OTHER); // UUID as Object
+        stmt.setString(1, company.getId().toString());
+        stmt.setString(2, company.getTaxId() != null ? company.getTaxId().toString() : null);
         stmt.setString(3, company.getNit());
         stmt.setString(4, company.getName());
         stmt.setString(5, company.getBusinessName());
@@ -313,7 +314,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
         stmt.setString(13, company.getCountry());
         stmt.setTimestamp(14, Timestamp.valueOf(company.getCreatedAt()));
         stmt.setTimestamp(15, Timestamp.valueOf(company.getUpdatedAt()));
-        stmt.setObject(16, company.getStatus().getValue(), java.sql.Types.OTHER);
+        stmt.setString(16, company.getStatus().getValue());
     }
 
     private Company mapResultSetToCompany(ResultSet rs) throws SQLException {
@@ -323,7 +324,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
         
         return new Company.Builder()
                 .id(UUID.fromString(rs.getString("id")))
-                .taxId(taxId) // Ahora es UUID
+                .taxId(taxId)
                 .nit(rs.getString("nit"))
                 .name(rs.getString("name"))
                 .businessName(rs.getString("business_name"))
