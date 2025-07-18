@@ -41,7 +41,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
         final String sql = """
                 INSERT INTO companies (id, tax_id, nit, name, business_name, company_type, address, phone_number, email,
                                      legal_representative, city, state, country, created_at, updated_at, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?::uuid, ?::uuid, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::status_enum)
                 """;
 
         try (Connection conn = getConnection();
@@ -142,7 +142,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
                 SELECT id, tax_id, nit, name, business_name, company_type, address, phone_number, email,
                        legal_representative, city, state, country, created_at, updated_at, status
                 FROM companies
-                WHERE status = ?
+                WHERE status = ?::status_enum
                 ORDER BY created_at DESC
                 """;
 
@@ -222,8 +222,8 @@ public class CompanyRepositoryImpl implements CompanyRepository {
     public boolean deactivate(UUID id) {
         final String sql = """
                 UPDATE companies
-                SET status = CAST(? AS status_enum), updated_at = ?
-                WHERE id = ?::uuid AND status != CAST(? AS status_enum)
+                SET status = ?::status_enum, updated_at = ?
+                WHERE id = ?::uuid AND status != ?::status_enum
                 """;
 
         try (Connection conn = getConnection();
