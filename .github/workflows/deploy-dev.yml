@@ -79,6 +79,5 @@ jobs:
         env:
           TF_VAR_lambda_bucket: ${{ secrets.LAMBDA_BUCKET }}
         run: terraform apply -input=false -parallelism=5 -auto-approve tfplan
-             find infra/dev/functions
 
 
