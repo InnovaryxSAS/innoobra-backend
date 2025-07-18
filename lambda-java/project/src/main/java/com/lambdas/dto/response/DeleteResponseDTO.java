@@ -2,7 +2,7 @@ package com.lambdas.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class DeleteProjectResponseDTO {
+public class DeleteResponseDTO {
 
     @JsonProperty("message")
     private String message;
@@ -14,11 +14,11 @@ public class DeleteProjectResponseDTO {
     private boolean success;
 
     // Default constructor
-    public DeleteProjectResponseDTO() {
+    public DeleteResponseDTO() {
     }
 
     // Constructor with parameters
-    public DeleteProjectResponseDTO(String message, String projectId, boolean success) {
+    public DeleteResponseDTO(String message, String projectId, boolean success) {
         this.message = message;
         this.projectId = projectId;
         this.success = success;
@@ -45,8 +45,8 @@ public class DeleteProjectResponseDTO {
             return this;
         }
 
-        public DeleteProjectResponseDTO build() {
-            return new DeleteProjectResponseDTO(message, projectId, success);
+        public DeleteResponseDTO build() {
+            return new DeleteResponseDTO(message, projectId, success);
         }
     }
 

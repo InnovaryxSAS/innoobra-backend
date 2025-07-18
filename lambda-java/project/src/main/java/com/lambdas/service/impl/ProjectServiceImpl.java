@@ -2,6 +2,7 @@ package com.lambdas.service.impl;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import com.lambdas.model.Project;
 import com.lambdas.model.ProjectStatus;
@@ -34,7 +35,7 @@ public class ProjectServiceImpl implements ProjectService{
     }
 
     @Override
-    public Optional<Project> getProjectById(String id) {
+    public Optional<Project> getProjectById(UUID id) {
         return repository.findById(id);
     }
 
@@ -45,7 +46,7 @@ public class ProjectServiceImpl implements ProjectService{
     }
 
     @Override
-    public boolean deleteProject(String id) {
+    public boolean deleteProject(UUID id) {
         return repository.deactivate(id);
     }
 
@@ -55,12 +56,32 @@ public class ProjectServiceImpl implements ProjectService{
     }
 
     @Override
-    public List<Project> getProjectsByCompany(String companyId) {
+    public List<Project> getProjectsByCompany(UUID companyId) {
         return repository.findByCompany(companyId);
     }
 
     @Override
-    public List<Project> getProjectsByResponsibleUser(String userId) {
+    public List<Project> getProjectsByResponsibleUser(UUID userId) {
         return repository.findByResponsibleUser(userId);
+    }
+
+    @Override
+    public List<Project> getProjectsByCompanyAndStatus(UUID companyId, ProjectStatus status) {
+        return repository.findByCompanyAndStatus(companyId, status);
+    }
+
+    @Override
+    public boolean existsById(UUID id) {
+        return repository.existsById(id);
+    }
+
+    @Override
+    public String getConnectionPoolStats() {
+        return repository.getConnectionPoolStats();
+    }
+
+    @Override
+    public boolean isHealthy() {
+        return repository.isHealthy();
     }
 }

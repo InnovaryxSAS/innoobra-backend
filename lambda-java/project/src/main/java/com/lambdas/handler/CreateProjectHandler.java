@@ -14,7 +14,6 @@ import com.lambdas.exception.DatabaseException;
 import com.lambdas.exception.ValidationException;
 import com.lambdas.mapper.DTOMapper;
 import com.lambdas.model.Project;
-import com.lambdas.repository.ConnectionPoolManager;
 import com.lambdas.service.impl.ProjectServiceImpl;
 import com.lambdas.service.ProjectService;
 import com.lambdas.util.HttpStatus;
@@ -47,10 +46,7 @@ public class CreateProjectHandler implements RequestHandler<APIGatewayProxyReque
         LoggingHelper.initializeRequestContext(requestId);
 
         try {
-            LoggingHelper.logProcessStart(logger, "project creation");
-
             if (input.getBody() == null || input.getBody().trim().isEmpty()) {
-                LoggingHelper.logEmptyRequestBody(logger);
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Request body is required");
             }
 
@@ -62,8 +58,6 @@ public class CreateProjectHandler implements RequestHandler<APIGatewayProxyReque
             Project project = DTOMapper.toProject(requestDTO);
 
             Project createdProject = projectService.createProject(project);
-
-            LoggingHelper.logSuccess(logger, "Project creation", createdProject.getId());
 
             ProjectResponseDTO responseDTO = DTOMapper.toProjectResponseDTO(createdProject);
 
@@ -80,26 +74,12 @@ public class CreateProjectHandler implements RequestHandler<APIGatewayProxyReque
             return ResponseUtil.createErrorResponse(HttpStatus.CONFLICT, e.getMessage());
         } catch (DatabaseException e) {
             LoggingHelper.logDatabaseError(logger, e.getMessage(), e);
-            logConnectionPoolStatusOnError();
             return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } catch (Exception e) {
             LoggingHelper.logUnexpectedError(logger, e.getMessage(), e);
             return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } finally {
             LoggingHelper.clearContext();
-        }
-    }
-
-    private void logConnectionPoolStatusOnError() {
-        try {
-            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            if (!poolManager.isHealthy()) {
-                LoggingHelper.logConnectionPoolError(logger, 
-                    poolManager.getPoolStats().toString(), false);
-            }
-        } catch (Exception e) {
-            LoggingHelper.logConnectionPoolWarning(logger, 
-                "Connection pool health check failed: " + e.getMessage());
         }
     }
 }

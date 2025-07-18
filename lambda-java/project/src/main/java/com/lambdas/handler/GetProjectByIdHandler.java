@@ -8,7 +8,6 @@ import com.lambdas.dto.response.ProjectResponseDTO;
 import com.lambdas.exception.DatabaseException;
 import com.lambdas.mapper.DTOMapper;
 import com.lambdas.model.Project;
-import com.lambdas.repository.ConnectionPoolManager;
 import com.lambdas.service.ProjectService;
 import com.lambdas.service.impl.ProjectServiceImpl;
 import com.lambdas.util.HttpStatus;
@@ -17,6 +16,7 @@ import com.lambdas.util.ResponseUtil;
 import org.slf4j.Logger;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public class GetProjectByIdHandler
         implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
@@ -40,30 +40,35 @@ public class GetProjectByIdHandler
         LoggingHelper.initializeRequestContext(requestId);
 
         try {
-            String projectId = input.getPathParameters().get("id");
-            if (projectId == null || projectId.trim().isEmpty()) {
-                LoggingHelper.logMissingParameter(logger, "Project ID");
+            if (input.getPathParameters() == null) {
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Project ID is required");
             }
 
-            LoggingHelper.logProcessStart(logger, "project retrieval by ID");
+            String projectIdStr = input.getPathParameters().get("id");
+            if (projectIdStr == null || projectIdStr.trim().isEmpty()) {
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Project ID is required");
+            }
+
+            LoggingHelper.addProjectId(projectIdStr);
+
+            UUID projectId;
+            try {
+                projectId = UUID.fromString(projectIdStr);
+            } catch (IllegalArgumentException e) {
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Invalid project ID format");
+            }
 
             Optional<Project> projectOpt = projectService.getProjectById(projectId);
 
             if (projectOpt.isPresent()) {
-                LoggingHelper.logSuccess(logger, "Project retrieval", projectId);
-
                 ProjectResponseDTO responseDTO = DTOMapper.toProjectResponseDTO(projectOpt.get());
-
                 return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
             } else {
-                LoggingHelper.logEntityNotFound(logger, "Project", projectId);
                 return ResponseUtil.createErrorResponse(HttpStatus.NOT_FOUND, "Project not found");
             }
 
         } catch (DatabaseException e) {
             LoggingHelper.logDatabaseError(logger, e.getMessage(), e);
-            logConnectionPoolStatusOnError();
             return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } catch (Exception e) {
             LoggingHelper.logUnexpectedError(logger, e.getMessage(), e);
@@ -72,17 +77,4 @@ public class GetProjectByIdHandler
             LoggingHelper.clearContext();
         }
     }
-
-    private void logConnectionPoolStatusOnError() {
-        try {
-            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            if (!poolManager.isHealthy()) {
-                LoggingHelper.logConnectionPoolError(logger,
-                        poolManager.getPoolStats().toString(), false);
-            }
-        } catch (Exception e) {
-            LoggingHelper.logConnectionPoolWarning(logger,
-                    "Connection pool health check failed: " + e.getMessage());
-        }
-    }
-}
+} 

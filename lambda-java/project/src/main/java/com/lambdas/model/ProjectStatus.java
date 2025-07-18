@@ -3,12 +3,9 @@ package com.lambdas.model;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum ProjectStatus {
-    ACTIVE("active"),
-    INACTIVE("inactive"),
-    PENDING("pending"),
-    SUSPENDED("suspended"),
-    COMPLETED("completed"),
-    CANCELLED("cancelled");
+    ACTIVE("ACTIVE"),
+    INACTIVE("INACTIVE"),
+    PENDING("PENDING");
 
     private final String value;
 

@@ -8,7 +8,6 @@ import com.lambdas.dto.response.ProjectResponseDTO;
 import com.lambdas.exception.DatabaseException;
 import com.lambdas.mapper.DTOMapper;
 import com.lambdas.model.Project;
-import com.lambdas.repository.ConnectionPoolManager;
 import com.lambdas.service.ProjectService;
 import com.lambdas.service.impl.ProjectServiceImpl;
 import com.lambdas.util.HttpStatus;
@@ -39,37 +38,18 @@ public class GetProjectHandler implements RequestHandler<APIGatewayProxyRequestE
         LoggingHelper.initializeRequestContext(requestId);
 
         try {
-            LoggingHelper.logProcessStart(logger, "projects retrieval");
-
             List<Project> projects = projectService.getAllProjects();
-            LoggingHelper.logSuccessWithCount(logger, "Projects retrieval", projects.size());
-
             List<ProjectResponseDTO> responseDTOs = DTOMapper.toProjectResponseDTOList(projects);
-
             return ResponseUtil.createResponse(HttpStatus.OK, responseDTOs);
 
         } catch (DatabaseException e) {
             LoggingHelper.logDatabaseError(logger, e.getMessage(), e);
-            logConnectionPoolStatusOnError();
             return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } catch (Exception e) {
             LoggingHelper.logUnexpectedError(logger, e.getMessage(), e);
             return ResponseUtil.createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         } finally {
             LoggingHelper.clearContext();
-        }
-    }
-
-    private void logConnectionPoolStatusOnError() {
-        try {
-            ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
-            if (!poolManager.isHealthy()) {
-                LoggingHelper.logConnectionPoolError(logger,
-                        poolManager.getPoolStats().toString(), false);
-            }
-        } catch (Exception e) {
-            LoggingHelper.logConnectionPoolWarning(logger,
-                    "Connection pool health check failed: " + e.getMessage());
         }
     }
 }

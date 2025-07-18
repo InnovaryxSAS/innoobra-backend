@@ -25,6 +25,7 @@ import com.lambdas.validation.groups.ValidationGroups;
 import org.slf4j.Logger;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public class UpdateProjectHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
@@ -49,16 +50,26 @@ public class UpdateProjectHandler implements RequestHandler<APIGatewayProxyReque
         LoggingHelper.initializeRequestContext(requestId);
 
         try {
-            String projectId = input.getPathParameters().get("id");
-            if (projectId == null || projectId.trim().isEmpty()) {
-                LoggingHelper.logMissingParameter(logger, "Project ID");
+            String projectIdStr = null;
+            if (input.getPathParameters() != null) {
+                projectIdStr = input.getPathParameters().get("id");
+            }
+            
+            if (projectIdStr == null || projectIdStr.trim().isEmpty()) {
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Project ID is required");
             }
 
-            LoggingHelper.logProcessStart(logger, "project update");
+            LoggingHelper.addProjectId(projectIdStr);
+
+            UUID projectId;
+            try {
+                projectId = UUID.fromString(projectIdStr);
+            } catch (IllegalArgumentException e) {
+                LoggingHelper.logValidationError(logger, "Invalid UUID format: " + projectIdStr);
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Invalid project ID format");
+            }
 
             if (input.getBody() == null || input.getBody().trim().isEmpty()) {
-                LoggingHelper.logEmptyRequestBody(logger);
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Request body is required");
             }
 
@@ -69,19 +80,15 @@ public class UpdateProjectHandler implements RequestHandler<APIGatewayProxyReque
 
             Optional<Project> existingProjectOpt = projectService.getProjectById(projectId);
             if (!existingProjectOpt.isPresent()) {
-                LoggingHelper.logEntityNotFound(logger, "Project", projectId);
+                LoggingHelper.logEntityNotFound(logger, "Project", projectIdStr);
                 return ResponseUtil.createErrorResponse(HttpStatus.NOT_FOUND, "Project not found");
             }
 
             Project existingProject = existingProjectOpt.get();
-
             Project updatedProject = DTOMapper.updateProjectFromDTO(existingProject, requestDTO);
-
             Project savedProject = projectService.updateProject(updatedProject);
-            LoggingHelper.logSuccess(logger, "Project update", projectId);
 
             ProjectResponseDTO responseDTO = DTOMapper.toProjectResponseDTO(savedProject);
-
             return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
 
         } catch (JsonProcessingException e) {
@@ -109,12 +116,12 @@ public class UpdateProjectHandler implements RequestHandler<APIGatewayProxyReque
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
             if (!poolManager.isHealthy()) {
-                LoggingHelper.logConnectionPoolError(logger,
-                        poolManager.getPoolStats().toString(), false);
+                LoggingHelper.logConnectionPoolError(logger, 
+                    poolManager.getPoolStats().toString(), false);
             }
         } catch (Exception e) {
-            LoggingHelper.logConnectionPoolWarning(logger,
-                    "Connection pool health check failed: " + e.getMessage());
+            LoggingHelper.logConnectionPoolWarning(logger, 
+                "Connection pool health check failed: " + e.getMessage());
         }
     }
 }

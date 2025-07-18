@@ -1,18 +1,19 @@
 package com.lambdas.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.lambdas.validation.annotations.ProjectStatusValid;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.lambdas.validation.annotations.StatusValid;
 import com.lambdas.validation.groups.ValidationGroups;
 import jakarta.validation.constraints.*;
-import java.math.BigDecimal;
 
+import java.math.BigDecimal;
+import java.util.UUID;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CreateProjectRequestDTO {
 
     @JsonProperty("id")
-    @NotBlank(message = "Project ID cannot be blank", groups = ValidationGroups.Create.class)
-    @Size(max = 255, message = "Project ID cannot exceed 255 characters")
-    @Pattern(regexp = "^[A-Za-z0-9]{1,255}$", message = "Project ID must contain only alphanumeric characters")
-    private String id;
+    private UUID id;
 
     @JsonProperty("name")
     @NotBlank(message = "Project name cannot be blank", groups = ValidationGroups.Create.class)
@@ -20,8 +21,7 @@ public class CreateProjectRequestDTO {
     private String name;
 
     @JsonProperty("description")
-    @NotBlank(message = "Project description cannot be blank", groups = ValidationGroups.Create.class)
-    @Size(min = 1, max = 500, message = "Project description must be between 1 and 500 characters")
+    @Size(max = 500, message = "Project description cannot exceed 500 characters")
     private String description;
 
     @JsonProperty("address")
@@ -35,60 +35,59 @@ public class CreateProjectRequestDTO {
 
     @JsonProperty("state")
     @NotBlank(message = "State cannot be blank", groups = ValidationGroups.Create.class)
-    @Size(min = 1, max = 100, message = "State must be between 1 and 100 characters")
+    @Size(min = 1, max = 50, message = "State must be between 1 and 50 characters")
     private String state;
 
     @JsonProperty("country")
     @NotBlank(message = "Country cannot be blank", groups = ValidationGroups.Create.class)
-    @Pattern(regexp = "^[A-Z]{2,3}$", message = "Country must be a 2 or 3 letter uppercase code")
-    @Size(min = 2, max = 3, message = "Country code must be 2 or 3 characters")
+    @Pattern(regexp = "^[A-Z]{2}$", message = "Country code must be two uppercase letters")
+    @Size(min = 2, max = 2, message = "Country code must be exactly 2 characters")
     private String country;
 
     @JsonProperty("status")
-    @ProjectStatusValid
+    @StatusValid
     private String status = "active";
 
     @JsonProperty("responsibleUser")
-    @NotBlank(message = "Responsible user cannot be blank", groups = ValidationGroups.Create.class)
-    @Size(max = 255, message = "Responsible user cannot exceed 255 characters")
-    private String responsibleUser;
+    private UUID responsibleUser;
 
-    @JsonProperty("dataSource")
-    @NotBlank(message = "Data source cannot be blank", groups = ValidationGroups.Create.class)
-    @Size(max = 255, message = "Data source cannot exceed 255 characters")
-    private String dataSource;
+    @JsonProperty("dataSourceId")
+    private UUID dataSourceId;
 
-    @JsonProperty("company")
-    @NotBlank(message = "Company cannot be blank", groups = ValidationGroups.Create.class)
-    @Size(max = 255, message = "Company cannot exceed 255 characters")
-    private String company;
+    @JsonProperty("companyId")
+    @NotNull(message = "Company ID cannot be null", groups = ValidationGroups.Create.class)
+    private UUID companyId;
 
     @JsonProperty("createdBy")
-    @NotBlank(message = "Created by cannot be blank", groups = ValidationGroups.Create.class)
-    @Size(max = 255, message = "Created by cannot exceed 255 characters")
-    private String createdBy;
+    private UUID createdBy;
 
-    @JsonProperty("budget")
-    @NotNull(message = "Budget cannot be null", groups = ValidationGroups.Create.class)
+    @JsonProperty("budgetAmount")
     @DecimalMin(value = "0.00", message = "Budget must be greater than or equal to 0")
-    @Digits(integer = 13, fraction = 2, message = "Budget must have at most 13 integer digits and 2 decimal places")
-    private BigDecimal budget = BigDecimal.ZERO;
-
-    @JsonProperty("inventory")
-    @NotBlank(message = "Inventory cannot be blank", groups = ValidationGroups.Create.class)
-    @Size(min = 1, max = 500, message = "Inventory must be between 1 and 500 characters")
-    private String inventory;
+    @Digits(integer = 12, fraction = 2, message = "Budget must have at most 12 integer digits and 2 decimal places")
+    private BigDecimal budgetAmount = BigDecimal.ZERO;
 
     // Default constructor
     public CreateProjectRequestDTO() {
     }
 
+    // Constructor para debugging
+    public CreateProjectRequestDTO(UUID id, String name, String description, String city, 
+                                  String state, String country, UUID companyId) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.city = city;
+        this.state = state;
+        this.country = country;
+        this.companyId = companyId;
+    }
+
     // Getters and Setters
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -148,52 +147,44 @@ public class CreateProjectRequestDTO {
         this.status = status;
     }
 
-    public String getResponsibleUser() {
+    public UUID getResponsibleUser() {
         return responsibleUser;
     }
 
-    public void setResponsibleUser(String responsibleUser) {
+    public void setResponsibleUser(UUID responsibleUser) {
         this.responsibleUser = responsibleUser;
     }
 
-    public String getDataSource() {
-        return dataSource;
+    public UUID getDataSourceId() {
+        return dataSourceId;
     }
 
-    public void setDataSource(String dataSource) {
-        this.dataSource = dataSource;
+    public void setDataSourceId(UUID dataSourceId) {
+        this.dataSourceId = dataSourceId;
     }
 
-    public String getCompany() {
-        return company;
+    public UUID getCompanyId() {
+        return companyId;
     }
 
-    public void setCompany(String company) {
-        this.company = company;
+    public void setCompanyId(UUID companyId) {
+        this.companyId = companyId;
     }
 
-    public String getCreatedBy() {
+    public UUID getCreatedBy() {
         return createdBy;
     }
 
-    public void setCreatedBy(String createdBy) {
+    public void setCreatedBy(UUID createdBy) {
         this.createdBy = createdBy;
     }
 
-    public BigDecimal getBudget() {
-        return budget;
+    public BigDecimal getBudgetAmount() {
+        return budgetAmount;
     }
 
-    public void setBudget(BigDecimal budget) {
-        this.budget = budget;
-    }
-
-    public String getInventory() {
-        return inventory;
-    }
-
-    public void setInventory(String inventory) {
-        this.inventory = inventory;
+    public void setBudgetAmount(BigDecimal budgetAmount) {
+        this.budgetAmount = budgetAmount;
     }
 
     public static class Builder {
@@ -203,7 +194,7 @@ public class CreateProjectRequestDTO {
             dto = new CreateProjectRequestDTO();
         }
 
-        public Builder id(String id) {
+        public Builder id(UUID id) {
             dto.setId(id);
             return this;
         }
@@ -243,33 +234,28 @@ public class CreateProjectRequestDTO {
             return this;
         }
 
-        public Builder responsibleUser(String responsibleUser) {
+        public Builder responsibleUser(UUID responsibleUser) {
             dto.setResponsibleUser(responsibleUser);
             return this;
         }
 
-        public Builder dataSource(String dataSource) {
-            dto.setDataSource(dataSource);
+        public Builder dataSourceId(UUID dataSourceId) {
+            dto.setDataSourceId(dataSourceId);
             return this;
         }
 
-        public Builder company(String company) {
-            dto.setCompany(company);
+        public Builder companyId(UUID companyId) {
+            dto.setCompanyId(companyId);
             return this;
         }
 
-        public Builder createdBy(String createdBy) {
+        public Builder createdBy(UUID createdBy) {
             dto.setCreatedBy(createdBy);
             return this;
         }
 
-        public Builder budget(BigDecimal budget) {
-            dto.setBudget(budget);
-            return this;
-        }
-
-        public Builder inventory(String inventory) {
-            dto.setInventory(inventory);
+        public Builder budgetAmount(BigDecimal budgetAmount) {
+            dto.setBudgetAmount(budgetAmount);
             return this;
         }
 
@@ -285,12 +271,15 @@ public class CreateProjectRequestDTO {
     @Override
     public String toString() {
         return "CreateProjectRequestDTO{" +
-                "id='" + id + '\'' +
+                "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", city='" + city + '\'' +
+                ", state='" + state + '\'' +
+                ", country='" + country + '\'' +
                 ", status='" + status + '\'' +
-                ", company='" + company + '\'' +
+                ", companyId=" + companyId +
+                ", budgetAmount=" + budgetAmount +
                 '}';
     }
 }

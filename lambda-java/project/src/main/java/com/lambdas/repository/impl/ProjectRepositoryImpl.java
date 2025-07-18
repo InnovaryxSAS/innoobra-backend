@@ -5,11 +5,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import com.lambdas.exception.ProjectAlreadyExistsException;
 import com.lambdas.exception.ProjectNotFoundException;
 import com.lambdas.exception.DatabaseException;
-import com.lambdas.exception.CompanyNotFoundException;
+import com.lambdas.exception.ValidationException;
 import com.lambdas.model.Project;
 import com.lambdas.model.ProjectStatus;
 import com.lambdas.repository.ConnectionPoolManager;
@@ -33,17 +34,19 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 
     @Override
     public Project save(Project project) {
+        if (project.getCompanyId() != null && !existsCompanyById(project.getCompanyId())) {
+            throw new ValidationException("Company ID " + project.getCompanyId() + " does not exist");
+        }
+        
         final String sql = """
                 INSERT INTO projects (id, name, description, address, city, state, country,
-                                    created_at, updated_at, status, responsible_user, data_source,
-                                    company, created_by, budget, inventory)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                    created_at, updated_at, status, responsible_user, data_source_id,
+                                    company_id, created_by, budget_amount)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?::status_enum, ?, ?, ?, ?, ?)
                 """;
 
         try (Connection conn = getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            validateCompanyExists(project.getCompany());
 
             if (project.getCreatedAt() == null) {
                 project.setCreatedAt(LocalDateTime.now());
@@ -55,7 +58,21 @@ public class ProjectRepositoryImpl implements ProjectRepository {
                 project.setStatus(ProjectStatus.ACTIVE);
             }
 
-            setProjectParameters(stmt, project);
+            stmt.setObject(1, project.getId());
+            stmt.setString(2, project.getName());
+            stmt.setString(3, project.getDescription());
+            stmt.setString(4, project.getAddress());
+            stmt.setString(5, project.getCity());
+            stmt.setString(6, project.getState());
+            stmt.setString(7, project.getCountry());
+            stmt.setTimestamp(8, Timestamp.valueOf(project.getCreatedAt()));
+            stmt.setTimestamp(9, Timestamp.valueOf(project.getUpdatedAt()));
+            stmt.setString(10, project.getStatus().getValue());
+            stmt.setObject(11, project.getResponsibleUser());
+            stmt.setObject(12, project.getDataSourceId());
+            stmt.setObject(13, project.getCompanyId());
+            stmt.setObject(14, project.getCreatedBy());
+            stmt.setBigDecimal(15, project.getBudgetAmount());
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
@@ -70,9 +87,11 @@ public class ProjectRepositoryImpl implements ProjectRepository {
             if ("23505".equals(e.getSQLState())) {
                 throw new ProjectAlreadyExistsException("Project with ID " + project.getId() + " already exists");
             }
-
+            
             if ("23503".equals(e.getSQLState())) {
-                throw new CompanyNotFoundException("Company with ID " + project.getCompany() + " not found");
+                if (e.getMessage().contains("company_id")) {
+                    throw new ValidationException("Invalid company ID: " + project.getCompanyId());
+                }
             }
 
             throw new DatabaseException("Error creating project: " + e.getMessage(), e);
@@ -80,11 +99,11 @@ public class ProjectRepositoryImpl implements ProjectRepository {
     }
 
     @Override
-    public Optional<Project> findById(String id) {
+    public Optional<Project> findById(UUID id) {
         final String sql = """
                 SELECT id, name, description, address, city, state, country,
-                       created_at, updated_at, status, responsible_user, data_source,
-                       company, created_by, budget, inventory
+                       created_at, updated_at, status, responsible_user, data_source_id,
+                       company_id, created_by, budget_amount
                 FROM projects
                 WHERE id = ?
                 """;
@@ -92,7 +111,7 @@ public class ProjectRepositoryImpl implements ProjectRepository {
         try (Connection conn = getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, id);
+            stmt.setObject(1, id);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -110,8 +129,8 @@ public class ProjectRepositoryImpl implements ProjectRepository {
     public List<Project> findAll() {
         final String sql = """
                 SELECT id, name, description, address, city, state, country,
-                       created_at, updated_at, status, responsible_user, data_source,
-                       company, created_by, budget, inventory
+                       created_at, updated_at, status, responsible_user, data_source_id,
+                       company_id, created_by, budget_amount
                 FROM projects
                 ORDER BY created_at DESC
                 """;
@@ -137,10 +156,10 @@ public class ProjectRepositoryImpl implements ProjectRepository {
     public List<Project> findByStatus(ProjectStatus status) {
         final String sql = """
                 SELECT id, name, description, address, city, state, country,
-                       created_at, updated_at, status, responsible_user, data_source,
-                       company, created_by, budget, inventory
+                       created_at, updated_at, status, responsible_user, data_source_id,
+                       company_id, created_by, budget_amount
                 FROM projects
-                WHERE status = ?
+                WHERE status = ?::status_enum
                 ORDER BY created_at DESC
                 """;
 
@@ -165,13 +184,13 @@ public class ProjectRepositoryImpl implements ProjectRepository {
     }
 
     @Override
-    public List<Project> findByCompany(String companyId) {
+    public List<Project> findByCompany(UUID companyId) {
         final String sql = """
                 SELECT id, name, description, address, city, state, country,
-                       created_at, updated_at, status, responsible_user, data_source,
-                       company, created_by, budget, inventory
+                       created_at, updated_at, status, responsible_user, data_source_id,
+                       company_id, created_by, budget_amount
                 FROM projects
-                WHERE company = ?
+                WHERE company_id = ?
                 ORDER BY created_at DESC
                 """;
 
@@ -180,7 +199,7 @@ public class ProjectRepositoryImpl implements ProjectRepository {
         try (Connection conn = getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, companyId);
+            stmt.setObject(1, companyId);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -196,11 +215,11 @@ public class ProjectRepositoryImpl implements ProjectRepository {
     }
 
     @Override
-    public List<Project> findByResponsibleUser(String userId) {
+    public List<Project> findByResponsibleUser(UUID userId) {
         final String sql = """
                 SELECT id, name, description, address, city, state, country,
-                       created_at, updated_at, status, responsible_user, data_source,
-                       company, created_by, budget, inventory
+                       created_at, updated_at, status, responsible_user, data_source_id,
+                       company_id, created_by, budget_amount
                 FROM projects
                 WHERE responsible_user = ?
                 ORDER BY created_at DESC
@@ -211,7 +230,7 @@ public class ProjectRepositoryImpl implements ProjectRepository {
         try (Connection conn = getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, userId);
+            stmt.setObject(1, userId);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -227,13 +246,13 @@ public class ProjectRepositoryImpl implements ProjectRepository {
     }
 
     @Override
-    public List<Project> findByCompanyAndStatus(String companyId, ProjectStatus status) {
+    public List<Project> findByCompanyAndStatus(UUID companyId, ProjectStatus status) {
         final String sql = """
                 SELECT id, name, description, address, city, state, country,
-                       created_at, updated_at, status, responsible_user, data_source,
-                       company, created_by, budget, inventory
+                       created_at, updated_at, status, responsible_user, data_source_id,
+                       company_id, created_by, budget_amount
                 FROM projects
-                WHERE company = ? AND status = ?
+                WHERE company_id = ? AND status = ?::status_enum
                 ORDER BY created_at DESC
                 """;
 
@@ -242,7 +261,7 @@ public class ProjectRepositoryImpl implements ProjectRepository {
         try (Connection conn = getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, companyId);
+            stmt.setObject(1, companyId);
             stmt.setString(2, status.getValue());
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -260,18 +279,20 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 
     @Override
     public Project update(Project project) {
+        if (project.getCompanyId() != null && !existsCompanyById(project.getCompanyId())) {
+            throw new ValidationException("Company ID " + project.getCompanyId() + " does not exist");
+        }
+        
         final String sql = """
                 UPDATE projects
                 SET name = ?, description = ?, address = ?, city = ?, state = ?, country = ?,
-                    updated_at = ?, status = ?::project_status, responsible_user = ?, data_source = ?,
-                    company = ?, created_by = ?, budget = ?, inventory = ?
+                    updated_at = ?, status = ?::status_enum, responsible_user = ?, data_source_id = ?,
+                    company_id = ?, created_by = ?, budget_amount = ?
                 WHERE id = ?
                 """;
 
         try (Connection conn = getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            validateCompanyExists(project.getCompany());
 
             project.setUpdatedAt(LocalDateTime.now());
 
@@ -283,13 +304,12 @@ public class ProjectRepositoryImpl implements ProjectRepository {
             stmt.setString(6, project.getCountry());
             stmt.setTimestamp(7, Timestamp.valueOf(project.getUpdatedAt()));
             stmt.setString(8, project.getStatus().getValue());
-            stmt.setString(9, project.getResponsibleUser());
-            stmt.setString(10, project.getDataSource());
-            stmt.setString(11, project.getCompany());
-            stmt.setString(12, project.getCreatedBy());
-            stmt.setBigDecimal(13, project.getBudget());
-            stmt.setString(14, project.getInventory());
-            stmt.setString(15, project.getId());
+            stmt.setObject(9, project.getResponsibleUser());
+            stmt.setObject(10, project.getDataSourceId());
+            stmt.setObject(11, project.getCompanyId());
+            stmt.setObject(12, project.getCreatedBy());
+            stmt.setBigDecimal(13, project.getBudgetAmount());
+            stmt.setObject(14, project.getId());
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
@@ -300,18 +320,21 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 
         } catch (SQLException e) {
             if ("23503".equals(e.getSQLState())) {
-                throw new CompanyNotFoundException("Company with ID " + project.getCompany() + " not found");
+                if (e.getMessage().contains("company_id")) {
+                    throw new ValidationException("Invalid company ID: " + project.getCompanyId());
+                }
             }
+            
             throw new DatabaseException("Error updating project", e);
         }
     }
 
     @Override
-    public boolean deactivate(String id) {
+    public boolean deactivate(UUID id) {
         final String sql = """
                 UPDATE projects
-                SET status = CAST(? AS project_status), updated_at = ?
-                WHERE id = ? AND status != CAST(? AS project_status)
+                SET status = ?::status_enum, updated_at = ?
+                WHERE id = ? AND status != ?::status_enum
                 """;
 
         try (Connection conn = getConnection();
@@ -322,7 +345,7 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 
             stmt.setString(1, inactiveStatus);
             stmt.setTimestamp(2, Timestamp.valueOf(now));
-            stmt.setString(3, id);
+            stmt.setObject(3, id);
             stmt.setString(4, inactiveStatus);
 
             int rowsAffected = stmt.executeUpdate();
@@ -342,13 +365,13 @@ public class ProjectRepositoryImpl implements ProjectRepository {
     }
 
     @Override
-    public boolean existsById(String id) {
+    public boolean existsById(UUID id) {
         final String sql = "SELECT 1 FROM projects WHERE id = ? LIMIT 1";
 
         try (Connection conn = getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, id);
+            stmt.setObject(1, id);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();
@@ -359,22 +382,20 @@ public class ProjectRepositoryImpl implements ProjectRepository {
         }
     }
 
-    private void validateCompanyExists(String companyId) {
+    public boolean existsCompanyById(UUID companyId) {
         final String sql = "SELECT 1 FROM companies WHERE id = ? LIMIT 1";
 
         try (Connection conn = getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, companyId);
+            stmt.setObject(1, companyId);
 
             try (ResultSet rs = stmt.executeQuery()) {
-                if (!rs.next()) {
-                    throw new CompanyNotFoundException("Company with ID " + companyId + " not found");
-                }
+                return rs.next();
             }
 
         } catch (SQLException e) {
-            throw new DatabaseException("Error validating company existence", e);
+            throw new DatabaseException("Error checking if company exists", e);
         }
     }
 
@@ -388,28 +409,15 @@ public class ProjectRepositoryImpl implements ProjectRepository {
         return poolManager.isHealthy();
     }
 
-    private void setProjectParameters(PreparedStatement stmt, Project project) throws SQLException {
-        stmt.setString(1, project.getId());
-        stmt.setString(2, project.getName());
-        stmt.setString(3, project.getDescription());
-        stmt.setString(4, project.getAddress());
-        stmt.setString(5, project.getCity());
-        stmt.setString(6, project.getState());
-        stmt.setString(7, project.getCountry());
-        stmt.setTimestamp(8, Timestamp.valueOf(project.getCreatedAt()));
-        stmt.setTimestamp(9, Timestamp.valueOf(project.getUpdatedAt()));
-        stmt.setObject(10, project.getStatus().getValue(), java.sql.Types.OTHER);
-        stmt.setString(11, project.getResponsibleUser());
-        stmt.setString(12, project.getDataSource());
-        stmt.setString(13, project.getCompany());
-        stmt.setString(14, project.getCreatedBy());
-        stmt.setBigDecimal(15, project.getBudget());
-        stmt.setString(16, project.getInventory());
-    }
-
     private Project mapResultSetToProject(ResultSet rs) throws SQLException {
+        UUID id = (UUID) rs.getObject("id");
+        UUID companyId = (UUID) rs.getObject("company_id");
+        UUID responsibleUser = (UUID) rs.getObject("responsible_user");
+        UUID dataSourceId = (UUID) rs.getObject("data_source_id");
+        UUID createdBy = (UUID) rs.getObject("created_by");
+        
         return new Project.Builder()
-                .id(rs.getString("id"))
+                .id(id)
                 .name(rs.getString("name"))
                 .description(rs.getString("description"))
                 .address(rs.getString("address"))
@@ -419,12 +427,11 @@ public class ProjectRepositoryImpl implements ProjectRepository {
                 .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
                 .updatedAt(rs.getTimestamp("updated_at").toLocalDateTime())
                 .status(ProjectStatus.fromValue(rs.getString("status")))
-                .responsibleUser(rs.getString("responsible_user"))
-                .dataSource(rs.getString("data_source"))
-                .company(rs.getString("company"))
-                .createdBy(rs.getString("created_by"))
-                .budget(rs.getBigDecimal("budget"))
-                .inventory(rs.getString("inventory"))
+                .responsibleUser(responsibleUser)
+                .dataSourceId(dataSourceId)
+                .companyId(companyId)
+                .createdBy(createdBy)
+                .budgetAmount(rs.getBigDecimal("budget_amount"))
                 .fromDatabase()
                 .build();
     }
