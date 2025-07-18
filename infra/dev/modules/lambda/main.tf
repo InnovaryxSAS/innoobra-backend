@@ -131,7 +131,7 @@ resource "aws_lambda_function" "this" {
   handler          = each.value.handler
   runtime          = "java21"
   role             = aws_iam_role.lambda_exec.arn
-  source_code_hash = null
+  source_code_hash = data.aws_s3_object.lambda_jar[each.key].etag
   layers           = [aws_lambda_layer_version.common.arn]
 
   vpc_config {
