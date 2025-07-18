@@ -14,6 +14,8 @@ import com.lambdas.util.LoggingHelper;
 import com.lambdas.util.ResponseUtil;
 import org.slf4j.Logger;
 
+import java.util.UUID;
+
 public class DeleteCompanyHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
     
     private static final Logger logger = LoggingHelper.getLogger(DeleteCompanyHandler.class);
@@ -35,34 +37,34 @@ public class DeleteCompanyHandler implements RequestHandler<APIGatewayProxyReque
         LoggingHelper.initializeRequestContext(requestId);
         
         try {
-            LoggingHelper.logProcessStart(logger, "company deletion");
-            
-            String companyId = input.getPathParameters().get("id");
-            if (companyId == null || companyId.trim().isEmpty()) {
-                LoggingHelper.logMissingParameter(logger, "Company ID");
+            String companyIdStr = input.getPathParameters().get("id");
+            if (companyIdStr == null || companyIdStr.trim().isEmpty()) {
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Company ID is required");
             }
             
-            LoggingHelper.addCompanyId(companyId);
+            LoggingHelper.addCompanyId(companyIdStr);
+            
+            UUID companyId;
+            try {
+                companyId = UUID.fromString(companyIdStr);
+            } catch (IllegalArgumentException e) {
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Invalid company ID format");
+            }
             
             boolean deleted = companyService.deleteCompany(companyId);
             
             if (deleted) {
-                LoggingHelper.logSuccess(logger, "Company deletion", companyId);
-                
                 DeleteResponseDTO responseDTO = new DeleteResponseDTO.Builder()
                         .message("Company successfully deactivated")
-                        .companyId(companyId)
+                        .companyId(companyIdStr)
                         .success(true)
                         .build();
                 
                 return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
             } else {
-                LoggingHelper.logEntityNotFound(logger, "Company", companyId);
-                
                 DeleteResponseDTO responseDTO = new DeleteResponseDTO.Builder()
                         .message("Company not found")
-                        .companyId(companyId)
+                        .companyId(companyIdStr)
                         .success(false)
                         .build();
                 

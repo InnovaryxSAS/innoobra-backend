@@ -25,6 +25,7 @@ import com.lambdas.validation.groups.ValidationGroups;
 import org.slf4j.Logger;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public class UpdateCompanyHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
@@ -49,17 +50,26 @@ public class UpdateCompanyHandler implements RequestHandler<APIGatewayProxyReque
         LoggingHelper.initializeRequestContext(requestId);
 
         try {
-            String companyId = input.getPathParameters().get("id");
-            if (companyId == null || companyId.trim().isEmpty()) {
-                LoggingHelper.logMissingParameter(logger, "Company ID");
+            String companyIdStr = null;
+            if (input.getPathParameters() != null) {
+                companyIdStr = input.getPathParameters().get("id");
+            }
+            
+            if (companyIdStr == null || companyIdStr.trim().isEmpty()) {
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Company ID is required");
             }
 
-            LoggingHelper.addCompanyId(companyId);
-            LoggingHelper.logProcessStart(logger, "company update");
+            LoggingHelper.addCompanyId(companyIdStr);
+
+            UUID companyId;
+            try {
+                companyId = UUID.fromString(companyIdStr);
+            } catch (IllegalArgumentException e) {
+                LoggingHelper.logValidationError(logger, "Invalid UUID format: " + companyIdStr);
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Invalid company ID format");
+            }
 
             if (input.getBody() == null || input.getBody().trim().isEmpty()) {
-                LoggingHelper.logEmptyRequestBody(logger);
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Request body is required");
             }
 
@@ -70,19 +80,15 @@ public class UpdateCompanyHandler implements RequestHandler<APIGatewayProxyReque
 
             Optional<Company> existingCompanyOpt = companyService.getCompanyById(companyId);
             if (!existingCompanyOpt.isPresent()) {
-                LoggingHelper.logEntityNotFound(logger, "Company", companyId);
+                LoggingHelper.logEntityNotFound(logger, "Company", companyIdStr);
                 return ResponseUtil.createErrorResponse(HttpStatus.NOT_FOUND, "Company not found");
             }
 
             Company existingCompany = existingCompanyOpt.get();
-
             Company updatedCompany = DTOMapper.updateCompanyFromDTO(existingCompany, requestDTO);
             Company savedCompany = companyService.updateCompany(updatedCompany);
 
-            LoggingHelper.logSuccess(logger, "Company update", companyId);
-
             CompanyResponseDTO responseDTO = DTOMapper.toResponseDTO(savedCompany);
-
             return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
 
         } catch (JsonProcessingException e) {
@@ -118,5 +124,4 @@ public class UpdateCompanyHandler implements RequestHandler<APIGatewayProxyReque
                 "Connection pool health check failed: " + e.getMessage());
         }
     }
-
 }

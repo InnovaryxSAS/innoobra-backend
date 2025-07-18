@@ -10,7 +10,7 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CompanyStatusValid {
-    String message() default "Status must be one of: active, inactive, pending, suspended";
+    String message() default "Status must be one of: active, inactive, pending";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

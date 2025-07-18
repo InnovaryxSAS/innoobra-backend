@@ -46,10 +46,7 @@ public class CreateCompanyHandler implements RequestHandler<APIGatewayProxyReque
         LoggingHelper.initializeRequestContext(requestId);
         
         try {
-            LoggingHelper.logProcessStart(logger, "company creation");
-            
             if (input.getBody() == null || input.getBody().trim().isEmpty()) {
-                LoggingHelper.logEmptyRequestBody(logger);
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Request body is required");
             }
             
@@ -62,8 +59,6 @@ public class CreateCompanyHandler implements RequestHandler<APIGatewayProxyReque
             Company createdCompany = companyService.createCompany(company);
             
             CompanyResponseDTO responseDTO = DTOMapper.toResponseDTO(createdCompany);
-            
-            LoggingHelper.logSuccess(logger, "Company creation", createdCompany.getId());
             
             return ResponseUtil.createResponse(HttpStatus.CREATED, responseDTO);
             

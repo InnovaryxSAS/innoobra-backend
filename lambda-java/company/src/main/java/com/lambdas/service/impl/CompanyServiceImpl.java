@@ -2,8 +2,10 @@ package com.lambdas.service.impl;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import com.lambdas.model.Company;
+import com.lambdas.model.CompanyStatus;
 import com.lambdas.repository.CompanyRepository;
 import com.lambdas.repository.impl.CompanyRepositoryImpl;
 import com.lambdas.service.CompanyService;
@@ -33,8 +35,13 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
-    public Optional<Company> getCompanyById(String id) {
+    public Optional<Company> getCompanyById(UUID id) {
         return repository.findById(id);
+    }
+
+    @Override
+    public List<Company> getCompaniesByStatus(CompanyStatus status) {
+        return repository.findByStatus(status);
     }
 
     @Override
@@ -44,7 +51,22 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
-    public boolean deleteCompany(String id) {
+    public boolean deleteCompany(UUID id) {
         return repository.deactivate(id);
+    }
+
+    @Override
+    public boolean existsById(UUID id) {
+        return repository.existsById(id);
+    }
+
+    @Override
+    public String getConnectionPoolStats() {
+        return repository.getConnectionPoolStats();
+    }
+
+    @Override
+    public boolean isHealthy() {
+        return repository.isHealthy();
     }
 }

@@ -13,6 +13,12 @@ public class CompanyResponseDTO {
     @JsonProperty("id")
     private String id;
 
+    @JsonProperty("taxId")
+    private String taxId;
+
+    @JsonProperty("nit")
+    private String nit;
+
     @JsonProperty("name")
     private String name;
 
@@ -62,12 +68,22 @@ public class CompanyResponseDTO {
 
     // Builder pattern
     public static class Builder {
-        private String id, name, businessName, companyType, address, phoneNumber, email;
+        private String id, taxId, nit, name, businessName, companyType, address, phoneNumber, email;
         private String legalRepresentative, city, state, country, status;
         private LocalDateTime createdAt, updatedAt;
 
         public Builder id(String id) {
             this.id = id;
+            return this;
+        }
+
+        public Builder taxId(String taxId) {
+            this.taxId = taxId;
+            return this;
+        }
+
+        public Builder nit(String nit) {
+            this.nit = nit;
             return this;
         }
 
@@ -139,6 +155,8 @@ public class CompanyResponseDTO {
         public CompanyResponseDTO build() {
             CompanyResponseDTO dto = new CompanyResponseDTO();
             dto.id = this.id;
+            dto.taxId = this.taxId;
+            dto.nit = this.nit;
             dto.name = this.name;
             dto.businessName = this.businessName;
             dto.companyType = this.companyType;
@@ -163,6 +181,22 @@ public class CompanyResponseDTO {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getTaxId() {
+        return taxId;
+    }
+
+    public void setTaxId(String taxId) {
+        this.taxId = taxId;
+    }
+
+    public String getNit() {
+        return nit;
+    }
+
+    public void setNit(String nit) {
+        this.nit = nit;
     }
 
     public String getName() {
@@ -273,6 +307,8 @@ public class CompanyResponseDTO {
     public String toString() {
         return "CompanyResponseDTO{" +
                 "id='" + id + '\'' +
+                ", taxId='" + taxId + '\'' +
+                ", nit='" + nit + '\'' +
                 ", name='" + name + '\'' +
                 ", businessName='" + businessName + '\'' +
                 ", email='" + email + '\'' +

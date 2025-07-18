@@ -7,7 +7,7 @@ import java.util.Set;
 
 public class CompanyStatusValidator implements ConstraintValidator<CompanyStatusValid, String> {
     private static final Set<String> VALID_STATUSES = Set.of(
-        "active", "inactive", "pending", "suspended"
+        "active", "inactive", "pending"
     );
 
     @Override

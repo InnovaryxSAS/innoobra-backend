@@ -2,6 +2,7 @@ package com.lambdas.repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import com.lambdas.model.Company;
 import com.lambdas.model.CompanyStatus;
@@ -10,7 +11,7 @@ public interface CompanyRepository {
 
     Company save(Company company);
 
-    Optional<Company> findById(String id);
+    Optional<Company> findById(UUID id);
 
     List<Company> findAll();
 
@@ -18,9 +19,9 @@ public interface CompanyRepository {
 
     Company update(Company company);
 
-    boolean deactivate(String id);
+    boolean deactivate(UUID id);
 
-    boolean existsById(String id);
+    boolean existsById(UUID id);
 
     String getConnectionPoolStats();
 
