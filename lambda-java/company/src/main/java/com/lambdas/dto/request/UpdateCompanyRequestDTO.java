@@ -1,15 +1,15 @@
 package com.lambdas.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.lambdas.validation.annotations.CompanyStatusValid;
+import com.lambdas.validation.annotations.StatusValid;
 
 import jakarta.validation.constraints.*;
+import java.util.UUID;
 
 public class UpdateCompanyRequestDTO {
 
     @JsonProperty("taxId")
-    @Size(max = 36, message = "Tax ID cannot exceed 36 characters")
-    private String taxId;
+    private UUID taxId;
 
     @JsonProperty("nit")
     @Size(max = 20, message = "NIT cannot exceed 20 characters")
@@ -59,7 +59,7 @@ public class UpdateCompanyRequestDTO {
     private String country;
 
     @JsonProperty("status")
-    @CompanyStatusValid
+    @StatusValid
     private String status;
 
     // Default constructor
@@ -67,11 +67,11 @@ public class UpdateCompanyRequestDTO {
     }
 
     // Getters and Setters
-    public String getTaxId() {
+    public UUID getTaxId() {
         return taxId;
     }
 
-    public void setTaxId(String taxId) {
+    public void setTaxId(UUID taxId) {
         this.taxId = taxId;
     }
 
@@ -174,7 +174,7 @@ public class UpdateCompanyRequestDTO {
     @Override
     public String toString() {
         return "UpdateCompanyRequestDTO{" +
-                "taxId='" + taxId + '\'' +
+                "taxId=" + taxId +
                 ", nit='" + nit + '\'' +
                 ", name='" + name + '\'' +
                 ", businessName='" + businessName + '\'' +

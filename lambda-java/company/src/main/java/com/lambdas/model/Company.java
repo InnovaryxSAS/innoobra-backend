@@ -17,9 +17,7 @@ public class Company {
     private UUID id;
 
     @JsonProperty("taxId")
-    @NotBlank(message = "Tax ID cannot be blank")
-    @Size(max = 36, message = "Tax ID cannot exceed 36 characters")
-    private String taxId;
+    private UUID taxId;
 
     @JsonProperty("nit")
     @NotBlank(message = "NIT cannot be blank")
@@ -101,7 +99,7 @@ public class Company {
     }
 
     // Constructor for existing companies (when loading from database)
-    public Company(UUID id, String taxId, String nit, String name, String businessName, String companyType, 
+    public Company(UUID id, UUID taxId, String nit, String name, String businessName, String companyType, 
                    String address, String phoneNumber, String email, String legalRepresentative,
                    String city, String state, String country, LocalDateTime createdAt, 
                    LocalDateTime updatedAt, CompanyStatus status) {
@@ -126,7 +124,8 @@ public class Company {
     // Builder pattern
     public static class Builder {
         private UUID id;
-        private String taxId, nit, name, businessName, companyType, address, phoneNumber, email, 
+        private UUID taxId;
+        private String nit, name, businessName, companyType, address, phoneNumber, email, 
                 legalRepresentative, city, state, country;
         private LocalDateTime createdAt, updatedAt;
         private CompanyStatus status;
@@ -137,7 +136,7 @@ public class Company {
             return this;
         }
 
-        public Builder taxId(String taxId) {
+        public Builder taxId(UUID taxId) {
             this.taxId = taxId;
             return this;
         }
@@ -270,8 +269,7 @@ public class Company {
     }
 
     public boolean hasRequiredFields() {
-        return taxId != null && !taxId.trim().isEmpty() &&
-               nit != null && !nit.trim().isEmpty() &&
+        return nit != null && !nit.trim().isEmpty() &&
                name != null && !name.trim().isEmpty() &&
                businessName != null && !businessName.trim().isEmpty() &&
                email != null && !email.trim().isEmpty() &&
@@ -296,11 +294,11 @@ public class Company {
         }
     }
 
-    public String getTaxId() {
+    public UUID getTaxId() {
         return taxId;
     }
 
-    public void setTaxId(String taxId) {
+    public void setTaxId(UUID taxId) {
         if (!Objects.equals(this.taxId, taxId)) {
             this.taxId = taxId;
             updateTimestamp();
@@ -480,7 +478,7 @@ public class Company {
     public String toString() {
         return "Company{" +
                 "id=" + id +
-                ", taxId='" + taxId + '\'' +
+                ", taxId=" + taxId +
                 ", nit='" + nit + '\'' +
                 ", name='" + name + '\'' +
                 ", businessName='" + businessName + '\'' +

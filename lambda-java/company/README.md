@@ -22,7 +22,7 @@ Se desarrollaron las siguientes funciones Lambda:
 | **Campo**           | **Tipo**      | **Restricciones**                                            | **Descripción** |
 | ------------------- | ------------- | ------------------------------------------------------------ | --------------- |
 | id                  | UUID          | Generado automáticamente                                     |                 |
-| taxId               | String        | Requerido. Máx. 20 caracteres                                |                 |
+| taxId               | UUID          | Requerido. Máx. 20 caracteres                                |                 |
 | name                | String        | Requerido. Entre 1 y 100 caracteres                          |                 |
 | businessName        | String        | Requerido. Entre 1 y 100 caracteres                          |                 |
 | companyType         | String        | Opcional. Máx. 50 caracteres                                 |                 |

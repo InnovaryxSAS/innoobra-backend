@@ -1,16 +1,16 @@
 package com.lambdas.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.lambdas.validation.annotations.CompanyStatusValid;
+import com.lambdas.validation.annotations.StatusValid;
 import com.lambdas.validation.groups.ValidationGroups;
 import jakarta.validation.constraints.*;
+
+import java.util.UUID;
 
 public class CreateCompanyRequestDTO {
 
     @JsonProperty("taxId")
-    @NotBlank(message = "Tax ID cannot be blank", groups = ValidationGroups.Create.class)
-    @Size(max = 36, message = "Tax ID cannot exceed 36 characters")
-    private String taxId;
+    private UUID taxId;
 
     @JsonProperty("nit")
     @NotBlank(message = "NIT cannot be blank", groups = ValidationGroups.Create.class)
@@ -67,7 +67,7 @@ public class CreateCompanyRequestDTO {
     private String legalRepresentative;
 
     @JsonProperty("status")
-    @CompanyStatusValid
+    @StatusValid
     private String status = "active"; 
 
     // Default constructor
@@ -75,11 +75,11 @@ public class CreateCompanyRequestDTO {
     }
 
     // Getters and Setters
-    public String getTaxId() {
+    public UUID getTaxId() {
         return taxId;
     }
 
-    public void setTaxId(String taxId) {
+    public void setTaxId(UUID taxId) {
         this.taxId = taxId;
     }
 
@@ -182,7 +182,7 @@ public class CreateCompanyRequestDTO {
     @Override
     public String toString() {
         return "CreateCompanyRequestDTO{" +
-                "taxId='" + taxId + '\'' +
+                "taxId=" + taxId +
                 ", nit='" + nit + '\'' +
                 ", name='" + name + '\'' +
                 ", businessName='" + businessName + '\'' +

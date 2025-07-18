@@ -1,13 +1,13 @@
 package com.lambdas.validation.validators;
 
-import com.lambdas.validation.annotations.CompanyStatusValid;
+import com.lambdas.validation.annotations.StatusValid;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import java.util.Set;
 
-public class CompanyStatusValidator implements ConstraintValidator<CompanyStatusValid, String> {
+public class StatusValidator implements ConstraintValidator<StatusValid, String> {
     private static final Set<String> VALID_STATUSES = Set.of(
-        "active", "inactive", "pending"
+        "ACTIVE", "INACTIVE", "PENDIG"
     );
 
     @Override

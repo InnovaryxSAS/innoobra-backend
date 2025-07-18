@@ -34,7 +34,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
 
     @Override
     public Company save(Company company) {
-        if (!existsTaxIdById(company.getTaxId())) {
+        if (company.getTaxId() != null && !existsTaxIdById(company.getTaxId())) {
             throw new ValidationException("Tax ID " + company.getTaxId() + " does not exist");
         }
         
@@ -167,7 +167,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
 
     @Override
     public Company update(Company company) {
-        if (!existsTaxIdById(company.getTaxId())) {
+        if (company.getTaxId() != null && !existsTaxIdById(company.getTaxId())) {
             throw new ValidationException("Tax ID " + company.getTaxId() + " does not exist");
         }
         
@@ -183,7 +183,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
 
             company.setUpdatedAt(LocalDateTime.now());
 
-            stmt.setString(1, company.getTaxId());
+            stmt.setObject(1, company.getTaxId(), java.sql.Types.OTHER); // UUID as Object
             stmt.setString(2, company.getNit());
             stmt.setString(3, company.getName());
             stmt.setString(4, company.getBusinessName());
@@ -270,23 +270,22 @@ public class CompanyRepositoryImpl implements CompanyRepository {
         }
     }
 
-public boolean existsTaxIdById(String taxId) {
-    final String sql = "SELECT 1 FROM taxes WHERE id = ? LIMIT 1";
+    public boolean existsTaxIdById(UUID taxId) {
+        final String sql = "SELECT 1 FROM taxes WHERE id = ? LIMIT 1";
 
-    try (Connection conn = getConnection();
-         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-        stmt.setObject(1, UUID.fromString(taxId));
+            stmt.setObject(1, taxId, java.sql.Types.OTHER); // UUID as Object
 
-        try (ResultSet rs = stmt.executeQuery()) {
-            return rs.next();
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException("Error checking if tax ID exists", e);
         }
-
-    } catch (SQLException e) {
-        throw new DatabaseException("Error checking if tax ID exists", e);
     }
-}
-
 
     @Override
     public String getConnectionPoolStats() {
@@ -300,7 +299,7 @@ public boolean existsTaxIdById(String taxId) {
 
     private void setCompanyParameters(PreparedStatement stmt, Company company) throws SQLException {
         stmt.setObject(1, company.getId(), java.sql.Types.OTHER);
-        stmt.setString(2, company.getTaxId());
+        stmt.setObject(2, company.getTaxId(), java.sql.Types.OTHER); // UUID as Object
         stmt.setString(3, company.getNit());
         stmt.setString(4, company.getName());
         stmt.setString(5, company.getBusinessName());
@@ -318,9 +317,13 @@ public boolean existsTaxIdById(String taxId) {
     }
 
     private Company mapResultSetToCompany(ResultSet rs) throws SQLException {
+        // Manejo seguro del tax_id que puede ser null
+        String taxIdString = rs.getString("tax_id");
+        UUID taxId = (taxIdString != null) ? UUID.fromString(taxIdString) : null;
+        
         return new Company.Builder()
                 .id(UUID.fromString(rs.getString("id")))
-                .taxId(rs.getString("tax_id"))
+                .taxId(taxId) // Ahora es UUID
                 .nit(rs.getString("nit"))
                 .name(rs.getString("name"))
                 .businessName(rs.getString("business_name"))
