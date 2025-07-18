@@ -89,14 +89,14 @@ public class CompanyRepositoryImpl implements CompanyRepository {
                 SELECT id, tax_id, nit, name, business_name, company_type, address, phone_number, email,
                        legal_representative, city, state, country, created_at, updated_at, status
                 FROM companies
-                WHERE id = ?::uuid
+                WHERE id = ?
                 """;
 
         try (Connection conn = getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            // Set UUID parameter as string and cast to UUID in SQL
-            stmt.setString(1, id.toString());
+            // Set UUID parameter directly
+            stmt.setObject(1, id);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -176,7 +176,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
                 UPDATE companies
                 SET tax_id = ?::uuid, nit = ?, name = ?, business_name = ?, company_type = ?, address = ?, phone_number = ?, email = ?,
                     legal_representative = ?, city = ?, state = ?, country = ?, updated_at = ?, status = ?::status_enum
-                WHERE id = ?::uuid
+                WHERE id = ?
                 """;
 
         try (Connection conn = getConnection();
@@ -198,7 +198,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
             stmt.setString(12, company.getCountry());
             stmt.setTimestamp(13, Timestamp.valueOf(company.getUpdatedAt()));
             stmt.setString(14, company.getStatus().getValue());
-            stmt.setString(15, company.getId().toString());
+            stmt.setObject(15, company.getId()); // Use setObject for UUID
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
@@ -223,7 +223,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
         final String sql = """
                 UPDATE companies
                 SET status = ?::status_enum, updated_at = ?
-                WHERE id = ?::uuid AND status != ?::status_enum
+                WHERE id = ? AND status != ?::status_enum
                 """;
 
         try (Connection conn = getConnection();
@@ -234,7 +234,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
 
             stmt.setString(1, inactiveStatus);
             stmt.setTimestamp(2, Timestamp.valueOf(now));
-            stmt.setString(3, id.toString());
+            stmt.setObject(3, id); // Use setObject for UUID
             stmt.setString(4, inactiveStatus);
 
             int rowsAffected = stmt.executeUpdate();
@@ -255,12 +255,12 @@ public class CompanyRepositoryImpl implements CompanyRepository {
 
     @Override
     public boolean existsById(UUID id) {
-        final String sql = "SELECT 1 FROM companies WHERE id = ?::uuid LIMIT 1";
+        final String sql = "SELECT 1 FROM companies WHERE id = ? LIMIT 1";
 
         try (Connection conn = getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, id.toString());
+            stmt.setObject(1, id);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();
@@ -272,12 +272,12 @@ public class CompanyRepositoryImpl implements CompanyRepository {
     }
 
     public boolean existsTaxIdById(UUID taxId) {
-        final String sql = "SELECT 1 FROM taxes WHERE id = ?::uuid LIMIT 1";
+        final String sql = "SELECT 1 FROM taxes WHERE id = ? LIMIT 1";
 
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, taxId.toString());
+            stmt.setObject(1, taxId); // Use setObject for UUID
 
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();
@@ -318,7 +318,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
     }
 
     private Company mapResultSetToCompany(ResultSet rs) throws SQLException {
-        // Manejo seguro del tax_id que puede ser null
+        // Safe handling of tax_id which can be null
         String taxIdString = rs.getString("tax_id");
         UUID taxId = (taxIdString != null) ? UUID.fromString(taxIdString) : null;
         
