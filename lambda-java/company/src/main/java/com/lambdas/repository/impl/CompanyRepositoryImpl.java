@@ -41,7 +41,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
         final String sql = """
                 INSERT INTO companies (id, tax_id, nit, name, business_name, company_type, address, phone_number, email,
                                      legal_representative, city, state, country, created_at, updated_at, status)
-                VALUES (?::uuid, ?::uuid, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::status_enum)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::status_enum)
                 """;
 
         try (Connection conn = getConnection();
@@ -57,7 +57,22 @@ public class CompanyRepositoryImpl implements CompanyRepository {
                 company.setStatus(CompanyStatus.ACTIVE);
             }
 
-            setCompanyParameters(stmt, company);
+            stmt.setObject(1, company.getId());
+            stmt.setObject(2, company.getTaxId());
+            stmt.setString(3, company.getNit());
+            stmt.setString(4, company.getName());
+            stmt.setString(5, company.getBusinessName());
+            stmt.setString(6, company.getCompanyType());
+            stmt.setString(7, company.getAddress());
+            stmt.setString(8, company.getPhoneNumber());
+            stmt.setString(9, company.getEmail());
+            stmt.setString(10, company.getLegalRepresentative());
+            stmt.setString(11, company.getCity());
+            stmt.setString(12, company.getState());
+            stmt.setString(13, company.getCountry());
+            stmt.setTimestamp(14, Timestamp.valueOf(company.getCreatedAt()));
+            stmt.setTimestamp(15, Timestamp.valueOf(company.getUpdatedAt()));
+            stmt.setString(16, company.getStatus().getValue());
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
@@ -95,7 +110,6 @@ public class CompanyRepositoryImpl implements CompanyRepository {
         try (Connection conn = getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            // Set UUID parameter directly
             stmt.setObject(1, id);
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -174,7 +188,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
         
         final String sql = """
                 UPDATE companies
-                SET tax_id = ?::uuid, nit = ?, name = ?, business_name = ?, company_type = ?, address = ?, phone_number = ?, email = ?,
+                SET tax_id = ?, nit = ?, name = ?, business_name = ?, company_type = ?, address = ?, phone_number = ?, email = ?,
                     legal_representative = ?, city = ?, state = ?, country = ?, updated_at = ?, status = ?::status_enum
                 WHERE id = ?
                 """;
@@ -184,7 +198,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
 
             company.setUpdatedAt(LocalDateTime.now());
 
-            stmt.setString(1, company.getTaxId() != null ? company.getTaxId().toString() : null);
+            stmt.setObject(1, company.getTaxId());
             stmt.setString(2, company.getNit());
             stmt.setString(3, company.getName());
             stmt.setString(4, company.getBusinessName());
@@ -198,7 +212,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
             stmt.setString(12, company.getCountry());
             stmt.setTimestamp(13, Timestamp.valueOf(company.getUpdatedAt()));
             stmt.setString(14, company.getStatus().getValue());
-            stmt.setObject(15, company.getId()); // Use setObject for UUID
+            stmt.setObject(15, company.getId());
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
@@ -234,7 +248,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
 
             stmt.setString(1, inactiveStatus);
             stmt.setTimestamp(2, Timestamp.valueOf(now));
-            stmt.setObject(3, id); // Use setObject for UUID
+            stmt.setObject(3, id);
             stmt.setString(4, inactiveStatus);
 
             int rowsAffected = stmt.executeUpdate();
@@ -277,7 +291,7 @@ public class CompanyRepositoryImpl implements CompanyRepository {
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setObject(1, taxId); // Use setObject for UUID
+            stmt.setObject(1, taxId);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();
@@ -298,32 +312,12 @@ public class CompanyRepositoryImpl implements CompanyRepository {
         return poolManager.isHealthy();
     }
 
-    private void setCompanyParameters(PreparedStatement stmt, Company company) throws SQLException {
-        stmt.setString(1, company.getId().toString());
-        stmt.setString(2, company.getTaxId() != null ? company.getTaxId().toString() : null);
-        stmt.setString(3, company.getNit());
-        stmt.setString(4, company.getName());
-        stmt.setString(5, company.getBusinessName());
-        stmt.setString(6, company.getCompanyType());
-        stmt.setString(7, company.getAddress());
-        stmt.setString(8, company.getPhoneNumber());
-        stmt.setString(9, company.getEmail());
-        stmt.setString(10, company.getLegalRepresentative());
-        stmt.setString(11, company.getCity());
-        stmt.setString(12, company.getState());
-        stmt.setString(13, company.getCountry());
-        stmt.setTimestamp(14, Timestamp.valueOf(company.getCreatedAt()));
-        stmt.setTimestamp(15, Timestamp.valueOf(company.getUpdatedAt()));
-        stmt.setString(16, company.getStatus().getValue());
-    }
-
     private Company mapResultSetToCompany(ResultSet rs) throws SQLException {
-        // Safe handling of tax_id which can be null
-        String taxIdString = rs.getString("tax_id");
-        UUID taxId = (taxIdString != null) ? UUID.fromString(taxIdString) : null;
+        UUID id = (UUID) rs.getObject("id");
+        UUID taxId = (UUID) rs.getObject("tax_id");
         
         return new Company.Builder()
-                .id(UUID.fromString(rs.getString("id")))
+                .id(id)
                 .taxId(taxId)
                 .nit(rs.getString("nit"))
                 .name(rs.getString("name"))
