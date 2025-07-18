@@ -1,12 +1,14 @@
 package com.lambdas.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.lambdas.validation.annotations.StatusValid;
 import com.lambdas.validation.groups.ValidationGroups;
 import jakarta.validation.constraints.*;
 
 import java.util.UUID;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CreateCompanyRequestDTO {
 
     @JsonProperty("taxId")
@@ -72,6 +74,19 @@ public class CreateCompanyRequestDTO {
 
     // Default constructor
     public CreateCompanyRequestDTO() {
+    }
+
+    // Constructor para debugging
+    public CreateCompanyRequestDTO(UUID taxId, String nit, String name, String businessName, String email, 
+                                  String city, String state, String country) {
+        this.taxId = taxId;
+        this.nit = nit;
+        this.name = name;
+        this.businessName = businessName;
+        this.email = email;
+        this.city = city;
+        this.state = state;
+        this.country = country;
     }
 
     // Getters and Setters
@@ -188,6 +203,8 @@ public class CreateCompanyRequestDTO {
                 ", businessName='" + businessName + '\'' +
                 ", email='" + email + '\'' +
                 ", city='" + city + '\'' +
+                ", state='" + state + '\'' +
+                ", country='" + country + '\'' +
                 ", status='" + status + '\'' +
                 '}';
     }
