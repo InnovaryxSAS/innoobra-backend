@@ -15,6 +15,11 @@ data "aws_iam_policy_document" "assume_lambda" {
   }
 }
 
+data "aws_s3_object" "lambda_jar" {
+  for_each = var.lambdas
+  bucket   = var.lambda_bucket
+  key      = each.value.jar_path
+}
 
 resource "aws_iam_role" "lambda_exec" {
   name               = "lambda_exec_role-${var.environment}"
@@ -126,7 +131,7 @@ resource "aws_lambda_function" "this" {
   handler          = each.value.handler
   runtime          = "java21"
   role             = aws_iam_role.lambda_exec.arn
-  source_code_hash = filebase64sha256("functions/${each.key}/${each.key}-1.0-SNAPSHOT.jar")
+  source_code_hash = null
   layers           = [aws_lambda_layer_version.common.arn]
 
   vpc_config {
