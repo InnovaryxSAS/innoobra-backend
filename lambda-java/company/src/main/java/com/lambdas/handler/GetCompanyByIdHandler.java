@@ -16,6 +16,7 @@ import com.lambdas.util.ResponseUtil;
 import org.slf4j.Logger;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public class GetCompanyByIdHandler
         implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
@@ -39,26 +40,30 @@ public class GetCompanyByIdHandler
         LoggingHelper.initializeRequestContext(requestId);
 
         try {
-            LoggingHelper.logProcessStart(logger, "company retrieval by ID");
-
-            String companyId = input.getPathParameters().get("id");
-            if (companyId == null || companyId.trim().isEmpty()) {
-                LoggingHelper.logMissingParameter(logger, "Company ID");
+            if (input.getPathParameters() == null) {
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Company ID is required");
             }
 
-            LoggingHelper.addCompanyId(companyId);
+            String companyIdStr = input.getPathParameters().get("id");
+            if (companyIdStr == null || companyIdStr.trim().isEmpty()) {
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Company ID is required");
+            }
+
+            LoggingHelper.addCompanyId(companyIdStr);
+
+            UUID companyId;
+            try {
+                companyId = UUID.fromString(companyIdStr);
+            } catch (IllegalArgumentException e) {
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Invalid company ID format");
+            }
 
             Optional<Company> companyOpt = companyService.getCompanyById(companyId);
 
             if (companyOpt.isPresent()) {
-                LoggingHelper.logSuccess(logger, "Company retrieval", companyId);
-
                 CompanyResponseDTO responseDTO = DTOMapper.toResponseDTO(companyOpt.get());
-
                 return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
             } else {
-                LoggingHelper.logEntityNotFound(logger, "Company", companyId);
                 return ResponseUtil.createErrorResponse(HttpStatus.NOT_FOUND, "Company not found");
             }
 

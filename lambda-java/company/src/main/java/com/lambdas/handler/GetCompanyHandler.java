@@ -38,13 +38,8 @@ public class GetCompanyHandler implements RequestHandler<APIGatewayProxyRequestE
         LoggingHelper.initializeRequestContext(requestId);
         
         try {
-            LoggingHelper.logProcessStart(logger, "companies retrieval");
-            
             List<Company> companies = companyService.getAllCompanies();
-            LoggingHelper.logSuccessWithCount(logger, "Companies retrieval", companies.size());
-            
             List<CompanyResponseDTO> responseDTOs = DTOMapper.toResponseDTOList(companies);
-            
             return ResponseUtil.createResponse(HttpStatus.OK, responseDTOs);
             
         } catch (DatabaseException e) {

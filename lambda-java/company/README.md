@@ -21,17 +21,18 @@ Se desarrollaron las siguientes funciones Lambda:
 
 | **Campo**           | **Tipo**      | **Restricciones**                                            | **Descripción** |
 | ------------------- | ------------- | ------------------------------------------------------------ | --------------- |
-| id                  | String        | Requerido. Máx. 255 alfanuméricos (NIT)                      |                 |
-| name                | String        | Requerido. Máx. 100 caracteres                               |                 |
-| businessName        | String        | Requerido. Máx. 100 caracteres                               |                 |
-| companyType         | String        | Opcional. Máx. 100 caracteres                                |                 |
+| id                  | UUID          | Generado automáticamente                                     |                 |
+| taxId               | String        | Requerido. Máx. 20 caracteres                                |                 |
+| name                | String        | Requerido. Entre 1 y 100 caracteres                          |                 |
+| businessName        | String        | Requerido. Entre 1 y 100 caracteres                          |                 |
+| companyType         | String        | Opcional. Máx. 50 caracteres                                 |                 |
 | address             | String        | Opcional. Máx. 150 caracteres                                |                 |
 | phoneNumber         | String        | Opcional. Máx. 20 caracteres. Formato internacional          |                 |
-| email               | String        | Requerido. Máx. 255 caracteres. Formato email válido         |                 |
+| email               | String        | Requerido. Máx. 100 caracteres. Formato email válido         |                 |
 | legalRepresentative | String        | Opcional. Máx. 100 caracteres                                |                 |
-| city                | String        | Requerido. Máx. 50 caracteres                                |                 |
-| state               | String        | Requerido. Máx. 100 caracteres                               |                 |
-| country             | String        | Requerido. 2-3 caracteres mayúsculas                         |                 |
+| city                | String        | Requerido. Entre 1 y 50 caracteres                           |                 |
+| state               | String        | Requerido. Entre 1 y 50 caracteres                           |                 |
+| country             | String        | Requerido. 2 caracteres mayúsculas (código ISO)              |                 |
 | createdAt           | LocalDateTime | Se asigna automáticamente al crear                           |                 |
 | updatedAt           | LocalDateTime | Se actualiza automáticamente al modificar                    |                 |
 | status              | String (ENUM) | Valores: `active`, `inactive`, `pending`, `suspended`        |                 |
@@ -63,21 +64,21 @@ lambda-java/
 El sistema valida:
 
 ### Validaciones de Campos Obligatorios:
-- **id**: Requerido, máximo 255 caracteres alfanuméricos
+- **taxId**: Requerido, máximo 20 caracteres
 - **name**: Requerido, entre 1 y 100 caracteres
 - **businessName**: Requerido, entre 1 y 100 caracteres
-- **email**: Requerido, formato de email válido
+- **email**: Requerido, formato de email válido, máximo 100 caracteres
 - **city**: Requerido, entre 1 y 50 caracteres
-- **state**: Requerido, entre 1 y 100 caracteres
-- **country**: Requerido, 2-3 caracteres mayúsculas (código ISO)
+- **state**: Requerido, entre 1 y 50 caracteres
+- **country**: Requerido, 2 caracteres mayúsculas (código ISO)
 
 ### Validaciones de Formato:
 - **phoneNumber**: Formato internacional (+país + número), máximo 20 caracteres
 - **email**: Formato estándar de email con validación de dominio
-- **country**: Código ISO de 2 o 3 caracteres en mayúsculas
+- **country**: Código ISO de 2 caracteres en mayúsculas
 
 ### Validaciones de Negocio:
-- Unicidad de `id` (NIT) por compañía
+- Unicidad de `taxId` (NIT) por compañía
 - Existencia de la compañía antes de actualizaciones
 - Estados válidos según el enum `CompanyStatus`
 - Restricciones específicas por operación (crear vs actualizar)
@@ -118,7 +119,7 @@ Las pruebas unitarias se ubican en `test/java/com/lambdas`.
 
 ```json
 {
-  "id": "900123456-7",
+  "taxId": "900123456-7",
   "name": "TechCorp Solutions",
   "businessName": "TechCorp Solutions S.A.S.",
   "companyType": "SAS",
@@ -128,7 +129,8 @@ Las pruebas unitarias se ubican en `test/java/com/lambdas`.
   "legalRepresentative": "Juan Pérez",
   "city": "Bogotá",
   "state": "Cundinamarca",
-  "country": "COL"
+  "country": "CO",
+  "status": "active"
 }
 ```
 
@@ -136,7 +138,8 @@ Las pruebas unitarias se ubican en `test/java/com/lambdas`.
 
 ```json
 {
-  "id": "900123456-7",
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "taxId": "900123456-7",
   "name": "TechCorp Solutions",
   "businessName": "TechCorp Solutions S.A.S.",
   "companyType": "SAS",
@@ -146,9 +149,9 @@ Las pruebas unitarias se ubican en `test/java/com/lambdas`.
   "legalRepresentative": "Juan Pérez",
   "city": "Bogotá",
   "state": "Cundinamarca",
-  "country": "COL",
-  "createdAt": [2025, 7, 7, 16, 5, 41, 333603829],
-  "updatedAt": [2025, 7, 7, 16, 5, 41, 333603829],
+  "country": "CO",
+  "createdAt": "2025-07-17T16:05:41.333603829",
+  "updatedAt": "2025-07-17T16:05:41.333603829",
   "status": "active"
 }
 ```
@@ -167,7 +170,8 @@ Las pruebas unitarias se ubican en `test/java/com/lambdas`.
 ```json
 [
   {
-    "id": "900123456-7",
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "taxId": "900123456-7",
     "name": "TechCorp Solutions",
     "businessName": "TechCorp Solutions S.A.S.",
     "companyType": "SAS",
@@ -177,9 +181,9 @@ Las pruebas unitarias se ubican en `test/java/com/lambdas`.
     "legalRepresentative": "Juan Pérez",
     "city": "Bogotá",
     "state": "Cundinamarca",
-    "country": "COL",
-    "createdAt": [2025, 7, 7, 16, 5, 41, 333604000],
-    "updatedAt": [2025, 7, 7, 16, 5, 41, 333604000],
+    "country": "CO",
+    "createdAt": "2025-07-17T16:05:41.333604000",
+    "updatedAt": "2025-07-17T16:05:41.333604000",
     "status": "active"
   }
 ]
@@ -192,7 +196,7 @@ Las pruebas unitarias se ubican en `test/java/com/lambdas`.
 ```json
 {
   "pathParameters": {
-    "id": "900123456-7"
+    "id": "550e8400-e29b-41d4-a716-446655440000"
   }
 }
 ```
@@ -201,7 +205,8 @@ Las pruebas unitarias se ubican en `test/java/com/lambdas`.
 
 ```json
 {
-  "id": "900123456-7",
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "taxId": "900123456-7",
   "name": "TechCorp Solutions",
   "businessName": "TechCorp Solutions S.A.S.",
   "companyType": "SAS",
@@ -211,9 +216,9 @@ Las pruebas unitarias se ubican en `test/java/com/lambdas`.
   "legalRepresentative": "Juan Pérez",
   "city": "Bogotá",
   "state": "Cundinamarca",
-  "country": "COL",
-  "createdAt": [2025, 7, 7, 16, 5, 41, 333604000],
-  "updatedAt": [2025, 7, 7, 16, 5, 41, 333604000],
+  "country": "CO",
+  "createdAt": "2025-07-17T16:05:41.333604000",
+  "updatedAt": "2025-07-17T16:05:41.333604000",
   "status": "active"
 }
 ```
@@ -224,12 +229,23 @@ Las pruebas unitarias se ubican en `test/java/com/lambdas`.
 
 ```json
 {
-  "name": "TechCorp Solutions Pro",
-  "businessName": "TechCorp Solutions Professional S.A.S.",
-  "address": "Carrera 15 #93-47 Piso 10",
-  "phoneNumber": "+571234567891",
-  "email": "contact@techcorp.com",
-  "legalRepresentative": "María González"
+  "pathParameters": {
+    "id": "550e8400-e29b-41d4-a716-446655440000"
+  },
+  "body": {
+    "taxId": "900123456-7",
+    "name": "TechCorp Solutions Pro",
+    "businessName": "TechCorp Solutions Professional S.A.S.",
+    "companyType": "SAS",
+    "address": "Carrera 15 #93-47 Piso 10",
+    "phoneNumber": "+571234567891",
+    "email": "contact@techcorp.com",
+    "legalRepresentative": "María González",
+    "city": "Bogotá",
+    "state": "Cundinamarca",
+    "country": "CO",
+    "status": "active"
+  }
 }
 ```
 
@@ -237,7 +253,8 @@ Las pruebas unitarias se ubican en `test/java/com/lambdas`.
 
 ```json
 {
-  "id": "900123456-7",
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "taxId": "900123456-7",
   "name": "TechCorp Solutions Pro",
   "businessName": "TechCorp Solutions Professional S.A.S.",
   "companyType": "SAS",
@@ -247,9 +264,9 @@ Las pruebas unitarias se ubican en `test/java/com/lambdas`.
   "legalRepresentative": "María González",
   "city": "Bogotá",
   "state": "Cundinamarca",
-  "country": "COL",
-  "createdAt": [2025, 7, 7, 16, 5, 41, 333604000],
-  "updatedAt": [2025, 7, 7, 16, 12, 47, 113913334],
+  "country": "CO",
+  "createdAt": "2025-07-17T16:05:41.333604000",
+  "updatedAt": "2025-07-17T16:12:47.113913334",
   "status": "active"
 }
 ```
@@ -261,7 +278,7 @@ Las pruebas unitarias se ubican en `test/java/com/lambdas`.
 ```json
 {
   "pathParameters": {
-    "id": "900123456-7"
+    "id": "550e8400-e29b-41d4-a716-446655440000"
   }
 }
 ```
@@ -271,10 +288,12 @@ Las pruebas unitarias se ubican en `test/java/com/lambdas`.
 ```json
 {
   "message": "Company successfully deactivated",
-  "companyId": "900123456-7",
-  "success": true
+  "companyId": "550e8400-e29b-41d4-a716-446655440000",
+  "success": true,
+  "timestamp": "2025-07-17T16:15:30.123456789"
 }
 ```
+
 ---
 
 ## 📌 Consideraciones Finales
@@ -286,3 +305,6 @@ Las pruebas unitarias se ubican en `test/java/com/lambdas`.
 - Las operaciones de eliminación son lógicas (cambio de estado) preservando la integridad histórica de los datos.
 - Se implementa logging detallado para monitoreo y debugging en el entorno AWS Lambda.
 - El pool de conexiones se monitorea continuamente para garantizar el rendimiento y la disponibilidad.
+- Los IDs se generan automáticamente como UUID para garantizar unicidad.
+- El campo `taxId` se usa como identificador de negocio único (NIT).
+- Los timestamps se manejan en formato ISO 8601 para compatibilidad con diferentes sistemas.

@@ -7,11 +7,15 @@ import jakarta.validation.constraints.*;
 
 public class CreateCompanyRequestDTO {
 
-    @JsonProperty("id")
-    @NotBlank(message = "Company ID cannot be blank", groups = ValidationGroups.Create.class)
-    @Size(max = 255, message = "Company ID cannot exceed 255 characters")
-    @Pattern(regexp = "^[A-Za-z0-9]{1,255}$", message = "Company ID must contain only alphanumeric characters")
-    private String id;
+    @JsonProperty("taxId")
+    @NotBlank(message = "Tax ID cannot be blank", groups = ValidationGroups.Create.class)
+    @Size(max = 36, message = "Tax ID cannot exceed 36 characters")
+    private String taxId;
+
+    @JsonProperty("nit")
+    @NotBlank(message = "NIT cannot be blank", groups = ValidationGroups.Create.class)
+    @Size(max = 20, message = "NIT cannot exceed 20 characters")
+    private String nit;
 
     @JsonProperty("name")
     @NotBlank(message = "Company name cannot be blank", groups = ValidationGroups.Create.class)
@@ -26,7 +30,7 @@ public class CreateCompanyRequestDTO {
     @JsonProperty("email")
     @NotBlank(message = "Email cannot be blank", groups = ValidationGroups.Create.class)
     @Email(message = "Email must be valid")
-    @Size(max = 255, message = "Email cannot exceed 255 characters")
+    @Size(max = 100, message = "Email cannot exceed 100 characters")
     private String email;
 
     @JsonProperty("city")
@@ -36,21 +40,22 @@ public class CreateCompanyRequestDTO {
 
     @JsonProperty("state")
     @NotBlank(message = "State cannot be blank", groups = ValidationGroups.Create.class)
-    @Size(min = 1, max = 100, message = "State must be between 1 and 100 characters")
+    @Size(min = 1, max = 50, message = "State must be between 1 and 50 characters")
     private String state;
 
     @JsonProperty("country")
     @NotBlank(message = "Country cannot be blank", groups = ValidationGroups.Create.class)
     @Pattern(regexp = "^[A-Z]{2}$", message = "Country code must be two uppercase letters")
+    @Size(min = 2, max = 2, message = "Country code must be exactly 2 characters")
     private String country;
 
     @JsonProperty("phoneNumber")
-    @Pattern(regexp = "^\\+[1-9]\\d{1,14}$", message = "Phone number must be in E.164 format")
+    @Pattern(regexp = "^\\+\\d{1,15}$", message = "Phone number must be in international format (+1234567890)")
     @Size(max = 20, message = "Phone number cannot exceed 20 characters")
     private String phoneNumber;
 
     @JsonProperty("companyType")
-    @Size(max = 100, message = "Company type cannot exceed 100 characters")
+    @Size(max = 50, message = "Company type cannot exceed 50 characters")
     private String companyType;
 
     @JsonProperty("address")
@@ -70,12 +75,20 @@ public class CreateCompanyRequestDTO {
     }
 
     // Getters and Setters
-    public String getId() {
-        return id;
+    public String getTaxId() {
+        return taxId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setTaxId(String taxId) {
+        this.taxId = taxId;
+    }
+
+    public String getNit() {
+        return nit;
+    }
+
+    public void setNit(String nit) {
+        this.nit = nit;
     }
 
     public String getName() {
@@ -169,7 +182,8 @@ public class CreateCompanyRequestDTO {
     @Override
     public String toString() {
         return "CreateCompanyRequestDTO{" +
-                "id='" + id + '\'' +
+                "taxId='" + taxId + '\'' +
+                ", nit='" + nit + '\'' +
                 ", name='" + name + '\'' +
                 ", businessName='" + businessName + '\'' +
                 ", email='" + email + '\'' +

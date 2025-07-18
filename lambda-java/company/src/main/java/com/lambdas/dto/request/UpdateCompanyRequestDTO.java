@@ -7,6 +7,14 @@ import jakarta.validation.constraints.*;
 
 public class UpdateCompanyRequestDTO {
 
+    @JsonProperty("taxId")
+    @Size(max = 36, message = "Tax ID cannot exceed 36 characters")
+    private String taxId;
+
+    @JsonProperty("nit")
+    @Size(max = 20, message = "NIT cannot exceed 20 characters")
+    private String nit;
+
     @JsonProperty("name")
     @Size(min = 1, max = 100, message = "Company name must be between 1 and 100 characters")
     private String name;
@@ -16,7 +24,7 @@ public class UpdateCompanyRequestDTO {
     private String businessName;
 
     @JsonProperty("companyType")
-    @Size(max = 100, message = "Company type cannot exceed 100 characters")
+    @Size(max = 50, message = "Company type cannot exceed 50 characters")
     private String companyType;
 
     @JsonProperty("address")
@@ -24,13 +32,13 @@ public class UpdateCompanyRequestDTO {
     private String address;
 
     @JsonProperty("phoneNumber")
-    @Pattern(regexp = "^\\+[1-9]\\d{1,14}$", message = "Phone number must be in E.164 format")
+    @Pattern(regexp = "^\\+\\d{1,15}$", message = "Phone number must be in international format (+1234567890)")
     @Size(max = 20, message = "Phone number cannot exceed 20 characters")
     private String phoneNumber;
 
     @JsonProperty("email")
     @Email(message = "Email must be valid")
-    @Size(max = 255, message = "Email cannot exceed 255 characters")
+    @Size(max = 100, message = "Email cannot exceed 100 characters")
     private String email;
 
     @JsonProperty("legalRepresentative")
@@ -42,11 +50,12 @@ public class UpdateCompanyRequestDTO {
     private String city;
 
     @JsonProperty("state")
-    @Size(min = 1, max = 100, message = "State must be between 1 and 100 characters")
+    @Size(min = 1, max = 50, message = "State must be between 1 and 50 characters")
     private String state;
 
     @JsonProperty("country")
     @Pattern(regexp = "^[A-Z]{2}$", message = "Country code must be two uppercase letters")
+    @Size(min = 2, max = 2, message = "Country code must be exactly 2 characters")
     private String country;
 
     @JsonProperty("status")
@@ -58,6 +67,22 @@ public class UpdateCompanyRequestDTO {
     }
 
     // Getters and Setters
+    public String getTaxId() {
+        return taxId;
+    }
+
+    public void setTaxId(String taxId) {
+        this.taxId = taxId;
+    }
+
+    public String getNit() {
+        return nit;
+    }
+
+    public void setNit(String nit) {
+        this.nit = nit;
+    }
+
     public String getName() {
         return name;
     }
@@ -149,7 +174,9 @@ public class UpdateCompanyRequestDTO {
     @Override
     public String toString() {
         return "UpdateCompanyRequestDTO{" +
-                "name='" + name + '\'' +
+                "taxId='" + taxId + '\'' +
+                ", nit='" + nit + '\'' +
+                ", name='" + name + '\'' +
                 ", businessName='" + businessName + '\'' +
                 ", email='" + email + '\'' +
                 ", city='" + city + '\'' +

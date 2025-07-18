@@ -9,13 +9,22 @@ import jakarta.validation.constraints.*;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.UUID;
 
 public class Company {
 
     @JsonProperty("id")
-    @NotBlank(message = "Company ID cannot be blank")
-    @Size(max = 255, message = "Company ID cannot exceed 255 characters")
-    private String id;
+    private UUID id;
+
+    @JsonProperty("taxId")
+    @NotBlank(message = "Tax ID cannot be blank")
+    @Size(max = 36, message = "Tax ID cannot exceed 36 characters")
+    private String taxId;
+
+    @JsonProperty("nit")
+    @NotBlank(message = "NIT cannot be blank")
+    @Size(max = 20, message = "NIT cannot exceed 20 characters")
+    private String nit;
 
     @JsonProperty("name")
     @NotBlank(message = "Company name cannot be blank")
@@ -28,7 +37,7 @@ public class Company {
     private String businessName;
 
     @JsonProperty("companyType")
-    @Size(max = 100, message = "Company type cannot exceed 100 characters")
+    @Size(max = 50, message = "Company type cannot exceed 50 characters")
     private String companyType;
 
     @JsonProperty("address")
@@ -36,14 +45,14 @@ public class Company {
     private String address;
 
     @JsonProperty("phoneNumber")
-    @Pattern(regexp = "^\\+[1-9]\\d{1,14}$", message = "Phone number must be in international format (e.g., +1234567890)")
+    @Pattern(regexp = "^\\+\\d{1,15}$", message = "Phone number must be in international format (+1234567890)")
     @Size(max = 20, message = "Phone number cannot exceed 20 characters")
     private String phoneNumber;
 
     @JsonProperty("email")
     @NotBlank(message = "Email cannot be blank")
     @Email(message = "Email must be valid")
-    @Size(max = 255, message = "Email cannot exceed 255 characters")
+    @Size(max = 100, message = "Email cannot exceed 100 characters")
     private String email;
 
     @JsonProperty("legalRepresentative")
@@ -57,13 +66,13 @@ public class Company {
 
     @JsonProperty("state")
     @NotBlank(message = "State cannot be blank")
-    @Size(min = 1, max = 100, message = "State must be between 1 and 100 characters")
+    @Size(min = 1, max = 50, message = "State must be between 1 and 50 characters")
     private String state;
 
     @JsonProperty("country")
     @NotBlank(message = "Country cannot be blank")
-    @Pattern(regexp = "^[A-Z]{2,3}$", message = "Country must be a 2 or 3 letter uppercase code")
-    @Size(min = 2, max = 3, message = "Country code must be 2 or 3 characters")
+    @Pattern(regexp = "^[A-Z]{2}$", message = "Country must be a 2 letter uppercase code")
+    @Size(min = 2, max = 2, message = "Country code must be exactly 2 characters")
     private String country;
 
     @JsonProperty("createdAt")
@@ -84,6 +93,7 @@ public class Company {
 
     // Default constructor
     public Company() {
+        this.id = UUID.randomUUID();
         LocalDateTime now = LocalDateTime.now();
         this.createdAt = now;
         this.updatedAt = now;
@@ -91,11 +101,13 @@ public class Company {
     }
 
     // Constructor for existing companies (when loading from database)
-    public Company(String id, String name, String businessName, String companyType, 
+    public Company(UUID id, String taxId, String nit, String name, String businessName, String companyType, 
                    String address, String phoneNumber, String email, String legalRepresentative,
                    String city, String state, String country, LocalDateTime createdAt, 
                    LocalDateTime updatedAt, CompanyStatus status) {
         this.id = id;
+        this.taxId = taxId;
+        this.nit = nit;
         this.name = name;
         this.businessName = businessName;
         this.companyType = companyType;
@@ -113,14 +125,25 @@ public class Company {
 
     // Builder pattern
     public static class Builder {
-        private String id, name, businessName, companyType, address, phoneNumber, email, 
+        private UUID id;
+        private String taxId, nit, name, businessName, companyType, address, phoneNumber, email, 
                 legalRepresentative, city, state, country;
         private LocalDateTime createdAt, updatedAt;
         private CompanyStatus status;
         private boolean isNewEntity = true;
 
-        public Builder id(String id) {
+        public Builder id(UUID id) {
             this.id = id;
+            return this;
+        }
+
+        public Builder taxId(String taxId) {
+            this.taxId = taxId;
+            return this;
+        }
+
+        public Builder nit(String nit) {
+            this.nit = nit;
             return this;
         }
 
@@ -197,7 +220,9 @@ public class Company {
 
         public Company build() {
             Company company = new Company();
-            company.id = this.id;
+            company.id = this.id != null ? this.id : UUID.randomUUID();
+            company.taxId = this.taxId;
+            company.nit = this.nit;
             company.name = this.name;
             company.businessName = this.businessName;
             company.companyType = this.companyType;
@@ -236,16 +261,17 @@ public class Company {
 
     public boolean isValidPhoneNumber(String phoneNumber) {
         if (phoneNumber == null || phoneNumber.isEmpty()) return true;
-        return phoneNumber.matches("^\\+[1-9]\\d{1,14}$");
+        return phoneNumber.matches("^\\+\\d{1,15}$");
     }
 
     public boolean isValidCountryCode(String countryCode) {
         if (countryCode == null) return false;
-        return countryCode.matches("^[A-Z]{2,3}$");
+        return countryCode.matches("^[A-Z]{2}$");
     }
 
     public boolean hasRequiredFields() {
-        return id != null && !id.trim().isEmpty() &&
+        return taxId != null && !taxId.trim().isEmpty() &&
+               nit != null && !nit.trim().isEmpty() &&
                name != null && !name.trim().isEmpty() &&
                businessName != null && !businessName.trim().isEmpty() &&
                email != null && !email.trim().isEmpty() &&
@@ -259,13 +285,35 @@ public class Company {
     }
 
     // Getters y Setters
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         if (!Objects.equals(this.id, id)) {
             this.id = id;
+            updateTimestamp();
+        }
+    }
+
+    public String getTaxId() {
+        return taxId;
+    }
+
+    public void setTaxId(String taxId) {
+        if (!Objects.equals(this.taxId, taxId)) {
+            this.taxId = taxId;
+            updateTimestamp();
+        }
+    }
+
+    public String getNit() {
+        return nit;
+    }
+
+    public void setNit(String nit) {
+        if (!Objects.equals(this.nit, nit)) {
+            this.nit = nit;
             updateTimestamp();
         }
     }
@@ -431,7 +479,9 @@ public class Company {
     @Override
     public String toString() {
         return "Company{" +
-                "id='" + id + '\'' +
+                "id=" + id +
+                ", taxId='" + taxId + '\'' +
+                ", nit='" + nit + '\'' +
                 ", name='" + name + '\'' +
                 ", businessName='" + businessName + '\'' +
                 ", email='" + email + '\'' +
