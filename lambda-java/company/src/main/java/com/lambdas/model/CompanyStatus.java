@@ -3,9 +3,9 @@ package com.lambdas.model;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum CompanyStatus {
-    ACTIVE("active"),
-    INACTIVE("inactive"),
-    PENDING("pending");
+    ACTIVE("ACTIVE"),
+    INACTIVE("INACTIVE"),
+    PENDING("PENDING");
 
     private final String value;
 

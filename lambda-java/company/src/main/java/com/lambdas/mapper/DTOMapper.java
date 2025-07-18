@@ -21,7 +21,7 @@ public class DTOMapper {
 
         return new Company.Builder()
                 .taxId(dto.getTaxId())
-                .nit(dto.getNit())  // Added NIT field
+                .nit(dto.getNit())
                 .name(dto.getName())
                 .businessName(dto.getBusinessName())
                 .companyType(dto.getCompanyType())
@@ -47,7 +47,7 @@ public class DTOMapper {
                 .fromDatabase();
 
         builder.taxId(dto.getTaxId() != null ? dto.getTaxId() : existingCompany.getTaxId());
-        builder.nit(dto.getNit() != null ? dto.getNit() : existingCompany.getNit());  // Added NIT field
+        builder.nit(dto.getNit() != null ? dto.getNit() : existingCompany.getNit());
         builder.name(dto.getName() != null ? dto.getName() : existingCompany.getName());
         builder.businessName(dto.getBusinessName() != null ? dto.getBusinessName() : existingCompany.getBusinessName());
         builder.companyType(dto.getCompanyType() != null ? dto.getCompanyType() : existingCompany.getCompanyType());
@@ -80,9 +80,9 @@ public class DTOMapper {
         }
 
         return new CompanyResponseDTO.Builder()
-                .id(company.getId() != null ? company.getId().toString() : null)
+                .id(company.getId())
                 .taxId(company.getTaxId())
-                .nit(company.getNit())  // Added NIT field
+                .nit(company.getNit())
                 .name(company.getName())
                 .businessName(company.getBusinessName())
                 .companyType(company.getCompanyType())

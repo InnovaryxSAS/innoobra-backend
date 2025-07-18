@@ -7,14 +7,15 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class CompanyResponseDTO {
 
     @JsonProperty("id")
-    private String id;
+    private UUID id;
 
     @JsonProperty("taxId")
-    private String taxId;
+    private UUID taxId;
 
     @JsonProperty("nit")
     private String nit;
@@ -68,16 +69,17 @@ public class CompanyResponseDTO {
 
     // Builder pattern
     public static class Builder {
-        private String id, taxId, nit, name, businessName, companyType, address, phoneNumber, email;
+        private UUID id, taxId;
+        private String nit, name, businessName, companyType, address, phoneNumber, email;
         private String legalRepresentative, city, state, country, status;
         private LocalDateTime createdAt, updatedAt;
 
-        public Builder id(String id) {
+        public Builder id(UUID id) {
             this.id = id;
             return this;
         }
 
-        public Builder taxId(String taxId) {
+        public Builder taxId(UUID taxId) {
             this.taxId = taxId;
             return this;
         }
@@ -175,19 +177,19 @@ public class CompanyResponseDTO {
     }
 
     // Getters and Setters
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
-    public String getTaxId() {
+    public UUID getTaxId() {
         return taxId;
     }
 
-    public void setTaxId(String taxId) {
+    public void setTaxId(UUID taxId) {
         this.taxId = taxId;
     }
 
@@ -307,7 +309,7 @@ public class CompanyResponseDTO {
     public String toString() {
         return "CompanyResponseDTO{" +
                 "id='" + id + '\'' +
-                ", taxId='" + taxId + '\'' +
+                ", taxId=" + taxId +
                 ", nit='" + nit + '\'' +
                 ", name='" + name + '\'' +
                 ", businessName='" + businessName + '\'' +
