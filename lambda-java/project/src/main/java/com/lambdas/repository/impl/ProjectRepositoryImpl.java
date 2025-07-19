@@ -37,7 +37,19 @@ public class ProjectRepositoryImpl implements ProjectRepository {
         if (project.getCompanyId() != null && !existsCompanyById(project.getCompanyId())) {
             throw new ValidationException("Company ID " + project.getCompanyId() + " does not exist");
         }
-        
+
+        if (project.getResponsibleUser() != null && !existsUserById(project.getResponsibleUser())) {
+            throw new ValidationException("Responsible user ID " + project.getResponsibleUser() + " does not exist");
+        }
+
+        if (project.getDataSourceId() != null && !existsDataSourceById(project.getDataSourceId())) {
+            throw new ValidationException("Data source ID " + project.getDataSourceId() + " does not exist");
+        }
+
+        if (project.getCreatedBy() != null && !existsUserById(project.getCreatedBy())) {
+            throw new ValidationException("Created by user ID " + project.getCreatedBy() + " does not exist");
+        }
+
         final String sql = """
                 INSERT INTO projects (id, name, description, address, city, state, country,
                                     created_at, updated_at, status, responsible_user, data_source_id,
@@ -87,10 +99,16 @@ public class ProjectRepositoryImpl implements ProjectRepository {
             if ("23505".equals(e.getSQLState())) {
                 throw new ProjectAlreadyExistsException("Project with ID " + project.getId() + " already exists");
             }
-            
+
             if ("23503".equals(e.getSQLState())) {
                 if (e.getMessage().contains("company_id")) {
                     throw new ValidationException("Invalid company ID: " + project.getCompanyId());
+                } else if (e.getMessage().contains("responsible_user")) {
+                    throw new ValidationException("Invalid responsible user ID: " + project.getResponsibleUser());
+                } else if (e.getMessage().contains("data_source_id")) {
+                    throw new ValidationException("Invalid data source ID: " + project.getDataSourceId());
+                } else if (e.getMessage().contains("created_by")) {
+                    throw new ValidationException("Invalid created by user ID: " + project.getCreatedBy());
                 }
             }
 
@@ -282,7 +300,19 @@ public class ProjectRepositoryImpl implements ProjectRepository {
         if (project.getCompanyId() != null && !existsCompanyById(project.getCompanyId())) {
             throw new ValidationException("Company ID " + project.getCompanyId() + " does not exist");
         }
-        
+
+        if (project.getResponsibleUser() != null && !existsUserById(project.getResponsibleUser())) {
+            throw new ValidationException("Responsible user ID " + project.getResponsibleUser() + " does not exist");
+        }
+
+        if (project.getDataSourceId() != null && !existsDataSourceById(project.getDataSourceId())) {
+            throw new ValidationException("Data source ID " + project.getDataSourceId() + " does not exist");
+        }
+
+        if (project.getCreatedBy() != null && !existsUserById(project.getCreatedBy())) {
+            throw new ValidationException("Created by user ID " + project.getCreatedBy() + " does not exist");
+        }
+
         final String sql = """
                 UPDATE projects
                 SET name = ?, description = ?, address = ?, city = ?, state = ?, country = ?,
@@ -322,9 +352,15 @@ public class ProjectRepositoryImpl implements ProjectRepository {
             if ("23503".equals(e.getSQLState())) {
                 if (e.getMessage().contains("company_id")) {
                     throw new ValidationException("Invalid company ID: " + project.getCompanyId());
+                } else if (e.getMessage().contains("responsible_user")) {
+                    throw new ValidationException("Invalid responsible user ID: " + project.getResponsibleUser());
+                } else if (e.getMessage().contains("data_source_id")) {
+                    throw new ValidationException("Invalid data source ID: " + project.getDataSourceId());
+                } else if (e.getMessage().contains("created_by")) {
+                    throw new ValidationException("Invalid created by user ID: " + project.getCreatedBy());
                 }
             }
-            
+
             throw new DatabaseException("Error updating project", e);
         }
     }
@@ -399,6 +435,40 @@ public class ProjectRepositoryImpl implements ProjectRepository {
         }
     }
 
+    public boolean existsUserById(UUID userId) {
+        final String sql = "SELECT 1 FROM users WHERE id = ? LIMIT 1";
+
+        try (Connection conn = getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setObject(1, userId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException("Error checking if user exists", e);
+        }
+    }
+
+    public boolean existsDataSourceById(UUID dataSourceId) {
+        final String sql = "SELECT 1 FROM data_sources WHERE id = ? LIMIT 1";
+
+        try (Connection conn = getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setObject(1, dataSourceId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException("Error checking if data source exists", e);
+        }
+    }
+
     @Override
     public String getConnectionPoolStats() {
         return poolManager.getPoolStats();
@@ -415,7 +485,7 @@ public class ProjectRepositoryImpl implements ProjectRepository {
         UUID responsibleUser = (UUID) rs.getObject("responsible_user");
         UUID dataSourceId = (UUID) rs.getObject("data_source_id");
         UUID createdBy = (UUID) rs.getObject("created_by");
-        
+
         return new Project.Builder()
                 .id(id)
                 .name(rs.getString("name"))
