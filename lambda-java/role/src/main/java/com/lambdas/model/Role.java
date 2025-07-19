@@ -9,13 +9,12 @@ import jakarta.validation.constraints.*;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.UUID;
 
 public class Role {
 
-    @JsonProperty("id_role")
-    @NotBlank(message = "Role ID cannot be blank")
-    @Size(max = 255, message = "Role ID cannot exceed 255 characters")
-    private String idRole;
+    @JsonProperty("id")
+    private UUID id;
 
     @JsonProperty("name")
     @NotBlank(message = "Role name cannot be blank")
@@ -23,54 +22,53 @@ public class Role {
     private String name;
 
     @JsonProperty("description")
-    @NotBlank(message = "Role description cannot be blank")
-    @Size(min = 1, max = 100, message = "Role description must be between 1 and 100 characters")
-    private String description;
+    @Size(max = 100, message = "Role description cannot exceed 100 characters")
+    private String description; 
 
-    @JsonProperty("createdAt")
+    @JsonProperty("status")
+    @NotNull(message = "Status cannot be null")
+    private RoleStatus status;
+
+    @JsonProperty("created_at")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @NotNull(message = "Created at cannot be null")
     private LocalDateTime createdAt;
 
-    @JsonProperty("updatedAt")
+    @JsonProperty("updated_at")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @NotNull(message = "Updated at cannot be null")
     private LocalDateTime updatedAt;
-
-    @JsonProperty("status")
-    @NotNull(message = "Status cannot be null")
-    private RoleStatus status;
 
     // Default constructor
     public Role() {
         LocalDateTime now = LocalDateTime.now();
         this.createdAt = now;
         this.updatedAt = now;
-        this.status = RoleStatus.ACTIVE;
     }
 
     // Constructor for existing roles (when loading from database)
-    public Role(String idRole, String name, String description, LocalDateTime createdAt, 
-                LocalDateTime updatedAt, RoleStatus status) {
-        this.idRole = idRole;
+    public Role(UUID id, String name, String description, RoleStatus status,
+                LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
         this.name = name;
         this.description = description;
+        this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-        this.status = status;
     }
 
     // Builder pattern
     public static class Builder {
-        private String idRole, name, description;
-        private LocalDateTime createdAt, updatedAt;
+        private UUID id;
+        private String name, description;
         private RoleStatus status;
+        private LocalDateTime createdAt, updatedAt;
         private boolean isNewEntity = true;
 
-        public Builder idRole(String idRole) {
-            this.idRole = idRole;
+        public Builder id(UUID id) {
+            this.id = id;
             return this;
         }
 
@@ -81,6 +79,11 @@ public class Role {
 
         public Builder description(String description) {
             this.description = description;
+            return this;
+        }
+
+        public Builder status(RoleStatus status) {
+            this.status = status;
             return this;
         }
 
@@ -95,11 +98,6 @@ public class Role {
             return this;
         }
 
-        public Builder status(RoleStatus status) {
-            this.status = status;
-            return this;
-        }
-
         public Builder fromDatabase() {
             this.isNewEntity = false;
             return this;
@@ -107,10 +105,10 @@ public class Role {
 
         public Role build() {
             Role role = new Role();
-            role.idRole = this.idRole;
+            role.id = this.id != null ? this.id : UUID.randomUUID();
             role.name = this.name;
             role.description = this.description;
-            role.status = this.status != null ? this.status : RoleStatus.ACTIVE;
+            role.status = this.status;
 
             LocalDateTime now = LocalDateTime.now();
             
@@ -141,15 +139,13 @@ public class Role {
     }
 
     public boolean hasRequiredFields() {
-        return idRole != null && !idRole.trim().isEmpty() &&
-               name != null && !name.trim().isEmpty() &&
-               description != null && !description.trim().isEmpty();
+        return name != null && !name.trim().isEmpty() &&
+               status != null;
     }
 
     public boolean isValidFieldLengths() {
-        return (idRole == null || idRole.length() <= 255) &&
-               (name == null || (name.length() >= 1 && name.length() <= 50)) &&
-               (description == null || (description.length() >= 1 && description.length() <= 100));
+        return (name == null || (name.length() >= 1 && name.length() <= 50)) &&
+               (description == null || description.length() <= 100);
     }
 
     public boolean isValidName(String name) {
@@ -157,7 +153,7 @@ public class Role {
     }
 
     public boolean isValidDescription(String description) {
-        return description != null && !description.trim().isEmpty() && description.length() <= 100;
+        return description == null || description.length() <= 100;
     }
 
     private void updateTimestamp() {
@@ -165,13 +161,13 @@ public class Role {
     }
 
     // Getters y Setters
-    public String getIdRole() {
-        return idRole;
+    public UUID getId() {
+        return id;
     }
 
-    public void setIdRole(String idRole) {
-        if (!Objects.equals(this.idRole, idRole)) {
-            this.idRole = idRole;
+    public void setId(UUID id) {
+        if (!Objects.equals(this.id, id)) {
+            this.id = id;
             updateTimestamp();
         }
     }
@@ -198,6 +194,17 @@ public class Role {
         }
     }
 
+    public RoleStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(RoleStatus status) {
+        if (!Objects.equals(this.status, status)) {
+            this.status = status;
+            updateTimestamp();
+        }
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -216,17 +223,6 @@ public class Role {
         this.updatedAt = updatedAt;
     }
 
-    public RoleStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(RoleStatus status) {
-        if (!Objects.equals(this.status, status)) {
-            this.status = status;
-            updateTimestamp();
-        }
-    }
-
     public void touch() {
         updateTimestamp();
     }
@@ -238,18 +234,18 @@ public class Role {
         if (o == null || getClass() != o.getClass())
             return false;
         Role role = (Role) o;
-        return Objects.equals(idRole, role.idRole);
+        return Objects.equals(id, role.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(idRole);
+        return Objects.hash(id);
     }
 
     @Override
     public String toString() {
         return "Role{" +
-                "idRole='" + idRole + '\'' +
+                "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", status=" + status +

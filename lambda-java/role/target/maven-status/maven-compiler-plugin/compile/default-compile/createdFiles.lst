@@ -5,13 +5,11 @@ com\lambdas\handler\UpdateRoleHandler.class
 com\lambdas\dto\request\UpdateRoleRequestDTO.class
 com\lambdas\service\RoleService.class
 com\lambdas\dto\request\CreateRoleRequestDTO.class
-com\lambdas\validation\validators\RoleStatusValidator.class
 com\lambdas\handler\CreateRoleHandler.class
 com\lambdas\model\RoleStatus.class
 com\lambdas\handler\DeleteRoleHandler.class
 com\lambdas\handler\GetRoleHandler.class
 com\lambdas\service\impl\RoleServiceImpl.class
-com\lambdas\validation\annotations\RoleStatusValid.class
 com\lambdas\handler\GetRoleByIdHandler.class
 com\lambdas\repository\impl\RoleRepositoryImpl.class
 com\lambdas\dto\response\DeleteRoleResponseDTO.class

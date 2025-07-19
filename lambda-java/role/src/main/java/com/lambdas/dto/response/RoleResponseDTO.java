@@ -7,17 +7,21 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class RoleResponseDTO {
 
-    @JsonProperty("id_role")
-    private String idRole;
+    @JsonProperty("id")
+    private UUID id;
 
     @JsonProperty("name")
     private String name;
 
     @JsonProperty("description")
     private String description;
+
+    @JsonProperty("status")
+    private String status;
 
     @JsonProperty("createdAt")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
@@ -29,21 +33,18 @@ public class RoleResponseDTO {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime updatedAt;
 
-    @JsonProperty("status")
-    private String status; 
-
     // Default constructor
     public RoleResponseDTO() {
     }
 
     // Builder pattern
     public static class Builder {
-        private String idRole, name, description;
+        private UUID id;
+        private String name, description, status;
         private LocalDateTime createdAt, updatedAt;
-        private String status; 
 
-        public Builder idRole(String idRole) {
-            this.idRole = idRole;
+        public Builder id(UUID id) {
+            this.id = id;
             return this;
         }
 
@@ -57,6 +58,11 @@ public class RoleResponseDTO {
             return this;
         }
 
+        public Builder status(String status) {
+            this.status = status;
+            return this;
+        }
+
         public Builder createdAt(LocalDateTime createdAt) {
             this.createdAt = createdAt;
             return this;
@@ -67,34 +73,25 @@ public class RoleResponseDTO {
             return this;
         }
 
-        public Builder status(String status) {
-            this.status = status;
-            return this;
-        }
-
         public RoleResponseDTO build() {
             RoleResponseDTO dto = new RoleResponseDTO();
-            dto.idRole = this.idRole;
+            dto.id = this.id;
             dto.name = this.name;
             dto.description = this.description;
+            dto.status = this.status;
             dto.createdAt = this.createdAt;
             dto.updatedAt = this.updatedAt;
-            dto.status = this.status;
             return dto;
         }
     }
 
-    public static Builder builder() {
-        return new Builder();
-    }
-
     // Getters and Setters
-    public String getIdRole() {
-        return idRole;
+    public UUID getId() {
+        return id;
     }
 
-    public void setIdRole(String idRole) {
-        this.idRole = idRole;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -113,6 +110,14 @@ public class RoleResponseDTO {
         this.description = description;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -129,18 +134,10 @@ public class RoleResponseDTO {
         this.updatedAt = updatedAt;
     }
 
-    public String getStatus() { 
-        return status;
-    }
-
-    public void setStatus(String status) { 
-        this.status = status;
-    }
-
     @Override
     public String toString() {
         return "RoleResponseDTO{" +
-                "idRole='" + idRole + '\'' +
+                "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", status='" + status + '\'' +

@@ -28,7 +28,7 @@ public class CreateRoleHandler implements RequestHandler<APIGatewayProxyRequestE
     private static final Logger logger = LoggingHelper.getLogger(CreateRoleHandler.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new JavaTimeModule());
-
+    
     private final RoleService roleService;
 
     public CreateRoleHandler() {
@@ -44,29 +44,24 @@ public class CreateRoleHandler implements RequestHandler<APIGatewayProxyRequestE
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         String requestId = context.getAwsRequestId();
         LoggingHelper.initializeRequestContext(requestId);
-
+        
         try {
-            LoggingHelper.logProcessStart(logger, "role creation");
-
             if (input.getBody() == null || input.getBody().trim().isEmpty()) {
-                LoggingHelper.logEmptyRequestBody(logger);
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Request body is required");
             }
-
+            
             CreateRoleRequestDTO requestDTO = OBJECT_MAPPER.readValue(input.getBody(), CreateRoleRequestDTO.class);
-
+            
             ValidationHelper.validateAndThrow(requestDTO, ValidationGroups.Create.class);
-
+            
             Role role = DTOMapper.toRole(requestDTO);
-
+            
             Role createdRole = roleService.createRole(role);
-
-            LoggingHelper.logSuccess(logger, "Role creation", createdRole.getIdRole());
-
-            RoleResponseDTO responseDTO = DTOMapper.toRoleResponseDTO(createdRole);
-
+            
+            RoleResponseDTO responseDTO = DTOMapper.toResponseDTO(createdRole);
+            
             return ResponseUtil.createResponse(HttpStatus.CREATED, responseDTO);
-
+            
         } catch (JsonProcessingException e) {
             LoggingHelper.logJsonParsingError(logger, e.getMessage());
             return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Invalid JSON format");

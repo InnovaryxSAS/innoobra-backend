@@ -1,9 +1,11 @@
 package com.lambdas.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.lambdas.validation.annotations.RoleStatusValid;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.lambdas.validation.annotations.StatusValid;
 import jakarta.validation.constraints.*;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UpdateRoleRequestDTO {
 
     @JsonProperty("name")
@@ -11,18 +13,27 @@ public class UpdateRoleRequestDTO {
     private String name;
 
     @JsonProperty("description")
-    @Size(min = 1, max = 100, message = "Role description must be between 1 and 100 characters")
+    @Size(max = 100, message = "Role description cannot exceed 100 characters")
     private String description;
 
     @JsonProperty("status")
-    @RoleStatusValid
+    @StatusValid
     private String status;
 
     // Default constructor
     public UpdateRoleRequestDTO() {
     }
 
+    // Constructor para debugging
+    public UpdateRoleRequestDTO( String name, String description, String status) {
+
+        this.name = name;
+        this.description = description;
+        this.status = status;
+    }
+
     // Getters and Setters
+
     public String getName() {
         return name;
     }
@@ -50,7 +61,7 @@ public class UpdateRoleRequestDTO {
     @Override
     public String toString() {
         return "UpdateRoleRequestDTO{" +
-                "name='" + name + '\'' +
+                ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", status='" + status + '\'' +
                 '}';

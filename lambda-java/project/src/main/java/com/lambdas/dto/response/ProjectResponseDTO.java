@@ -51,9 +51,6 @@ public class ProjectResponseDTO {
     @JsonProperty("budgetAmount")
     private BigDecimal budgetAmount;
 
-    @JsonProperty("inventory")
-    private String inventory;
-
     @JsonProperty("createdAt")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
@@ -71,7 +68,7 @@ public class ProjectResponseDTO {
     // Builder pattern
     public static class Builder {
         private UUID id;
-        private String name, description, address, city, state, country, status, inventory;
+        private String name, description, address, city, state, country, status;
         private UUID responsibleUser, dataSourceId, companyId, createdBy;
         private BigDecimal budgetAmount;
         private LocalDateTime createdAt, updatedAt;
@@ -141,11 +138,6 @@ public class ProjectResponseDTO {
             return this;
         }
 
-        public Builder inventory(String inventory) {
-            this.inventory = inventory;
-            return this;
-        }
-
         public Builder createdAt(LocalDateTime createdAt) {
             this.createdAt = createdAt;
             return this;
@@ -171,7 +163,6 @@ public class ProjectResponseDTO {
             dto.companyId = this.companyId;
             dto.createdBy = this.createdBy;
             dto.budgetAmount = this.budgetAmount;
-            dto.inventory = this.inventory;
             dto.createdAt = this.createdAt;
             dto.updatedAt = this.updatedAt;
             return dto;
@@ -285,14 +276,6 @@ public class ProjectResponseDTO {
 
     public void setBudgetAmount(BigDecimal budgetAmount) {
         this.budgetAmount = budgetAmount;
-    }
-
-    public String getInventory() {
-        return inventory;
-    }
-
-    public void setInventory(String inventory) {
-        this.inventory = inventory;
     }
 
     public LocalDateTime getCreatedAt() {

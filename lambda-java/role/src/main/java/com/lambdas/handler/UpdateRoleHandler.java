@@ -25,6 +25,7 @@ import com.lambdas.validation.groups.ValidationGroups;
 import org.slf4j.Logger;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public class UpdateRoleHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
@@ -49,40 +50,45 @@ public class UpdateRoleHandler implements RequestHandler<APIGatewayProxyRequestE
         LoggingHelper.initializeRequestContext(requestId);
 
         try {
-            String roleId = input.getPathParameters().get("id");
-            if (roleId == null || roleId.trim().isEmpty()) {
-                LoggingHelper.logMissingParameter(logger, "Role ID");
+            String roleIdStr = null;
+            if (input.getPathParameters() != null) {
+                roleIdStr = input.getPathParameters().get("id");
+            }
+            
+            if (roleIdStr == null || roleIdStr.trim().isEmpty()) {
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Role ID is required");
             }
 
-            LoggingHelper.addUserId(roleId); // Agregamos el roleId al contexto de logging
-            LoggingHelper.logProcessStart(logger, "role update");
+            LoggingHelper.addUserId(roleIdStr);
+
+            UUID roleId;
+            try {
+                roleId = UUID.fromString(roleIdStr);
+            } catch (IllegalArgumentException e) {
+                LoggingHelper.logValidationError(logger, "Invalid UUID format: " + roleIdStr);
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Invalid role ID format");
+            }
 
             if (input.getBody() == null || input.getBody().trim().isEmpty()) {
-                LoggingHelper.logEmptyRequestBody(logger);
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Request body is required");
             }
 
-            UpdateRoleRequestDTO requestDTO = OBJECT_MAPPER.readValue(input.getBody(), UpdateRoleRequestDTO.class);
+            UpdateRoleRequestDTO requestDTO = OBJECT_MAPPER.readValue(input.getBody(),
+                    UpdateRoleRequestDTO.class);
 
             ValidationHelper.validateAndThrow(requestDTO, ValidationGroups.Update.class);
 
             Optional<Role> existingRoleOpt = roleService.getRoleById(roleId);
             if (!existingRoleOpt.isPresent()) {
-                LoggingHelper.logEntityNotFound(logger, "Role", roleId);
+                LoggingHelper.logEntityNotFound(logger, "Role", roleIdStr);
                 return ResponseUtil.createErrorResponse(HttpStatus.NOT_FOUND, "Role not found");
             }
 
             Role existingRole = existingRoleOpt.get();
-
             Role updatedRole = DTOMapper.updateRoleFromDTO(existingRole, requestDTO);
-
             Role savedRole = roleService.updateRole(updatedRole);
 
-            LoggingHelper.logSuccess(logger, "Role update", roleId);
-
-            RoleResponseDTO responseDTO = DTOMapper.toRoleResponseDTO(savedRole);
-
+            RoleResponseDTO responseDTO = DTOMapper.toResponseDTO(savedRole);
             return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
 
         } catch (JsonProcessingException e) {
@@ -110,12 +116,12 @@ public class UpdateRoleHandler implements RequestHandler<APIGatewayProxyRequestE
         try {
             ConnectionPoolManager poolManager = ConnectionPoolManager.getInstance();
             if (!poolManager.isHealthy()) {
-                LoggingHelper.logConnectionPoolError(logger,
-                        poolManager.getPoolStats().toString(), false);
+                LoggingHelper.logConnectionPoolError(logger, 
+                    poolManager.getPoolStats().toString(), false);
             }
         } catch (Exception e) {
-            LoggingHelper.logConnectionPoolWarning(logger,
-                    "Connection pool health check failed: " + e.getMessage());
+            LoggingHelper.logConnectionPoolWarning(logger, 
+                "Connection pool health check failed: " + e.getMessage());
         }
     }
 }

@@ -5,7 +5,6 @@ C:\Users\yurge\Documents\JOBS\INNOVARYX\Trabajo actual\Programating\innoobra-bac
 C:\Users\yurge\Documents\JOBS\INNOVARYX\Trabajo actual\Programating\innoobra-backend\lambda-java\role\src\main\java\com\lambdas\service\impl\RoleServiceImpl.java
 C:\Users\yurge\Documents\JOBS\INNOVARYX\Trabajo actual\Programating\innoobra-backend\lambda-java\role\src\main\java\com\lambdas\handler\UpdateRoleHandler.java
 C:\Users\yurge\Documents\JOBS\INNOVARYX\Trabajo actual\Programating\innoobra-backend\lambda-java\role\src\main\java\com\lambdas\handler\GetRoleByIdHandler.java
-C:\Users\yurge\Documents\JOBS\INNOVARYX\Trabajo actual\Programating\innoobra-backend\lambda-java\role\src\main\java\com\lambdas\validation\annotations\RoleStatusValid.java
 C:\Users\yurge\Documents\JOBS\INNOVARYX\Trabajo actual\Programating\innoobra-backend\lambda-java\role\src\main\java\com\lambdas\handler\CreateRoleHandler.java
 C:\Users\yurge\Documents\JOBS\INNOVARYX\Trabajo actual\Programating\innoobra-backend\lambda-java\role\src\main\java\com\lambdas\handler\GetRoleHandler.java
 C:\Users\yurge\Documents\JOBS\INNOVARYX\Trabajo actual\Programating\innoobra-backend\lambda-java\role\src\main\java\com\lambdas\model\Role.java
@@ -14,7 +13,6 @@ C:\Users\yurge\Documents\JOBS\INNOVARYX\Trabajo actual\Programating\innoobra-bac
 C:\Users\yurge\Documents\JOBS\INNOVARYX\Trabajo actual\Programating\innoobra-backend\lambda-java\role\src\main\java\com\lambdas\mapper\DTOMapper.java
 C:\Users\yurge\Documents\JOBS\INNOVARYX\Trabajo actual\Programating\innoobra-backend\lambda-java\role\src\main\java\com\lambdas\service\RoleService.java
 C:\Users\yurge\Documents\JOBS\INNOVARYX\Trabajo actual\Programating\innoobra-backend\lambda-java\role\src\main\java\com\lambdas\handler\DeleteRoleHandler.java
-C:\Users\yurge\Documents\JOBS\INNOVARYX\Trabajo actual\Programating\innoobra-backend\lambda-java\role\src\main\java\com\lambdas\validation\validators\RoleStatusValidator.java
 C:\Users\yurge\Documents\JOBS\INNOVARYX\Trabajo actual\Programating\innoobra-backend\lambda-java\role\src\main\java\com\lambdas\model\RoleStatus.java
 C:\Users\yurge\Documents\JOBS\INNOVARYX\Trabajo actual\Programating\innoobra-backend\lambda-java\role\src\main\java\com\lambdas\repository\RoleRepository.java
 C:\Users\yurge\Documents\JOBS\INNOVARYX\Trabajo actual\Programating\innoobra-backend\lambda-java\role\src\main\java\com\lambdas\dto\response\RoleResponseDTO.java

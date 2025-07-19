@@ -38,14 +38,8 @@ public class GetRoleHandler implements RequestHandler<APIGatewayProxyRequestEven
         LoggingHelper.initializeRequestContext(requestId);
 
         try {
-            LoggingHelper.logProcessStart(logger, "roles retrieval");
-
             List<Role> roles = roleService.getAllRoles();
-
-            LoggingHelper.logSuccessWithCount(logger, "Roles retrieval", roles.size());
-
-            List<RoleResponseDTO> responseDTOs = DTOMapper.toRoleResponseDTOList(roles);
-
+            List<RoleResponseDTO> responseDTOs = DTOMapper.toResponseDTOList(roles);
             return ResponseUtil.createResponse(HttpStatus.OK, responseDTOs);
 
         } catch (DatabaseException e) {

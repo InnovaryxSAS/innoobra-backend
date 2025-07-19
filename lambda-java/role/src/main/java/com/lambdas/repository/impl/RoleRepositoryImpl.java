@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import com.lambdas.exception.RoleAlreadyExistsException;
 import com.lambdas.exception.RoleNotFoundException;
@@ -14,7 +15,7 @@ import com.lambdas.model.RoleStatus;
 import com.lambdas.repository.RoleRepository;
 import com.lambdas.repository.ConnectionPoolManager;
 
-public class RoleRepositoryImpl implements RoleRepository{
+public class RoleRepositoryImpl implements RoleRepository {
 
     private final ConnectionPoolManager poolManager;
 
@@ -33,8 +34,8 @@ public class RoleRepositoryImpl implements RoleRepository{
     @Override
     public Role save(Role role) {
         final String sql = """
-                INSERT INTO roles (id_role, name, description, created_at, updated_at, status)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO roles (id, name, description, created_at, updated_at, status)
+                VALUES (?, ?, ?, ?, ?, ?::status_enum)
                 """;
 
         try (Connection conn = getConnection();
@@ -50,7 +51,12 @@ public class RoleRepositoryImpl implements RoleRepository{
                 role.setStatus(RoleStatus.ACTIVE);
             }
 
-            setRoleParameters(stmt, role);
+            stmt.setObject(1, role.getId());
+            stmt.setString(2, role.getName());
+            stmt.setString(3, role.getDescription());
+            stmt.setTimestamp(4, Timestamp.valueOf(role.getCreatedAt()));
+            stmt.setTimestamp(5, Timestamp.valueOf(role.getUpdatedAt()));
+            stmt.setString(6, role.getStatus().getValue());
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
@@ -63,7 +69,7 @@ public class RoleRepositoryImpl implements RoleRepository{
             e.printStackTrace(); 
 
             if ("23505".equals(e.getSQLState())) {
-                throw new RoleAlreadyExistsException("Role with ID " + role.getIdRole() + " already exists");
+                throw new RoleAlreadyExistsException("Role with ID " + role.getId() + " already exists");
             }
 
             throw new DatabaseException("Error creating role: " + e.getMessage(), e);
@@ -71,17 +77,17 @@ public class RoleRepositoryImpl implements RoleRepository{
     }
 
     @Override
-    public Optional<Role> findById(String idRole) {
+    public Optional<Role> findById(UUID id) {
         final String sql = """
-                SELECT id_role, name, description, created_at, updated_at, status
+                SELECT id, name, description, created_at, updated_at, status
                 FROM roles
-                WHERE id_role = ?
+                WHERE id = ?
                 """;
 
         try (Connection conn = getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, idRole);
+            stmt.setObject(1, id);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -98,7 +104,7 @@ public class RoleRepositoryImpl implements RoleRepository{
     @Override
     public List<Role> findAll() {
         final String sql = """
-                SELECT id_role, name, description, created_at, updated_at, status
+                SELECT id, name, description, created_at, updated_at, status
                 FROM roles
                 ORDER BY created_at DESC
                 """;
@@ -123,9 +129,9 @@ public class RoleRepositoryImpl implements RoleRepository{
     @Override
     public List<Role> findByStatus(RoleStatus status) {
         final String sql = """
-                SELECT id_role, name, description, created_at, updated_at, status
+                SELECT id, name, description, created_at, updated_at, status
                 FROM roles
-                WHERE status = ?
+                WHERE status = ?::status_enum
                 ORDER BY created_at DESC
                 """;
 
@@ -152,7 +158,7 @@ public class RoleRepositoryImpl implements RoleRepository{
     @Override
     public List<Role> findByName(String name) {
         final String sql = """
-                SELECT id_role, name, description, created_at, updated_at, status
+                SELECT id, name, description, created_at, updated_at, status
                 FROM roles
                 WHERE name ILIKE ?
                 ORDER BY created_at DESC
@@ -182,8 +188,8 @@ public class RoleRepositoryImpl implements RoleRepository{
     public Role update(Role role) {
         final String sql = """
                 UPDATE roles
-                SET name = ?, description = ?, updated_at = ?, status = ?::role_status
-                WHERE id_role = ?
+                SET name = ?, description = ?, updated_at = ?, status = ?::status_enum
+                WHERE id = ?
                 """;
 
         try (Connection conn = getConnection();
@@ -195,11 +201,11 @@ public class RoleRepositoryImpl implements RoleRepository{
             stmt.setString(2, role.getDescription());
             stmt.setTimestamp(3, Timestamp.valueOf(role.getUpdatedAt()));
             stmt.setString(4, role.getStatus().getValue());
-            stmt.setString(5, role.getIdRole());
+            stmt.setObject(5, role.getId());
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
-                throw new RoleNotFoundException("Role with ID " + role.getIdRole() + " not found");
+                throw new RoleNotFoundException("Role with ID " + role.getId() + " not found");
             }
 
             return role;
@@ -210,11 +216,11 @@ public class RoleRepositoryImpl implements RoleRepository{
     }
 
     @Override
-    public boolean deactivate(String idRole) {
+    public boolean deactivate(UUID id) {
         final String sql = """
                 UPDATE roles
-                SET status = CAST(? AS role_status), updated_at = ?
-                WHERE id_role = ? AND status != CAST(? AS role_status)
+                SET status = ?::status_enum, updated_at = ?
+                WHERE id = ? AND status != ?::status_enum
                 """;
 
         try (Connection conn = getConnection();
@@ -225,15 +231,15 @@ public class RoleRepositoryImpl implements RoleRepository{
 
             stmt.setString(1, inactiveStatus);
             stmt.setTimestamp(2, Timestamp.valueOf(now));
-            stmt.setString(3, idRole);
+            stmt.setObject(3, id);
             stmt.setString(4, inactiveStatus);
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
-                if (!existsById(idRole)) {
-                    throw new RoleNotFoundException("Role with ID " + idRole + " not found");
+                if (!existsById(id)) {
+                    throw new RoleNotFoundException("Role with ID " + id + " not found");
                 } else {
-                    throw new RoleNotFoundException("Role with ID " + idRole + " is already inactive");
+                    throw new RoleNotFoundException("Role with ID " + id + " is already inactive");
                 }
             }
 
@@ -244,51 +250,14 @@ public class RoleRepositoryImpl implements RoleRepository{
         }
     }
 
-
-    public long count() {
-        final String sql = "SELECT COUNT(*) FROM roles";
-        
-        try (Connection conn = getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery()) {
-            
-            if (rs.next()) {
-                return rs.getLong(1);
-            }
-            return 0;
-            
-        } catch (SQLException e) {
-            throw new DatabaseException("Error counting roles", e);
-        }
-    }
-
-    public long countByStatus(RoleStatus status) {
-        final String sql = "SELECT COUNT(*) FROM roles WHERE status = ?";
-        
-        try (Connection conn = getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setString(1, status.getValue());
-            
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getLong(1);
-                }
-                return 0;
-            }
-            
-        } catch (SQLException e) {
-            throw new DatabaseException("Error counting roles by status", e);
-        }
-    }
-
-    public boolean existsById(String idRole) {
-        final String sql = "SELECT 1 FROM roles WHERE id_role = ? LIMIT 1";
+    @Override
+    public boolean existsById(UUID id) {
+        final String sql = "SELECT 1 FROM roles WHERE id = ? LIMIT 1";
 
         try (Connection conn = getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, idRole);
+            stmt.setObject(1, id);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();
@@ -316,26 +285,58 @@ public class RoleRepositoryImpl implements RoleRepository{
         }
     }
 
+    public long count() {
+        final String sql = "SELECT COUNT(*) FROM roles";
+        
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()) {
+            
+            if (rs.next()) {
+                return rs.getLong(1);
+            }
+            return 0;
+            
+        } catch (SQLException e) {
+            throw new DatabaseException("Error counting roles", e);
+        }
+    }
+
+    public long countByStatus(RoleStatus status) {
+        final String sql = "SELECT COUNT(*) FROM roles WHERE status = ?::status_enum";
+        
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, status.getValue());
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getLong(1);
+                }
+                return 0;
+            }
+            
+        } catch (SQLException e) {
+            throw new DatabaseException("Error counting roles by status", e);
+        }
+    }
+
+    @Override
     public String getConnectionPoolStats() {
         return poolManager.getPoolStats();
     }
 
+    @Override
     public boolean isHealthy() {
         return poolManager.isHealthy();
     }
 
-    private void setRoleParameters(PreparedStatement stmt, Role role) throws SQLException {
-        stmt.setString(1, role.getIdRole());
-        stmt.setString(2, role.getName());
-        stmt.setString(3, role.getDescription());
-        stmt.setTimestamp(4, Timestamp.valueOf(role.getCreatedAt()));
-        stmt.setTimestamp(5, Timestamp.valueOf(role.getUpdatedAt()));
-        stmt.setObject(6, role.getStatus().getValue(), java.sql.Types.OTHER);
-    }
-
     private Role mapResultSetToRole(ResultSet rs) throws SQLException {
+        UUID id = (UUID) rs.getObject("id");
+        
         return new Role.Builder()
-                .idRole(rs.getString("id_role"))
+                .id(id)
                 .name(rs.getString("name"))
                 .description(rs.getString("description"))
                 .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
