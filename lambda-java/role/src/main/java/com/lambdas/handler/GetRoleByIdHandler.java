@@ -16,6 +16,7 @@ import com.lambdas.util.ResponseUtil;
 import org.slf4j.Logger;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public class GetRoleByIdHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
@@ -38,26 +39,30 @@ public class GetRoleByIdHandler implements RequestHandler<APIGatewayProxyRequest
         LoggingHelper.initializeRequestContext(requestId);
 
         try {
-            LoggingHelper.logProcessStart(logger, "role retrieval by ID");
-
-            String roleId = input.getPathParameters().get("id");
-            if (roleId == null || roleId.trim().isEmpty()) {
-                LoggingHelper.logMissingParameter(logger, "Role ID");
+            if (input.getPathParameters() == null) {
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Role ID is required");
             }
 
-            LoggingHelper.addUserId(roleId); // Agregamos el roleId al contexto de logging
+            String roleIdStr = input.getPathParameters().get("id");
+            if (roleIdStr == null || roleIdStr.trim().isEmpty()) {
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Role ID is required");
+            }
+
+            LoggingHelper.addUserId(roleIdStr);
+
+            UUID roleId;
+            try {
+                roleId = UUID.fromString(roleIdStr);
+            } catch (IllegalArgumentException e) {
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Invalid role ID format");
+            }
 
             Optional<Role> roleOpt = roleService.getRoleById(roleId);
 
             if (roleOpt.isPresent()) {
-                LoggingHelper.logSuccess(logger, "Role retrieval", roleId);
-
-                RoleResponseDTO responseDTO = DTOMapper.toRoleResponseDTO(roleOpt.get());
-
+                RoleResponseDTO responseDTO = DTOMapper.toResponseDTO(roleOpt.get());
                 return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
             } else {
-                LoggingHelper.logEntityNotFound(logger, "Role", roleId);
                 return ResponseUtil.createErrorResponse(HttpStatus.NOT_FOUND, "Role not found");
             }
 

@@ -14,6 +14,8 @@ import com.lambdas.util.LoggingHelper;
 import com.lambdas.util.ResponseUtil;
 import org.slf4j.Logger;
 
+import java.util.UUID;
+
 public class DeleteRoleHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
     private static final Logger logger = LoggingHelper.getLogger(DeleteRoleHandler.class);
@@ -35,34 +37,34 @@ public class DeleteRoleHandler implements RequestHandler<APIGatewayProxyRequestE
         LoggingHelper.initializeRequestContext(requestId);
 
         try {
-            LoggingHelper.logProcessStart(logger, "role deletion");
-
-            String roleId = input.getPathParameters().get("id");
-            if (roleId == null || roleId.trim().isEmpty()) {
-                LoggingHelper.logMissingParameter(logger, "Role ID");
+            String roleIdStr = input.getPathParameters().get("id");
+            if (roleIdStr == null || roleIdStr.trim().isEmpty()) {
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Role ID is required");
             }
+            
+            LoggingHelper.addUserId(roleIdStr);
 
-            LoggingHelper.addUserId(roleId); // Agregamos el roleId al contexto de logging
+            UUID roleId;
+            try {
+                roleId = UUID.fromString(roleIdStr);
+            } catch (IllegalArgumentException e) {
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Invalid role ID format");
+            }
 
             boolean deleted = roleService.deactivateRole(roleId);
 
             if (deleted) {
-                LoggingHelper.logSuccess(logger, "Role deletion", roleId);
-
                 DeleteRoleResponseDTO responseDTO = new DeleteRoleResponseDTO.Builder()
                         .message("Role successfully deleted")
-                        .roleId(roleId)
+                        .roleId(roleIdStr)
                         .success(true)
                         .build();
 
                 return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
             } else {
-                LoggingHelper.logEntityNotFound(logger, "Role", roleId);
-
                 DeleteRoleResponseDTO responseDTO = new DeleteRoleResponseDTO.Builder()
                         .message("Role not found")
-                        .roleId(roleId)
+                        .roleId(roleIdStr)
                         .success(false)
                         .build();
 

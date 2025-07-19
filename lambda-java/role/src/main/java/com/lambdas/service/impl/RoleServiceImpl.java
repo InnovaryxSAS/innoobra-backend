@@ -2,6 +2,7 @@ package com.lambdas.service.impl;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import com.lambdas.model.Role;
 import com.lambdas.model.RoleStatus;
@@ -34,8 +35,18 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public Optional<Role> getRoleById(String id) {
+    public Optional<Role> getRoleById(UUID id) { 
         return repository.findById(id);
+    }
+    
+    @Override
+    public Optional<Role> getRoleById(String id) {
+        try {
+            UUID uuid = UUID.fromString(id);
+            return repository.findById(uuid);
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -45,7 +56,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public boolean deleteRole(String id) {
+    public boolean deleteRole(UUID id) {
         return repository.deactivate(id);
     }
 
@@ -60,8 +71,18 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public boolean deactivateRole(String id) {
+    public boolean deactivateRole(UUID id) {  
         return repository.deactivate(id);
+    }
+    
+    @Override
+    public boolean deactivateRole(String id) {
+        try {
+            UUID uuid = UUID.fromString(id);
+            return repository.deactivate(uuid);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 
     @Override
@@ -75,7 +96,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public boolean existsRoleById(String id) {
+    public boolean existsRoleById(UUID id) {  
         return repository.existsById(id);
     }
 

@@ -5,12 +5,13 @@ import com.lambdas.model.RoleStatus;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface RoleRepository {
 
     Role save(Role role);
 
-    Optional<Role> findById(String idRole);
+    Optional<Role> findById(UUID id);
 
     List<Role> findAll();
 
@@ -20,15 +21,15 @@ public interface RoleRepository {
 
     Role update(Role role);
 
-    boolean deactivate(String idRole);
+    boolean deactivate(UUID id);
+
+    boolean existsById(UUID id);
+
+    boolean existsByName(String name);
 
     long count();
 
     long countByStatus(RoleStatus status);
-
-    boolean existsById(String idRole);
-
-    boolean existsByName(String name);
 
     String getConnectionPoolStats();
 

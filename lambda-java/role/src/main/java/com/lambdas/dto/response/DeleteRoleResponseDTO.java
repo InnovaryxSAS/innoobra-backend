@@ -1,6 +1,12 @@
 package com.lambdas.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+
+import java.time.LocalDateTime;
 
 public class DeleteRoleResponseDTO {
 
@@ -13,8 +19,14 @@ public class DeleteRoleResponseDTO {
     @JsonProperty("success")
     private boolean success;
 
+    @JsonProperty("timestamp")
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    private LocalDateTime timestamp;
+
     // Default constructor
     public DeleteRoleResponseDTO() {
+        this.timestamp = LocalDateTime.now();
     }
 
     // Constructor with parameters
@@ -22,6 +34,15 @@ public class DeleteRoleResponseDTO {
         this.message = message;
         this.roleId = roleId;
         this.success = success;
+        this.timestamp = LocalDateTime.now();
+    }
+
+    // Full constructor
+    public DeleteRoleResponseDTO(String message, String roleId, boolean success, LocalDateTime timestamp) {
+        this.message = message;
+        this.roleId = roleId;
+        this.success = success;
+        this.timestamp = timestamp;
     }
 
     // Builder pattern
@@ -29,6 +50,7 @@ public class DeleteRoleResponseDTO {
         private String message;
         private String roleId;
         private boolean success;
+        private LocalDateTime timestamp;
 
         public Builder message(String message) {
             this.message = message;
@@ -45,13 +67,36 @@ public class DeleteRoleResponseDTO {
             return this;
         }
 
+        public Builder timestamp(LocalDateTime timestamp) {
+            this.timestamp = timestamp;
+            return this;
+        }
+
         public DeleteRoleResponseDTO build() {
-            return new DeleteRoleResponseDTO(message, roleId, success);
+            DeleteRoleResponseDTO dto = new DeleteRoleResponseDTO();
+            dto.message = this.message;
+            dto.roleId = this.roleId;
+            dto.success = this.success;
+            dto.timestamp = this.timestamp != null ? this.timestamp : LocalDateTime.now();
+            return dto;
         }
     }
 
-    public static Builder builder() {
-        return new Builder();
+    // Factory methods for common responses
+    public static DeleteRoleResponseDTO success(String roleId, String message) {
+        return new Builder()
+                .roleId(roleId)
+                .message(message)
+                .success(true)
+                .build();
+    }
+
+    public static DeleteRoleResponseDTO error(String roleId, String message) {
+        return new Builder()
+                .roleId(roleId)
+                .message(message)
+                .success(false)
+                .build();
     }
 
     // Getters and Setters
@@ -79,12 +124,21 @@ public class DeleteRoleResponseDTO {
         this.success = success;
     }
 
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+
     @Override
     public String toString() {
         return "DeleteRoleResponseDTO{" +
                 "message='" + message + '\'' +
                 ", roleId='" + roleId + '\'' +
                 ", success=" + success +
+                ", timestamp=" + timestamp +
                 '}';
     }
 }

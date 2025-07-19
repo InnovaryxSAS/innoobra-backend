@@ -19,11 +19,10 @@ public class DTOMapper {
             throw new IllegalArgumentException("DTO cannot be null");
         }
 
-        return Role.builder()
-                .idRole(dto.getIdRole())
+        return new Role.Builder()
                 .name(dto.getName())
                 .description(dto.getDescription())
-                .status(RoleStatus.ACTIVE)
+                .status(dto.getStatus() != null ? RoleStatus.fromValue(dto.getStatus()) : RoleStatus.ACTIVE)
                 .build();
     }
 
@@ -32,8 +31,8 @@ public class DTOMapper {
             return existingRole;
         }
 
-        Role.Builder builder = Role.builder()
-                .idRole(existingRole.getIdRole())
+        Role.Builder builder = new Role.Builder()
+                .id(existingRole.getId())
                 .createdAt(existingRole.getCreatedAt())
                 .fromDatabase();
 
@@ -54,34 +53,28 @@ public class DTOMapper {
         return builder.build();
     }
 
-    public static RoleResponseDTO toRoleResponseDTO(Role role) {
+    public static RoleResponseDTO toResponseDTO(Role role) {
         if (role == null) {
             return null;
         }
 
-        // Fix: Extract the status value separately to avoid type confusion
-        String statusValue = null;
-        if (role.getStatus() != null) {
-            statusValue = role.getStatus().getValue();
-        }
-
-        return RoleResponseDTO.builder()
-                .idRole(role.getIdRole())
+        return new RoleResponseDTO.Builder()
+                .id(role.getId())
                 .name(role.getName())
                 .description(role.getDescription())
                 .createdAt(role.getCreatedAt())
                 .updatedAt(role.getUpdatedAt())
-                .status(statusValue)
+                .status(role.getStatus() != null ? role.getStatus().getValue() : null)
                 .build();
     }
 
-    public static List<RoleResponseDTO> toRoleResponseDTOList(List<Role> roles) {
+    public static List<RoleResponseDTO> toResponseDTOList(List<Role> roles) {
         if (roles == null) {
             return null;
         }
 
         return roles.stream()
-                .map(DTOMapper::toRoleResponseDTO)
+                .map(DTOMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
 }

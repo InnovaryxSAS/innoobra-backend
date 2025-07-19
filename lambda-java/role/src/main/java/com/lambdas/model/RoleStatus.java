@@ -3,10 +3,9 @@ package com.lambdas.model;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum RoleStatus {
-    ACTIVE("active"),
-    INACTIVE("inactive"),
-    PENDING("pending"),
-    SUSPENDED("suspended");
+    ACTIVE("ACTIVE"),
+    INACTIVE("INACTIVE"),
+    PENDING("PENDING");
 
     private final String value;
 

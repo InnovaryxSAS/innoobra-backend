@@ -1,17 +1,13 @@
 package com.lambdas.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.lambdas.validation.annotations.RoleStatusValid;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.lambdas.validation.annotations.StatusValid;
 import com.lambdas.validation.groups.ValidationGroups;
 import jakarta.validation.constraints.*;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CreateRoleRequestDTO {
-
-    @JsonProperty("id_role")
-    @NotBlank(message = "Role ID cannot be blank", groups = ValidationGroups.Create.class)
-    @Size(max = 255, message = "Role ID cannot exceed 255 characters")
-    @Pattern(regexp = "^[A-Za-z0-9]{1,255}$", message = "Role ID must contain only alphanumeric characters")
-    private String idRole;
 
     @JsonProperty("name")
     @NotBlank(message = "Role name cannot be blank", groups = ValidationGroups.Create.class)
@@ -19,26 +15,27 @@ public class CreateRoleRequestDTO {
     private String name;
 
     @JsonProperty("description")
-    @NotBlank(message = "Role description cannot be blank", groups = ValidationGroups.Create.class)
-    @Size(min = 1, max = 100, message = "Role description must be between 1 and 100 characters")
+    @Size(max = 100, message = "Role description cannot exceed 100 characters")
     private String description;
 
     @JsonProperty("status")
-    @RoleStatusValid
+    @StatusValid
     private String status = "active";
 
     // Default constructor
     public CreateRoleRequestDTO() {
     }
 
-    // Getters and Setters
-    public String getIdRole() {
-        return idRole;
+    // Constructor para debugging
+    public CreateRoleRequestDTO( String name, String description, String status) {
+
+        this.name = name;
+        this.description = description;
+        this.status = status;
     }
 
-    public void setIdRole(String idRole) {
-        this.idRole = idRole;
-    }
+    // Getters and Setters
+
 
     public String getName() {
         return name;
@@ -67,7 +64,6 @@ public class CreateRoleRequestDTO {
     @Override
     public String toString() {
         return "CreateRoleRequestDTO{" +
-                "idRole='" + idRole + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", status='" + status + '\'' +
