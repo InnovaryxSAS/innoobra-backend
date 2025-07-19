@@ -8,11 +8,12 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class ProjectResponseDTO {
 
     @JsonProperty("id")
-    private String id;
+    private UUID id;
 
     @JsonProperty("name")
     private String name;
@@ -32,6 +33,27 @@ public class ProjectResponseDTO {
     @JsonProperty("country")
     private String country;
 
+    @JsonProperty("status")
+    private String status;
+
+    @JsonProperty("responsibleUser")
+    private UUID responsibleUser;
+
+    @JsonProperty("dataSourceId")
+    private UUID dataSourceId;
+
+    @JsonProperty("companyId")
+    private UUID companyId;
+
+    @JsonProperty("createdBy")
+    private UUID createdBy;
+
+    @JsonProperty("budgetAmount")
+    private BigDecimal budgetAmount;
+
+    @JsonProperty("inventory")
+    private String inventory;
+
     @JsonProperty("createdAt")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
@@ -42,39 +64,19 @@ public class ProjectResponseDTO {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime updatedAt;
 
-    @JsonProperty("status")
-    private String status;
-
-    @JsonProperty("responsibleUser")
-    private String responsibleUser;
-
-    @JsonProperty("dataSource")
-    private String dataSource;
-
-    @JsonProperty("company")
-    private String company;
-
-    @JsonProperty("createdBy")
-    private String createdBy;
-
-    @JsonProperty("budget")
-    private BigDecimal budget;
-
-    @JsonProperty("inventory")
-    private String inventory;
-
     // Default constructor
     public ProjectResponseDTO() {
     }
 
     // Builder pattern
     public static class Builder {
-        private String id, name, description, address, city, state, country;
-        private String status, responsibleUser, dataSource, company, createdBy, inventory;
+        private UUID id;
+        private String name, description, address, city, state, country, status, inventory;
+        private UUID responsibleUser, dataSourceId, companyId, createdBy;
+        private BigDecimal budgetAmount;
         private LocalDateTime createdAt, updatedAt;
-        private BigDecimal budget;
 
-        public Builder id(String id) {
+        public Builder id(UUID id) {
             this.id = id;
             return this;
         }
@@ -109,6 +111,41 @@ public class ProjectResponseDTO {
             return this;
         }
 
+        public Builder status(String status) {
+            this.status = status;
+            return this;
+        }
+
+        public Builder responsibleUser(UUID responsibleUser) {
+            this.responsibleUser = responsibleUser;
+            return this;
+        }
+
+        public Builder dataSourceId(UUID dataSourceId) {
+            this.dataSourceId = dataSourceId;
+            return this;
+        }
+
+        public Builder companyId(UUID companyId) {
+            this.companyId = companyId;
+            return this;
+        }
+
+        public Builder createdBy(UUID createdBy) {
+            this.createdBy = createdBy;
+            return this;
+        }
+
+        public Builder budgetAmount(BigDecimal budgetAmount) {
+            this.budgetAmount = budgetAmount;
+            return this;
+        }
+
+        public Builder inventory(String inventory) {
+            this.inventory = inventory;
+            return this;
+        }
+
         public Builder createdAt(LocalDateTime createdAt) {
             this.createdAt = createdAt;
             return this;
@@ -116,41 +153,6 @@ public class ProjectResponseDTO {
 
         public Builder updatedAt(LocalDateTime updatedAt) {
             this.updatedAt = updatedAt;
-            return this;
-        }
-
-        public Builder status(String status) {
-            this.status = status;
-            return this;
-        }
-
-        public Builder responsibleUser(String responsibleUser) {
-            this.responsibleUser = responsibleUser;
-            return this;
-        }
-
-        public Builder dataSource(String dataSource) {
-            this.dataSource = dataSource;
-            return this;
-        }
-
-        public Builder company(String company) {
-            this.company = company;
-            return this;
-        }
-
-        public Builder createdBy(String createdBy) {
-            this.createdBy = createdBy;
-            return this;
-        }
-
-        public Builder budget(BigDecimal budget) {
-            this.budget = budget;
-            return this;
-        }
-
-        public Builder inventory(String inventory) {
-            this.inventory = inventory;
             return this;
         }
 
@@ -163,29 +165,29 @@ public class ProjectResponseDTO {
             dto.city = this.city;
             dto.state = this.state;
             dto.country = this.country;
-            dto.createdAt = this.createdAt;
-            dto.updatedAt = this.updatedAt;
             dto.status = this.status;
             dto.responsibleUser = this.responsibleUser;
-            dto.dataSource = this.dataSource;
-            dto.company = this.company;
+            dto.dataSourceId = this.dataSourceId;
+            dto.companyId = this.companyId;
             dto.createdBy = this.createdBy;
-            dto.budget = this.budget;
+            dto.budgetAmount = this.budgetAmount;
             dto.inventory = this.inventory;
+            dto.createdAt = this.createdAt;
+            dto.updatedAt = this.updatedAt;
             return dto;
         }
     }
 
     public static Builder builder() {
-    return new Builder();
-}
+        return new Builder();
+    }
 
     // Getters and Setters
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -237,6 +239,62 @@ public class ProjectResponseDTO {
         this.country = country;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public UUID getResponsibleUser() {
+        return responsibleUser;
+    }
+
+    public void setResponsibleUser(UUID responsibleUser) {
+        this.responsibleUser = responsibleUser;
+    }
+
+    public UUID getDataSourceId() {
+        return dataSourceId;
+    }
+
+    public void setDataSourceId(UUID dataSourceId) {
+        this.dataSourceId = dataSourceId;
+    }
+
+    public UUID getCompanyId() {
+        return companyId;
+    }
+
+    public void setCompanyId(UUID companyId) {
+        this.companyId = companyId;
+    }
+
+    public UUID getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(UUID createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public BigDecimal getBudgetAmount() {
+        return budgetAmount;
+    }
+
+    public void setBudgetAmount(BigDecimal budgetAmount) {
+        this.budgetAmount = budgetAmount;
+    }
+
+    public String getInventory() {
+        return inventory;
+    }
+
+    public void setInventory(String inventory) {
+        this.inventory = inventory;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -253,71 +311,18 @@ public class ProjectResponseDTO {
         this.updatedAt = updatedAt;
     }
 
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getResponsibleUser() {
-        return responsibleUser;
-    }
-
-    public void setResponsibleUser(String responsibleUser) {
-        this.responsibleUser = responsibleUser;
-    }
-
-    public String getDataSource() {
-        return dataSource;
-    }
-
-    public void setDataSource(String dataSource) {
-        this.dataSource = dataSource;
-    }
-
-    public String getCompany() {
-        return company;
-    }
-
-    public void setCompany(String company) {
-        this.company = company;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public BigDecimal getBudget() {
-        return budget;
-    }
-
-    public void setBudget(BigDecimal budget) {
-        this.budget = budget;
-    }
-
-    public String getInventory() {
-        return inventory;
-    }
-
-    public void setInventory(String inventory) {
-        this.inventory = inventory;
-    }
-
     @Override
     public String toString() {
         return "ProjectResponseDTO{" +
-                "id='" + id + '\'' +
+                "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", city='" + city + '\'' +
+                ", state='" + state + '\'' +
+                ", country='" + country + '\'' +
                 ", status='" + status + '\'' +
-                ", company='" + company + '\'' +
+                ", companyId=" + companyId +
+                ", budgetAmount=" + budgetAmount +
                 '}';
     }
 }

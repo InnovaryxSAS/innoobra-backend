@@ -10,13 +10,12 @@ import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.UUID;
 
 public class Project {
 
     @JsonProperty("id")
-    @NotBlank(message = "Project ID cannot be blank")
-    @Size(max = 255, message = "Project ID cannot exceed 255 characters")
-    private String id;
+    private UUID id;
 
     @JsonProperty("name")
     @NotBlank(message = "Project name cannot be blank")
@@ -24,8 +23,7 @@ public class Project {
     private String name;
 
     @JsonProperty("description")
-    @NotBlank(message = "Project description cannot be blank")
-    @Size(min = 1, max = 500, message = "Project description must be between 1 and 500 characters")
+    @Size(max = 500, message = "Project description cannot exceed 500 characters")
     private String description;
 
     @JsonProperty("address")
@@ -39,14 +37,36 @@ public class Project {
 
     @JsonProperty("state")
     @NotBlank(message = "State cannot be blank")
-    @Size(min = 1, max = 100, message = "State must be between 1 and 100 characters")
+    @Size(min = 1, max = 50, message = "State must be between 1 and 50 characters")
     private String state;
 
     @JsonProperty("country")
     @NotBlank(message = "Country cannot be blank")
-    @Pattern(regexp = "^[A-Z]{2,3}$", message = "Country must be a 2 or 3 letter uppercase code")
-    @Size(min = 2, max = 3, message = "Country code must be 2 or 3 characters")
+    @Pattern(regexp = "^[A-Z]{2}$", message = "Country must be a 2 letter uppercase code")
+    @Size(min = 2, max = 2, message = "Country code must be exactly 2 characters")
     private String country;
+
+    @JsonProperty("status")
+    @NotNull(message = "Status cannot be null")
+    private ProjectStatus status;
+
+    @JsonProperty("responsibleUser")
+    private UUID responsibleUser;
+
+    @JsonProperty("dataSourceId")
+    private UUID dataSourceId;
+
+    @JsonProperty("companyId")
+    @NotNull(message = "Company ID cannot be null")
+    private UUID companyId;
+
+    @JsonProperty("createdBy")
+    private UUID createdBy;
+
+    @JsonProperty("budgetAmount")
+    @DecimalMin(value = "0.00", message = "Budget must be greater than or equal to 0")
+    @Digits(integer = 12, fraction = 2, message = "Budget must have at most 12 integer digits and 2 decimal places")
+    private BigDecimal budgetAmount;
 
     @JsonProperty("createdAt")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
@@ -60,55 +80,21 @@ public class Project {
     @NotNull(message = "Updated at cannot be null")
     private LocalDateTime updatedAt;
 
-    @JsonProperty("status")
-    @NotNull(message = "Status cannot be null")
-    private ProjectStatus status;
-
-    @JsonProperty("responsibleUser")
-    @NotBlank(message = "Responsible user cannot be blank")
-    @Size(max = 255, message = "Responsible user cannot exceed 255 characters")
-    private String responsibleUser;
-
-    @JsonProperty("dataSource")
-    @NotBlank(message = "Data source cannot be blank")
-    @Size(max = 255, message = "Data source cannot exceed 255 characters")
-    private String dataSource;
-
-    @JsonProperty("company")
-    @NotBlank(message = "Company cannot be blank")
-    @Size(max = 255, message = "Company cannot exceed 255 characters")
-    private String company;
-
-    @JsonProperty("createdBy")
-    @NotBlank(message = "Created by cannot be blank")
-    @Size(max = 255, message = "Created by cannot exceed 255 characters")
-    private String createdBy;
-
-    @JsonProperty("budget")
-    @NotNull(message = "Budget cannot be null")
-    @DecimalMin(value = "0.00", message = "Budget must be greater than or equal to 0")
-    @Digits(integer = 13, fraction = 2, message = "Budget must have at most 13 integer digits and 2 decimal places")
-    private BigDecimal budget;
-
-    @JsonProperty("inventory")
-    @NotBlank(message = "Inventory cannot be blank")
-    @Size(min = 1, max = 500, message = "Inventory must be between 1 and 500 characters")
-    private String inventory;
-
     // Default constructor
     public Project() {
+        this.id = UUID.randomUUID();
         LocalDateTime now = LocalDateTime.now();
         this.createdAt = now;
         this.updatedAt = now;
         this.status = ProjectStatus.ACTIVE;
-        this.budget = BigDecimal.ZERO;
+        this.budgetAmount = BigDecimal.ZERO;
     }
 
     // Constructor for existing projects (when loading from database)
-    public Project(String id, String name, String description, String address, String city,
-                   String state, String country, LocalDateTime createdAt, LocalDateTime updatedAt,
-                   ProjectStatus status, String responsibleUser, String dataSource, String company,
-                   String createdBy, BigDecimal budget, String inventory) {
+    public Project(UUID id, String name, String description, String address, String city,
+                   String state, String country, ProjectStatus status, UUID responsibleUser,
+                   UUID dataSourceId, UUID companyId, UUID createdBy, BigDecimal budgetAmount,
+                   LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -116,27 +102,27 @@ public class Project {
         this.city = city;
         this.state = state;
         this.country = country;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
         this.status = status;
         this.responsibleUser = responsibleUser;
-        this.dataSource = dataSource;
-        this.company = company;
+        this.dataSourceId = dataSourceId;
+        this.companyId = companyId;
         this.createdBy = createdBy;
-        this.budget = budget;
-        this.inventory = inventory;
+        this.budgetAmount = budgetAmount;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     // Builder pattern
     public static class Builder {
-        private String id, name, description, address, city, state, country;
-        private String responsibleUser, dataSource, company, createdBy, inventory;
+        private UUID id;
+        private String name, description, address, city, state, country;
+        private UUID responsibleUser, dataSourceId, companyId, createdBy;
         private LocalDateTime createdAt, updatedAt;
         private ProjectStatus status;
-        private BigDecimal budget;
+        private BigDecimal budgetAmount;
         private boolean isNewEntity = true;
 
-        public Builder id(String id) {
+        public Builder id(UUID id) {
             this.id = id;
             return this;
         }
@@ -171,33 +157,33 @@ public class Project {
             return this;
         }
 
-        public Builder responsibleUser(String responsibleUser) {
+        public Builder status(ProjectStatus status) {
+            this.status = status;
+            return this;
+        }
+
+        public Builder responsibleUser(UUID responsibleUser) {
             this.responsibleUser = responsibleUser;
             return this;
         }
 
-        public Builder dataSource(String dataSource) {
-            this.dataSource = dataSource;
+        public Builder dataSourceId(UUID dataSourceId) {
+            this.dataSourceId = dataSourceId;
             return this;
         }
 
-        public Builder company(String company) {
-            this.company = company;
+        public Builder companyId(UUID companyId) {
+            this.companyId = companyId;
             return this;
         }
 
-        public Builder createdBy(String createdBy) {
+        public Builder createdBy(UUID createdBy) {
             this.createdBy = createdBy;
             return this;
         }
 
-        public Builder budget(BigDecimal budget) {
-            this.budget = budget;
-            return this;
-        }
-
-        public Builder inventory(String inventory) {
-            this.inventory = inventory;
+        public Builder budgetAmount(BigDecimal budgetAmount) {
+            this.budgetAmount = budgetAmount;
             return this;
         }
 
@@ -212,11 +198,6 @@ public class Project {
             return this;
         }
 
-        public Builder status(ProjectStatus status) {
-            this.status = status;
-            return this;
-        }
-
         public Builder fromDatabase() {
             this.isNewEntity = false;
             return this;
@@ -224,20 +205,19 @@ public class Project {
 
         public Project build() {
             Project project = new Project();
-            project.id = this.id;
+            project.id = this.id != null ? this.id : UUID.randomUUID();
             project.name = this.name;
             project.description = this.description;
             project.address = this.address;
             project.city = this.city;
             project.state = this.state;
             project.country = this.country;
-            project.responsibleUser = this.responsibleUser;
-            project.dataSource = this.dataSource;
-            project.company = this.company;
-            project.createdBy = this.createdBy;
-            project.inventory = this.inventory;
             project.status = this.status != null ? this.status : ProjectStatus.ACTIVE;
-            project.budget = this.budget != null ? this.budget : BigDecimal.ZERO;
+            project.responsibleUser = this.responsibleUser;
+            project.dataSourceId = this.dataSourceId;
+            project.companyId = this.companyId;
+            project.createdBy = this.createdBy;
+            project.budgetAmount = this.budgetAmount != null ? this.budgetAmount : BigDecimal.ZERO;
 
             LocalDateTime now = LocalDateTime.now();
             
@@ -269,7 +249,7 @@ public class Project {
 
     public boolean isValidCountryCode(String countryCode) {
         if (countryCode == null) return false;
-        return countryCode.matches("^[A-Z]{2,3}$");
+        return countryCode.matches("^[A-Z]{2}$");
     }
 
     public boolean isValidBudget(BigDecimal budget) {
@@ -278,17 +258,11 @@ public class Project {
     }
 
     public boolean hasRequiredFields() {
-        return id != null && !id.trim().isEmpty() &&
-               name != null && !name.trim().isEmpty() &&
-               description != null && !description.trim().isEmpty() &&
+        return name != null && !name.trim().isEmpty() &&
                city != null && !city.trim().isEmpty() &&
                state != null && !state.trim().isEmpty() &&
                country != null && !country.trim().isEmpty() &&
-               responsibleUser != null && !responsibleUser.trim().isEmpty() &&
-               dataSource != null && !dataSource.trim().isEmpty() &&
-               company != null && !company.trim().isEmpty() &&
-               createdBy != null && !createdBy.trim().isEmpty() &&
-               inventory != null && !inventory.trim().isEmpty();
+               companyId != null;
     }
 
     private void updateTimestamp() {
@@ -296,11 +270,11 @@ public class Project {
     }
 
     // Getters y Setters
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         if (!Objects.equals(this.id, id)) {
             this.id = id;
             updateTimestamp();
@@ -373,6 +347,72 @@ public class Project {
         }
     }
 
+    public ProjectStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ProjectStatus status) {
+        if (!Objects.equals(this.status, status)) {
+            this.status = status;
+            updateTimestamp();
+        }
+    }
+
+    public UUID getResponsibleUser() {
+        return responsibleUser;
+    }
+
+    public void setResponsibleUser(UUID responsibleUser) {
+        if (!Objects.equals(this.responsibleUser, responsibleUser)) {
+            this.responsibleUser = responsibleUser;
+            updateTimestamp();
+        }
+    }
+
+    public UUID getDataSourceId() {
+        return dataSourceId;
+    }
+
+    public void setDataSourceId(UUID dataSourceId) {
+        if (!Objects.equals(this.dataSourceId, dataSourceId)) {
+            this.dataSourceId = dataSourceId;
+            updateTimestamp();
+        }
+    }
+
+    public UUID getCompanyId() {
+        return companyId;
+    }
+
+    public void setCompanyId(UUID companyId) {
+        if (!Objects.equals(this.companyId, companyId)) {
+            this.companyId = companyId;
+            updateTimestamp();
+        }
+    }
+
+    public UUID getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(UUID createdBy) {
+        if (!Objects.equals(this.createdBy, createdBy)) {
+            this.createdBy = createdBy;
+            updateTimestamp();
+        }
+    }
+
+    public BigDecimal getBudgetAmount() {
+        return budgetAmount;
+    }
+
+    public void setBudgetAmount(BigDecimal budgetAmount) {
+        if (!Objects.equals(this.budgetAmount, budgetAmount)) {
+            this.budgetAmount = budgetAmount;
+            updateTimestamp();
+        }
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -389,83 +429,6 @@ public class Project {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public ProjectStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(ProjectStatus status) {
-        if (!Objects.equals(this.status, status)) {
-            this.status = status;
-            updateTimestamp();
-        }
-    }
-
-    public String getResponsibleUser() {
-        return responsibleUser;
-    }
-
-    public void setResponsibleUser(String responsibleUser) {
-        if (!Objects.equals(this.responsibleUser, responsibleUser)) {
-            this.responsibleUser = responsibleUser;
-            updateTimestamp();
-        }
-    }
-
-    public String getDataSource() {
-        return dataSource;
-    }
-
-    public void setDataSource(String dataSource) {
-        if (!Objects.equals(this.dataSource, dataSource)) {
-            this.dataSource = dataSource;
-            updateTimestamp();
-        }
-    }
-
-    public String getCompany() {
-        return company;
-    }
-
-    public void setCompany(String company) {
-        if (!Objects.equals(this.company, company)) {
-            this.company = company;
-            updateTimestamp();
-        }
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        if (!Objects.equals(this.createdBy, createdBy)) {
-            this.createdBy = createdBy;
-            updateTimestamp();
-        }
-    }
-
-    public BigDecimal getBudget() {
-        return budget;
-    }
-
-    public void setBudget(BigDecimal budget) {
-        if (!Objects.equals(this.budget, budget)) {
-            this.budget = budget;
-            updateTimestamp();
-        }
-    }
-
-    public String getInventory() {
-        return inventory;
-    }
-
-    public void setInventory(String inventory) {
-        if (!Objects.equals(this.inventory, inventory)) {
-            this.inventory = inventory;
-            updateTimestamp();
-        }
     }
 
     public void touch() {
@@ -490,18 +453,18 @@ public class Project {
     @Override
     public String toString() {
         return "Project{" +
-                "id='" + id + '\'' +
+                "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", city='" + city + '\'' +
                 ", state='" + state + '\'' +
                 ", country='" + country + '\'' +
                 ", status=" + status +
-                ", responsibleUser='" + responsibleUser + '\'' +
-                ", company='" + company + '\'' +
-                ", createdBy='" + createdBy + '\'' +
-                ", budget=" + budget +
-                ", inventory='" + inventory + '\'' +
+                ", responsibleUser=" + responsibleUser +
+                ", dataSourceId=" + dataSourceId +
+                ", companyId=" + companyId +
+                ", createdBy=" + createdBy +
+                ", budgetAmount=" + budgetAmount +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

@@ -11,12 +11,15 @@ import com.lambdas.model.ProjectStatus;
 
 public class DTOMapper {
 
+    private DTOMapper() {
+    }
+
     public static Project toProject(CreateProjectRequestDTO dto) {
         if (dto == null) {
             throw new IllegalArgumentException("DTO cannot be null");
         }
 
-        return Project.builder()
+        return new Project.Builder()
                 .id(dto.getId())
                 .name(dto.getName())
                 .description(dto.getDescription())
@@ -25,12 +28,11 @@ public class DTOMapper {
                 .state(dto.getState())
                 .country(dto.getCountry())
                 .responsibleUser(dto.getResponsibleUser())
-                .dataSource(dto.getDataSource())
-                .company(dto.getCompany())
+                .dataSourceId(dto.getDataSourceId())
+                .companyId(dto.getCompanyId())
                 .createdBy(dto.getCreatedBy())
-                .budget(dto.getBudget())
-                .inventory(dto.getInventory())
-                .status(ProjectStatus.ACTIVE)
+                .budgetAmount(dto.getBudgetAmount())
+                .status(dto.getStatus() != null ? ProjectStatus.fromValue(dto.getStatus()) : ProjectStatus.ACTIVE)
                 .build();
     }
 
@@ -39,23 +41,35 @@ public class DTOMapper {
             return existingProject;
         }
 
-        return Project.builder()
+        Project.Builder builder = new Project.Builder()
                 .id(existingProject.getId())
                 .createdAt(existingProject.getCreatedAt())
-                .name(dto.getName() != null ? dto.getName() : existingProject.getName())
-                .description(dto.getDescription() != null ? dto.getDescription() : existingProject.getDescription())
-                .address(dto.getAddress() != null ? dto.getAddress() : existingProject.getAddress())
-                .city(dto.getCity() != null ? dto.getCity() : existingProject.getCity())
-                .state(dto.getState() != null ? dto.getState() : existingProject.getState())
-                .country(dto.getCountry() != null ? dto.getCountry() : existingProject.getCountry())
-                .responsibleUser(dto.getResponsibleUser() != null ? dto.getResponsibleUser() : existingProject.getResponsibleUser())
-                .dataSource(dto.getDataSource() != null ? dto.getDataSource() : existingProject.getDataSource())
-                .company(dto.getCompany() != null ? dto.getCompany() : existingProject.getCompany())
-                .createdBy(dto.getCreatedBy() != null ? dto.getCreatedBy() : existingProject.getCreatedBy())
-                .budget(dto.getBudget() != null ? dto.getBudget() : existingProject.getBudget())
-                .inventory(dto.getInventory() != null ? dto.getInventory() : existingProject.getInventory())
-                .status(getStatusFromDTO(dto.getStatus(), existingProject.getStatus()))
-                .build();
+                .fromDatabase();
+
+        builder.name(dto.getName() != null ? dto.getName() : existingProject.getName());
+        builder.description(dto.getDescription() != null ? dto.getDescription() : existingProject.getDescription());
+        builder.address(dto.getAddress() != null ? dto.getAddress() : existingProject.getAddress());
+        builder.city(dto.getCity() != null ? dto.getCity() : existingProject.getCity());
+        builder.state(dto.getState() != null ? dto.getState() : existingProject.getState());
+        builder.country(dto.getCountry() != null ? dto.getCountry() : existingProject.getCountry());
+        builder.responsibleUser(dto.getResponsibleUser() != null ? dto.getResponsibleUser() : existingProject.getResponsibleUser());
+        builder.dataSourceId(dto.getDataSourceId() != null ? dto.getDataSourceId() : existingProject.getDataSourceId());
+        builder.companyId(dto.getCompanyId() != null ? dto.getCompanyId() : existingProject.getCompanyId());
+        builder.createdBy(dto.getCreatedBy() != null ? dto.getCreatedBy() : existingProject.getCreatedBy());
+        builder.budgetAmount(dto.getBudgetAmount() != null ? dto.getBudgetAmount() : existingProject.getBudgetAmount());
+
+        if (dto.getStatus() != null) {
+            try {
+                ProjectStatus status = ProjectStatus.fromValue(dto.getStatus());
+                builder.status(status);
+            } catch (IllegalArgumentException e) {
+                builder.status(existingProject.getStatus());
+            }
+        } else {
+            builder.status(existingProject.getStatus());
+        }
+
+        return builder.build();
     }
 
     public static ProjectResponseDTO toProjectResponseDTO(Project project) {
@@ -63,7 +77,7 @@ public class DTOMapper {
             return null;
         }
 
-        return ProjectResponseDTO.builder()
+        return new ProjectResponseDTO.Builder()
                 .id(project.getId())
                 .name(project.getName())
                 .description(project.getDescription())
@@ -75,11 +89,10 @@ public class DTOMapper {
                 .updatedAt(project.getUpdatedAt())
                 .status(project.getStatus() != null ? project.getStatus().getValue() : null)
                 .responsibleUser(project.getResponsibleUser())
-                .dataSource(project.getDataSource())
-                .company(project.getCompany())
+                .dataSourceId(project.getDataSourceId())
+                .companyId(project.getCompanyId())
                 .createdBy(project.getCreatedBy())
-                .budget(project.getBudget())
-                .inventory(project.getInventory())
+                .budgetAmount(project.getBudgetAmount())
                 .build();
     }
 
@@ -91,16 +104,5 @@ public class DTOMapper {
         return projects.stream()
                 .map(DTOMapper::toProjectResponseDTO)
                 .collect(Collectors.toList());
-    }
-
-    private static ProjectStatus getStatusFromDTO(String statusValue, ProjectStatus currentStatus) {
-        if (statusValue != null) {
-            try {
-                return ProjectStatus.fromValue(statusValue);
-            } catch (IllegalArgumentException e) {
-                return currentStatus;
-            }
-        }
-        return currentStatus;
     }
 }

@@ -1,10 +1,14 @@
 package com.lambdas.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.lambdas.validation.annotations.ProjectStatusValid;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.lambdas.validation.annotations.StatusValid;
 import jakarta.validation.constraints.*;
-import java.math.BigDecimal;
 
+import java.math.BigDecimal;
+import java.util.UUID;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UpdateProjectRequestDTO {
 
     @JsonProperty("name")
@@ -12,7 +16,7 @@ public class UpdateProjectRequestDTO {
     private String name;
 
     @JsonProperty("description")
-    @Size(min = 1, max = 500, message = "Project description must be between 1 and 500 characters")
+    @Size(max = 500, message = "Project description cannot exceed 500 characters")
     private String description;
 
     @JsonProperty("address")
@@ -24,42 +28,34 @@ public class UpdateProjectRequestDTO {
     private String city;
 
     @JsonProperty("state")
-    @Size(min = 1, max = 100, message = "State must be between 1 and 100 characters")
+    @Size(min = 1, max = 50, message = "State must be between 1 and 50 characters")
     private String state;
 
     @JsonProperty("country")
-    @Pattern(regexp = "^[A-Z]{2,3}$", message = "Country must be a 2 or 3 letter uppercase code")
-    @Size(min = 2, max = 3, message = "Country code must be 2 or 3 characters")
+    @Pattern(regexp = "^[A-Z]{2}$", message = "Country code must be two uppercase letters")
+    @Size(min = 2, max = 2, message = "Country code must be exactly 2 characters")
     private String country;
 
     @JsonProperty("status")
-    @ProjectStatusValid
+    @StatusValid
     private String status;
 
     @JsonProperty("responsibleUser")
-    @Size(max = 255, message = "Responsible user cannot exceed 255 characters")
-    private String responsibleUser;
+    private UUID responsibleUser;
 
-    @JsonProperty("dataSource")
-    @Size(max = 255, message = "Data source cannot exceed 255 characters")
-    private String dataSource;
+    @JsonProperty("dataSourceId")
+    private UUID dataSourceId;
 
-    @JsonProperty("company")
-    @Size(max = 255, message = "Company cannot exceed 255 characters")
-    private String company;
+    @JsonProperty("companyId")
+    private UUID companyId;
 
     @JsonProperty("createdBy")
-    @Size(max = 255, message = "Created by cannot exceed 255 characters")
-    private String createdBy;
+    private UUID createdBy;
 
-    @JsonProperty("budget")
+    @JsonProperty("budgetAmount")
     @DecimalMin(value = "0.00", message = "Budget must be greater than or equal to 0")
-    @Digits(integer = 13, fraction = 2, message = "Budget must have at most 13 integer digits and 2 decimal places")
-    private BigDecimal budget;
-
-    @JsonProperty("inventory")
-    @Size(min = 1, max = 500, message = "Inventory must be between 1 and 500 characters")
-    private String inventory;
+    @Digits(integer = 12, fraction = 2, message = "Budget must have at most 12 integer digits and 2 decimal places")
+    private BigDecimal budgetAmount;
 
     // Default constructor
     public UpdateProjectRequestDTO() {
@@ -122,52 +118,44 @@ public class UpdateProjectRequestDTO {
         this.status = status;
     }
 
-    public String getResponsibleUser() {
+    public UUID getResponsibleUser() {
         return responsibleUser;
     }
 
-    public void setResponsibleUser(String responsibleUser) {
+    public void setResponsibleUser(UUID responsibleUser) {
         this.responsibleUser = responsibleUser;
     }
 
-    public String getDataSource() {
-        return dataSource;
+    public UUID getDataSourceId() {
+        return dataSourceId;
     }
 
-    public void setDataSource(String dataSource) {
-        this.dataSource = dataSource;
+    public void setDataSourceId(UUID dataSourceId) {
+        this.dataSourceId = dataSourceId;
     }
 
-    public String getCompany() {
-        return company;
+    public UUID getCompanyId() {
+        return companyId;
     }
 
-    public void setCompany(String company) {
-        this.company = company;
+    public void setCompanyId(UUID companyId) {
+        this.companyId = companyId;
     }
 
-    public String getCreatedBy() {
+    public UUID getCreatedBy() {
         return createdBy;
     }
 
-    public void setCreatedBy(String createdBy) {
+    public void setCreatedBy(UUID createdBy) {
         this.createdBy = createdBy;
     }
 
-    public BigDecimal getBudget() {
-        return budget;
+    public BigDecimal getBudgetAmount() {
+        return budgetAmount;
     }
 
-    public void setBudget(BigDecimal budget) {
-        this.budget = budget;
-    }
-
-    public String getInventory() {
-        return inventory;
-    }
-
-    public void setInventory(String inventory) {
-        this.inventory = inventory;
+    public void setBudgetAmount(BigDecimal budgetAmount) {
+        this.budgetAmount = budgetAmount;
     }
 
     public static class Builder {
@@ -212,33 +200,28 @@ public class UpdateProjectRequestDTO {
             return this;
         }
 
-        public Builder responsibleUser(String responsibleUser) {
+        public Builder responsibleUser(UUID responsibleUser) {
             dto.setResponsibleUser(responsibleUser);
             return this;
         }
 
-        public Builder dataSource(String dataSource) {
-            dto.setDataSource(dataSource);
+        public Builder dataSourceId(UUID dataSourceId) {
+            dto.setDataSourceId(dataSourceId);
             return this;
         }
 
-        public Builder company(String company) {
-            dto.setCompany(company);
+        public Builder companyId(UUID companyId) {
+            dto.setCompanyId(companyId);
             return this;
         }
 
-        public Builder createdBy(String createdBy) {
+        public Builder createdBy(UUID createdBy) {
             dto.setCreatedBy(createdBy);
             return this;
         }
 
-        public Builder budget(BigDecimal budget) {
-            dto.setBudget(budget);
-            return this;
-        }
-
-        public Builder inventory(String inventory) {
-            dto.setInventory(inventory);
+        public Builder budgetAmount(BigDecimal budgetAmount) {
+            dto.setBudgetAmount(budgetAmount);
             return this;
         }
 
@@ -257,8 +240,11 @@ public class UpdateProjectRequestDTO {
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", city='" + city + '\'' +
+                ", state='" + state + '\'' +
+                ", country='" + country + '\'' +
                 ", status='" + status + '\'' +
-                ", company='" + company + '\'' +
+                ", companyId=" + companyId +
+                ", budgetAmount=" + budgetAmount +
                 '}';
     }
 }
