@@ -8,6 +8,7 @@ import com.lambdas.dto.request.UpdateUserRequestDTO;
 import com.lambdas.dto.response.UserResponseDTO;
 import com.lambdas.model.User;
 import com.lambdas.model.UserStatus;
+import com.lambdas.util.PasswordUtil;
 
 public class DTOMapper {
 
@@ -20,16 +21,17 @@ public class DTOMapper {
         }
 
         return new User.Builder()
-                .idUser(dto.getIdUser())
-                .idCompany(dto.getIdCompany())
-                .name(dto.getName())
+                .id(dto.getId())
+                .companyId(dto.getCompanyId())
+                .firstName(dto.getFirstName())
                 .lastName(dto.getLastName())
                 .address(dto.getAddress())
-                .phone(dto.getPhone())
+                .phoneNumber(dto.getPhoneNumber())
                 .email(dto.getEmail())
-                .password(dto.getPassword())
+                .passwordHash(PasswordUtil.hashPassword(dto.getPassword()))
                 .position(dto.getPosition())
-                .status(UserStatus.fromValue(dto.getStatus() != null ? dto.getStatus() : "active"))
+                .documentNumber(dto.getDocumentNumber())
+                .status(dto.getStatus() != null ? UserStatus.fromValue(dto.getStatus()) : UserStatus.ACTIVE)
                 .build();
     }
 
@@ -39,19 +41,25 @@ public class DTOMapper {
         }
 
         User.Builder builder = new User.Builder()
-                .idUser(existingUser.getIdUser())
-                .idCompany(existingUser.getIdCompany())
+                .id(existingUser.getId())
+                .companyId(existingUser.getCompanyId())
                 .createdAt(existingUser.getCreatedAt())
+                .passwordHash(existingUser.getPasswordHash()) // ✅ IMPORTANTE: mantener el password hash existente
                 .fromDatabase();
 
-        builder.name(dto.getName() != null ? dto.getName() : existingUser.getName());
+        builder.firstName(dto.getFirstName() != null ? dto.getFirstName() : existingUser.getFirstName());
         builder.lastName(dto.getLastName() != null ? dto.getLastName() : existingUser.getLastName());
         builder.address(dto.getAddress() != null ? dto.getAddress() : existingUser.getAddress());
-        builder.phone(dto.getPhone() != null ? dto.getPhone() : existingUser.getPhone());
+        builder.phoneNumber(dto.getPhoneNumber() != null ? dto.getPhoneNumber() : existingUser.getPhoneNumber());
         builder.email(dto.getEmail() != null ? dto.getEmail() : existingUser.getEmail());
-        builder.password(dto.getPassword() != null ? dto.getPassword() : existingUser.getPassword());
         builder.position(dto.getPosition() != null ? dto.getPosition() : existingUser.getPosition());
+        builder.documentNumber(dto.getDocumentNumber() != null ? dto.getDocumentNumber() : existingUser.getDocumentNumber());
         builder.lastAccess(existingUser.getLastAccess());
+
+        // Si el DTO incluye una nueva contraseña, hashearla
+        if (dto.getPassword() != null && !dto.getPassword().trim().isEmpty()) {
+            builder.passwordHash(PasswordUtil.hashPassword(dto.getPassword()));
+        }
 
         if (dto.getStatus() != null) {
             try {
@@ -73,14 +81,15 @@ public class DTOMapper {
         }
 
         return new UserResponseDTO.Builder()
-                .idUser(user.getIdUser())
-                .idCompany(user.getIdCompany())
-                .name(user.getName())
+                .id(user.getId())
+                .companyId(user.getCompanyId())
+                .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .address(user.getAddress())
-                .phone(user.getPhone())
+                .phoneNumber(user.getPhoneNumber())
                 .email(user.getEmail())
                 .position(user.getPosition())
+                .documentNumber(user.getDocumentNumber())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .status(user.getStatus() != null ? user.getStatus().getValue() : null)

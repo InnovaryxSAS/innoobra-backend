@@ -16,6 +16,7 @@ import com.lambdas.util.ResponseUtil;
 import org.slf4j.Logger;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public class GetUserByIdHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
@@ -38,31 +39,30 @@ public class GetUserByIdHandler implements RequestHandler<APIGatewayProxyRequest
         LoggingHelper.initializeRequestContext(requestId);
 
         try {
-            LoggingHelper.logProcessStart(logger, "user retrieval by ID");
-
             if (input.getPathParameters() == null) {
-                LoggingHelper.logMissingParameter(logger, "Path parameters");
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "User ID is required");
             }
 
-            String userId = input.getPathParameters().get("id");
-            if (userId == null || userId.trim().isEmpty()) {
-                LoggingHelper.logMissingParameter(logger, "User ID");
+            String userIdStr = input.getPathParameters().get("id");
+            if (userIdStr == null || userIdStr.trim().isEmpty()) {
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "User ID is required");
             }
 
-            LoggingHelper.addUserId(userId);
+            LoggingHelper.addUserId(userIdStr);
+
+            UUID userId;
+            try {
+                userId = UUID.fromString(userIdStr);
+            } catch (IllegalArgumentException e) {
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Invalid user ID format");
+            }
 
             Optional<User> userOpt = userService.getUserById(userId);
 
             if (userOpt.isPresent()) {
-                LoggingHelper.logSuccess(logger, "User retrieval", userId);
-
                 UserResponseDTO responseDTO = DTOMapper.toResponseDTO(userOpt.get());
-
                 return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
             } else {
-                LoggingHelper.logEntityNotFound(logger, "User", userId);
                 return ResponseUtil.createErrorResponse(HttpStatus.NOT_FOUND, "User not found");
             }
 

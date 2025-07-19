@@ -1,27 +1,27 @@
 package com.lambdas.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.lambdas.validation.annotations.UserStatusValid;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.lambdas.validation.annotations.StatusValid;
 import com.lambdas.validation.groups.ValidationGroups;
 import jakarta.validation.constraints.*;
 
+import java.util.UUID;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CreateUserRequestDTO {
 
-    @JsonProperty("idUser")
-    @NotBlank(message = "User ID cannot be blank", groups = ValidationGroups.Create.class)
-    @Size(max = 255, message = "User ID cannot exceed 255 characters")
-    @Pattern(regexp = "^[A-Za-z0-9_-]{1,255}$", message = "User ID must contain only alphanumeric characters, underscores, and hyphens")
-    private String idUser;
+    @JsonProperty("id")
+    private UUID id;
 
-    @JsonProperty("idCompany")
-    @NotBlank(message = "Company ID cannot be blank", groups = ValidationGroups.Create.class)
-    @Size(max = 255, message = "Company ID cannot exceed 255 characters")
-    private String idCompany;
+    @JsonProperty("companyId")
+    @NotNull(message = "Company ID cannot be null", groups = ValidationGroups.Create.class)
+    private UUID companyId;
 
-    @JsonProperty("name")
-    @NotBlank(message = "Name cannot be blank", groups = ValidationGroups.Create.class)
-    @Size(min = 1, max = 100, message = "Name must be between 1 and 100 characters")
-    private String name;
+    @JsonProperty("firstName")
+    @NotBlank(message = "First name cannot be blank", groups = ValidationGroups.Create.class)
+    @Size(min = 1, max = 100, message = "First name must be between 1 and 100 characters")
+    private String firstName;
 
     @JsonProperty("lastName")
     @NotBlank(message = "Last name cannot be blank", groups = ValidationGroups.Create.class)
@@ -29,14 +29,12 @@ public class CreateUserRequestDTO {
     private String lastName;
 
     @JsonProperty("address")
-    @NotBlank(message = "Address cannot be blank", groups = ValidationGroups.Create.class)
-    @Size(min = 1, max = 100, message = "Address must be between 1 and 100 characters")
+    @Size(max = 100, message = "Address cannot exceed 100 characters")
     private String address;
 
-    @JsonProperty("phone")
-    @NotBlank(message = "Phone cannot be blank", groups = ValidationGroups.Create.class)
-    @Size(min = 1, max = 20, message = "Phone must be between 1 and 20 characters")
-    private String phone;
+    @JsonProperty("phoneNumber")
+    @Size(max = 20, message = "Phone number cannot exceed 20 characters")
+    private String phoneNumber;
 
     @JsonProperty("email")
     @NotBlank(message = "Email cannot be blank", groups = ValidationGroups.Create.class)
@@ -50,41 +48,56 @@ public class CreateUserRequestDTO {
     private String password;
 
     @JsonProperty("position")
-    @NotBlank(message = "Position cannot be blank", groups = ValidationGroups.Create.class)
-    @Size(min = 1, max = 100, message = "Position must be between 1 and 100 characters")
+    @Size(max = 100, message = "Position cannot exceed 100 characters")
     private String position;
 
+    @JsonProperty("documentNumber")
+    @NotBlank(message = "Document number cannot be blank", groups = ValidationGroups.Create.class)
+    @Size(min = 1, max = 30, message = "Document number must be between 1 and 30 characters")
+    private String documentNumber;
+
     @JsonProperty("status")
-    @UserStatusValid
+    @StatusValid
     private String status = "active";
 
     // Default constructor
     public CreateUserRequestDTO() {
     }
 
+    // Constructor for debugging
+    public CreateUserRequestDTO(UUID companyId, String firstName, String lastName, String email, 
+                               String password, String documentNumber) {
+        this.companyId = companyId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+        this.documentNumber = documentNumber;
+    }
+
     // Getters and Setters
-    public String getIdUser() {
-        return idUser;
+    public UUID getId() {
+        return id;
     }
 
-    public void setIdUser(String idUser) {
-        this.idUser = idUser;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
-    public String getIdCompany() {
-        return idCompany;
+    public UUID getCompanyId() {
+        return companyId;
     }
 
-    public void setIdCompany(String idCompany) {
-        this.idCompany = idCompany;
+    public void setCompanyId(UUID companyId) {
+        this.companyId = companyId;
     }
 
-    public String getName() {
-        return name;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
     public String getLastName() {
@@ -103,12 +116,12 @@ public class CreateUserRequestDTO {
         this.address = address;
     }
 
-    public String getPhone() {
-        return phone;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public String getEmail() {
@@ -135,6 +148,14 @@ public class CreateUserRequestDTO {
         this.position = position;
     }
 
+    public String getDocumentNumber() {
+        return documentNumber;
+    }
+
+    public void setDocumentNumber(String documentNumber) {
+        this.documentNumber = documentNumber;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -146,12 +167,13 @@ public class CreateUserRequestDTO {
     @Override
     public String toString() {
         return "CreateUserRequestDTO{" +
-                "idUser='" + idUser + '\'' +
-                ", idCompany='" + idCompany + '\'' +
-                ", name='" + name + '\'' +
+                "id=" + id +
+                ", companyId=" + companyId +
+                ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
                 ", position='" + position + '\'' +
+                ", documentNumber='" + documentNumber + '\'' +
                 ", status='" + status + '\'' +
                 '}';
     }

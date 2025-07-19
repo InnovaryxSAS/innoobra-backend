@@ -7,17 +7,18 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class UserResponseDTO {
 
-    @JsonProperty("idUser")
-    private String idUser;
+    @JsonProperty("id")
+    private UUID id;
 
-    @JsonProperty("idCompany")
-    private String idCompany;
+    @JsonProperty("companyId")
+    private UUID companyId;
 
-    @JsonProperty("name")
-    private String name;
+    @JsonProperty("firstName")
+    private String firstName;
 
     @JsonProperty("lastName")
     private String lastName;
@@ -25,14 +26,25 @@ public class UserResponseDTO {
     @JsonProperty("address")
     private String address;
 
-    @JsonProperty("phone")
-    private String phone;
+    @JsonProperty("phoneNumber")
+    private String phoneNumber;
 
     @JsonProperty("email")
     private String email;
 
     @JsonProperty("position")
     private String position;
+
+    @JsonProperty("documentNumber")
+    private String documentNumber;
+
+    @JsonProperty("status")
+    private String status;
+
+    @JsonProperty("lastAccess")
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    private LocalDateTime lastAccess;
 
     @JsonProperty("createdAt")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
@@ -44,35 +56,28 @@ public class UserResponseDTO {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime updatedAt;
 
-    @JsonProperty("status")
-    private String status;
-
-    @JsonProperty("lastAccess")
-    @JsonSerialize(using = LocalDateTimeSerializer.class)
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-    private LocalDateTime lastAccess;
-
     // Default constructor
     public UserResponseDTO() {
     }
 
     // Builder pattern
     public static class Builder {
-        private String idUser, idCompany, name, lastName, address, phone, email, position, status;
+        private UUID id, companyId;
+        private String firstName, lastName, address, phoneNumber, email, position, documentNumber, status;
         private LocalDateTime createdAt, updatedAt, lastAccess;
 
-        public Builder idUser(String idUser) {
-            this.idUser = idUser;
+        public Builder id(UUID id) {
+            this.id = id;
             return this;
         }
 
-        public Builder idCompany(String idCompany) {
-            this.idCompany = idCompany;
+        public Builder companyId(UUID companyId) {
+            this.companyId = companyId;
             return this;
         }
 
-        public Builder name(String name) {
-            this.name = name;
+        public Builder firstName(String firstName) {
+            this.firstName = firstName;
             return this;
         }
 
@@ -86,8 +91,8 @@ public class UserResponseDTO {
             return this;
         }
 
-        public Builder phone(String phone) {
-            this.phone = phone;
+        public Builder phoneNumber(String phoneNumber) {
+            this.phoneNumber = phoneNumber;
             return this;
         }
 
@@ -101,13 +106,8 @@ public class UserResponseDTO {
             return this;
         }
 
-        public Builder createdAt(LocalDateTime createdAt) {
-            this.createdAt = createdAt;
-            return this;
-        }
-
-        public Builder updatedAt(LocalDateTime updatedAt) {
-            this.updatedAt = updatedAt;
+        public Builder documentNumber(String documentNumber) {
+            this.documentNumber = documentNumber;
             return this;
         }
 
@@ -121,47 +121,58 @@ public class UserResponseDTO {
             return this;
         }
 
+        public Builder createdAt(LocalDateTime createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public Builder updatedAt(LocalDateTime updatedAt) {
+            this.updatedAt = updatedAt;
+            return this;
+        }
+
         public UserResponseDTO build() {
             UserResponseDTO dto = new UserResponseDTO();
-            dto.idUser = this.idUser;
-            dto.idCompany = this.idCompany;
-            dto.name = this.name;
+            dto.id = this.id;
+            dto.companyId = this.companyId;
+            dto.firstName = this.firstName;
             dto.lastName = this.lastName;
             dto.address = this.address;
-            dto.phone = this.phone;
+            dto.phoneNumber = this.phoneNumber;
             dto.email = this.email;
             dto.position = this.position;
-            dto.createdAt = this.createdAt;
-            dto.updatedAt = this.updatedAt;
+            dto.documentNumber = this.documentNumber;
             dto.status = this.status;
             dto.lastAccess = this.lastAccess;
+            dto.createdAt = this.createdAt;
+            dto.updatedAt = this.updatedAt;
             return dto;
         }
     }
 
     // Getters and Setters
-    public String getIdUser() {
-        return idUser;
+    public UUID getId() {
+        return id;
     }
 
-    public void setIdUser(String idUser) {
-        this.idUser = idUser;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
-    public String getIdCompany() {
-        return idCompany;
+    public UUID getCompanyId() {
+        return companyId;
     }
 
-    public void setIdCompany(String idCompany) {
-        this.idCompany = idCompany;
+    public void setCompanyId(UUID companyId) {
+        this.companyId = companyId;
     }
 
-    public String getName() {
-        return name;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
     public String getLastName() {
@@ -180,12 +191,12 @@ public class UserResponseDTO {
         this.address = address;
     }
 
-    public String getPhone() {
-        return phone;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public String getEmail() {
@@ -204,20 +215,12 @@ public class UserResponseDTO {
         this.position = position;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public String getDocumentNumber() {
+        return documentNumber;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setDocumentNumber(String documentNumber) {
+        this.documentNumber = documentNumber;
     }
 
     public String getStatus() {
@@ -236,17 +239,35 @@ public class UserResponseDTO {
         this.lastAccess = lastAccess;
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     @Override
     public String toString() {
         return "UserResponseDTO{" +
-                "idUser='" + idUser + '\'' +
-                ", idCompany='" + idCompany + '\'' +
-                ", name='" + name + '\'' +
+                "id=" + id +
+                ", companyId=" + companyId +
+                ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
                 ", position='" + position + '\'' +
+                ", documentNumber='" + documentNumber + '\'' +
                 ", status='" + status + '\'' +
                 ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
                 ", lastAccess=" + lastAccess +
                 '}';
     }

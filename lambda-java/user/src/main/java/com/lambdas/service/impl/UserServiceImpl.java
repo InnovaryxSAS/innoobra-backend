@@ -2,8 +2,10 @@ package com.lambdas.service.impl;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import com.lambdas.model.User;
+import com.lambdas.model.UserStatus;
 import com.lambdas.repository.UserRepository;
 import com.lambdas.repository.impl.UserRepositoryImpl;
 import com.lambdas.service.UserService;
@@ -33,7 +35,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<User> getUserById(String id) {
+    public Optional<User> getUserById(UUID id) {
         return repository.findById(id);
     }
 
@@ -43,19 +45,34 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Optional<User> getUserByDocumentNumber(String documentNumber) {
+        return repository.findByDocumentNumber(documentNumber);
+    }
+
+    @Override
+    public List<User> getUsersByCompanyId(UUID companyId) {
+        return repository.findByCompanyId(companyId);
+    }
+
+    @Override
+    public List<User> getUsersByStatus(UserStatus status) {
+        return repository.findByStatus(status);
+    }
+
+    @Override
     public User updateUser(User user) {
         ValidationHelper.validateAndThrow(user);
         return repository.update(user);
     }
 
     @Override
-    public boolean deactivateUser(String idUser) {
-        return repository.deactivate(idUser);
+    public boolean deactivateUser(UUID id) {
+        return repository.deactivate(id);
     }
 
     @Override
-    public boolean existsById(String idUser) {
-        return repository.existsById(idUser);
+    public boolean existsById(UUID id) {
+        return repository.existsById(id);
     }
 
     @Override
@@ -64,8 +81,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean updateLastAccess(String idUser) {
-        return repository.updateLastAccess(idUser);
+    public boolean existsByDocumentNumber(String documentNumber) {
+        return repository.existsByDocumentNumber(documentNumber);
+    }
+
+    @Override
+    public boolean updateLastAccess(UUID id) {
+        return repository.updateLastAccess(id);
     }
 
     @Override

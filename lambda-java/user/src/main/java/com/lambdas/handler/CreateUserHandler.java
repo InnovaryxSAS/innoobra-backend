@@ -46,10 +46,7 @@ public class CreateUserHandler implements RequestHandler<APIGatewayProxyRequestE
         LoggingHelper.initializeRequestContext(requestId);
         
         try {
-            LoggingHelper.logProcessStart(logger, "user creation");
-            
             if (input.getBody() == null || input.getBody().trim().isEmpty()) {
-                LoggingHelper.logEmptyRequestBody(logger);
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Request body is required");
             }
             
@@ -62,8 +59,6 @@ public class CreateUserHandler implements RequestHandler<APIGatewayProxyRequestE
             User createdUser = userService.createUser(user);
             
             UserResponseDTO responseDTO = DTOMapper.toResponseDTO(createdUser);
-            
-            LoggingHelper.logSuccess(logger, "User creation", createdUser.getIdUser());
             
             return ResponseUtil.createResponse(HttpStatus.CREATED, responseDTO);
             
