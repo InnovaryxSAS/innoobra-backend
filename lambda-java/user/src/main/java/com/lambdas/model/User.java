@@ -9,23 +9,22 @@ import jakarta.validation.constraints.*;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.UUID;
 
 public class User {
 
-    @JsonProperty("idUser")
-    @NotBlank(message = "User ID cannot be blank")
-    @Size(max = 255, message = "User ID cannot exceed 255 characters")
-    private String idUser;
+    @JsonProperty("id")
+    // ID es autogenerado por la base de datos, no requiere validación de entrada
+    private UUID id;
 
-    @JsonProperty("idCompany")
-    @NotBlank(message = "Company ID cannot be blank")
-    @Size(max = 255, message = "Company ID cannot exceed 255 characters")
-    private String idCompany;
+    @JsonProperty("companyId")
+    @NotNull(message = "Company ID cannot be null")
+    private UUID companyId;
 
-    @JsonProperty("name")
-    @NotBlank(message = "Name cannot be blank")
-    @Size(min = 1, max = 100, message = "Name must be between 1 and 100 characters")
-    private String name;
+    @JsonProperty("firstName")
+    @NotBlank(message = "First name cannot be blank")
+    @Size(min = 1, max = 100, message = "First name must be between 1 and 100 characters")
+    private String firstName;
 
     @JsonProperty("lastName")
     @NotBlank(message = "Last name cannot be blank")
@@ -33,14 +32,12 @@ public class User {
     private String lastName;
 
     @JsonProperty("address")
-    @NotBlank(message = "Address cannot be blank")
-    @Size(min = 1, max = 100, message = "Address must be between 1 and 100 characters")
+    @Size(max = 100, message = "Address cannot exceed 100 characters")
     private String address;
 
-    @JsonProperty("phone")
-    @NotBlank(message = "Phone cannot be blank")
-    @Size(min = 1, max = 20, message = "Phone must be between 1 and 20 characters")
-    private String phone;
+    @JsonProperty("phoneNumber")
+    @Size(max = 20, message = "Phone number cannot exceed 20 characters")
+    private String phoneNumber;
 
     @JsonProperty("email")
     @NotBlank(message = "Email cannot be blank")
@@ -48,10 +45,22 @@ public class User {
     @Size(min = 1, max = 50, message = "Email must be between 1 and 50 characters")
     private String email;
 
-    @JsonProperty("password")
-    @NotBlank(message = "Password cannot be blank")
-    @Size(min = 8, message = "Password must be at least 8 characters")
-    private String password;
+    @JsonProperty("passwordHash")
+    @NotBlank(message = "Password hash cannot be blank")
+    private String passwordHash;
+
+    @JsonProperty("position")
+    @Size(max = 100, message = "Position cannot exceed 100 characters")
+    private String position;
+
+    @JsonProperty("status")
+    @NotNull(message = "Status cannot be null")
+    private UserStatus status;
+
+    @JsonProperty("lastAccess")
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    private LocalDateTime lastAccess;
 
     @JsonProperty("createdAt")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
@@ -65,19 +74,10 @@ public class User {
     @NotNull(message = "Updated at cannot be null")
     private LocalDateTime updatedAt;
 
-    @JsonProperty("status")
-    @NotNull(message = "Status cannot be null")
-    private UserStatus status;
-
-    @JsonProperty("lastAccess")
-    @JsonSerialize(using = LocalDateTimeSerializer.class)
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-    private LocalDateTime lastAccess;
-
-    @JsonProperty("position")
-    @NotBlank(message = "Position cannot be blank")
-    @Size(min = 1, max = 100, message = "Position must be between 1 and 100 characters")
-    private String position;
+    @JsonProperty("documentNumber")
+    @NotBlank(message = "Document number cannot be blank")
+    @Size(min = 1, max = 30, message = "Document number must be between 1 and 30 characters")
+    private String documentNumber;
 
     // Default constructor
     public User() {
@@ -88,43 +88,46 @@ public class User {
     }
 
     // Constructor for existing users (when loading from database)
-    public User(String idUser, String idCompany, String name, String lastName, String address,
-                String phone, String email, String password, LocalDateTime createdAt,
-                LocalDateTime updatedAt, UserStatus status, LocalDateTime lastAccess, String position) {
-        this.idUser = idUser;
-        this.idCompany = idCompany;
-        this.name = name;
+    public User(UUID id, UUID companyId, String firstName, String lastName, String address,
+                String phoneNumber, String email, String passwordHash, String position,
+                UserStatus status, LocalDateTime lastAccess, LocalDateTime createdAt,
+                LocalDateTime updatedAt, String documentNumber) {
+        this.id = id;
+        this.companyId = companyId;
+        this.firstName = firstName;
         this.lastName = lastName;
         this.address = address;
-        this.phone = phone;
+        this.phoneNumber = phoneNumber;
         this.email = email;
-        this.password = password;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+        this.passwordHash = passwordHash;
+        this.position = position;
         this.status = status;
         this.lastAccess = lastAccess;
-        this.position = position;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.documentNumber = documentNumber;
     }
 
     // Builder pattern
     public static class Builder {
-        private String idUser, idCompany, name, lastName, address, phone, email, password, position;
+        private UUID id, companyId;
+        private String firstName, lastName, address, phoneNumber, email, passwordHash, position, documentNumber;
         private LocalDateTime createdAt, updatedAt, lastAccess;
         private UserStatus status;
         private boolean isNewEntity = true;
 
-        public Builder idUser(String idUser) {
-            this.idUser = idUser;
+        public Builder id(UUID id) {
+            this.id = id;
             return this;
         }
 
-        public Builder idCompany(String idCompany) {
-            this.idCompany = idCompany;
+        public Builder companyId(UUID companyId) {
+            this.companyId = companyId;
             return this;
         }
 
-        public Builder name(String name) {
-            this.name = name;
+        public Builder firstName(String firstName) {
+            this.firstName = firstName;
             return this;
         }
 
@@ -138,8 +141,8 @@ public class User {
             return this;
         }
 
-        public Builder phone(String phone) {
-            this.phone = phone;
+        public Builder phoneNumber(String phoneNumber) {
+            this.phoneNumber = phoneNumber;
             return this;
         }
 
@@ -148,13 +151,18 @@ public class User {
             return this;
         }
 
-        public Builder password(String password) {
-            this.password = password;
+        public Builder passwordHash(String passwordHash) {
+            this.passwordHash = passwordHash;
             return this;
         }
 
         public Builder position(String position) {
             this.position = position;
+            return this;
+        }
+
+        public Builder documentNumber(String documentNumber) {
+            this.documentNumber = documentNumber;
             return this;
         }
 
@@ -186,15 +194,16 @@ public class User {
 
         public User build() {
             User user = new User();
-            user.idUser = this.idUser;
-            user.idCompany = this.idCompany;
-            user.name = this.name;
+            user.id = this.id != null ? this.id : UUID.randomUUID();
+            user.companyId = this.companyId;
+            user.firstName = this.firstName;
             user.lastName = this.lastName;
             user.address = this.address;
-            user.phone = this.phone;
+            user.phoneNumber = this.phoneNumber;
             user.email = this.email;
-            user.password = this.password;
+            user.passwordHash = this.passwordHash;
             user.position = this.position;
+            user.documentNumber = this.documentNumber;
             user.lastAccess = this.lastAccess;
             user.status = this.status != null ? this.status : UserStatus.ACTIVE;
 
@@ -228,20 +237,17 @@ public class User {
         return email.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
     }
 
-    public boolean isValidPassword(String password) {
-        return password != null && password.trim().length() >= 8;
+    public boolean isValidDocumentNumber(String documentNumber) {
+        return documentNumber != null && !documentNumber.trim().isEmpty() && documentNumber.trim().length() <= 30;
     }
 
     public boolean hasRequiredFields() {
-        return idUser != null && !idUser.trim().isEmpty() &&
-               idCompany != null && !idCompany.trim().isEmpty() &&
-               name != null && !name.trim().isEmpty() &&
+        return companyId != null &&
+               firstName != null && !firstName.trim().isEmpty() &&
                lastName != null && !lastName.trim().isEmpty() &&
-               address != null && !address.trim().isEmpty() &&
-               phone != null && !phone.trim().isEmpty() &&
                email != null && !email.trim().isEmpty() &&
-               password != null && !password.trim().isEmpty() &&
-               position != null && !position.trim().isEmpty();
+               passwordHash != null && !passwordHash.trim().isEmpty() &&
+               documentNumber != null && !documentNumber.trim().isEmpty();
     }
 
     public void updateLastAccess() {
@@ -254,35 +260,32 @@ public class User {
     }
 
     // Getters and Setters
-    public String getIdUser() {
-        return idUser;
+    public UUID getId() {
+        return id;
     }
 
-    public void setIdUser(String idUser) {
-        if (!Objects.equals(this.idUser, idUser)) {
-            this.idUser = idUser;
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public UUID getCompanyId() {
+        return companyId;
+    }
+
+    public void setCompanyId(UUID companyId) {
+        if (!Objects.equals(this.companyId, companyId)) {
+            this.companyId = companyId;
             updateTimestamp();
         }
     }
 
-    public String getIdCompany() {
-        return idCompany;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setIdCompany(String idCompany) {
-        if (!Objects.equals(this.idCompany, idCompany)) {
-            this.idCompany = idCompany;
-            updateTimestamp();
-        }
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        if (!Objects.equals(this.name, name)) {
-            this.name = name;
+    public void setFirstName(String firstName) {
+        if (!Objects.equals(this.firstName, firstName)) {
+            this.firstName = firstName;
             updateTimestamp();
         }
     }
@@ -309,13 +312,13 @@ public class User {
         }
     }
 
-    public String getPhone() {
-        return phone;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setPhone(String phone) {
-        if (!Objects.equals(this.phone, phone)) {
-            this.phone = phone;
+    public void setPhoneNumber(String phoneNumber) {
+        if (!Objects.equals(this.phoneNumber, phoneNumber)) {
+            this.phoneNumber = phoneNumber;
             updateTimestamp();
         }
     }
@@ -331,13 +334,13 @@ public class User {
         }
     }
 
-    public String getPassword() {
-        return password;
+    public String getPasswordHash() {
+        return passwordHash;
     }
 
-    public void setPassword(String password) {
-        if (!Objects.equals(this.password, password)) {
-            this.password = password;
+    public void setPasswordHash(String passwordHash) {
+        if (!Objects.equals(this.passwordHash, passwordHash)) {
+            this.passwordHash = passwordHash;
             updateTimestamp();
         }
     }
@@ -390,6 +393,17 @@ public class User {
         }
     }
 
+    public String getDocumentNumber() {
+        return documentNumber;
+    }
+
+    public void setDocumentNumber(String documentNumber) {
+        if (!Objects.equals(this.documentNumber, documentNumber)) {
+            this.documentNumber = documentNumber;
+            updateTimestamp();
+        }
+    }
+
     public void touch() {
         updateTimestamp();
     }
@@ -401,24 +415,25 @@ public class User {
         if (o == null || getClass() != o.getClass())
             return false;
         User user = (User) o;
-        return Objects.equals(idUser, user.idUser);
+        return Objects.equals(id, user.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(idUser);
+        return Objects.hash(id);
     }
 
     @Override
     public String toString() {
         return "User{" +
-                "idUser='" + idUser + '\'' +
-                ", idCompany='" + idCompany + '\'' +
-                ", name='" + name + '\'' +
+                "id=" + id +
+                ", companyId=" + companyId +
+                ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
                 ", position='" + position + '\'' +
                 ", status=" + status +
+                ", documentNumber='" + documentNumber + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 ", lastAccess=" + lastAccess +

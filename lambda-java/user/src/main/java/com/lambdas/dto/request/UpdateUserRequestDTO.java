@@ -1,26 +1,36 @@
 package com.lambdas.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.lambdas.validation.annotations.UserStatusValid;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.lambdas.validation.annotations.StatusValid;
 import jakarta.validation.constraints.*;
 
+import java.util.UUID;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UpdateUserRequestDTO {
 
-    @JsonProperty("name")
-    @Size(min = 1, max = 100, message = "Name must be between 1 and 100 characters")
-    private String name;
+    @JsonProperty("id")
+    private UUID id;
+
+    @JsonProperty("companyId")
+    private UUID companyId;
+
+    @JsonProperty("firstName")
+    @Size(min = 1, max = 100, message = "First name must be between 1 and 100 characters")
+    private String firstName;
 
     @JsonProperty("lastName")
     @Size(min = 1, max = 100, message = "Last name must be between 1 and 100 characters")
     private String lastName;
 
     @JsonProperty("address")
-    @Size(min = 1, max = 100, message = "Address must be between 1 and 100 characters")
+    @Size(max = 100, message = "Address cannot exceed 100 characters")
     private String address;
 
-    @JsonProperty("phone")
-    @Size(min = 1, max = 20, message = "Phone must be between 1 and 20 characters")
-    private String phone;
+    @JsonProperty("phoneNumber")
+    @Size(max = 20, message = "Phone number cannot exceed 20 characters")
+    private String phoneNumber;
 
     @JsonProperty("email")
     @Email(message = "Email must be valid")
@@ -32,24 +42,53 @@ public class UpdateUserRequestDTO {
     private String password;
 
     @JsonProperty("position")
-    @Size(min = 1, max = 100, message = "Position must be between 1 and 100 characters")
+    @Size(max = 100, message = "Position cannot exceed 100 characters")
     private String position;
 
+    @JsonProperty("documentNumber")
+    @Size(min = 1, max = 30, message = "Document number must be between 1 and 30 characters")
+    private String documentNumber;
+
     @JsonProperty("status")
-    @UserStatusValid
+    @StatusValid
     private String status;
 
     // Default constructor
     public UpdateUserRequestDTO() {
     }
 
-    // Getters and Setters
-    public String getName() {
-        return name;
+    // Constructor for debugging
+    public UpdateUserRequestDTO(UUID id, String firstName, String lastName, String email, String status) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.status = status;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    // Getters and Setters
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public UUID getCompanyId() {
+        return companyId;
+    }
+
+    public void setCompanyId(UUID companyId) {
+        this.companyId = companyId;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
     public String getLastName() {
@@ -68,12 +107,12 @@ public class UpdateUserRequestDTO {
         this.address = address;
     }
 
-    public String getPhone() {
-        return phone;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public String getEmail() {
@@ -100,6 +139,14 @@ public class UpdateUserRequestDTO {
         this.position = position;
     }
 
+    public String getDocumentNumber() {
+        return documentNumber;
+    }
+
+    public void setDocumentNumber(String documentNumber) {
+        this.documentNumber = documentNumber;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -111,10 +158,13 @@ public class UpdateUserRequestDTO {
     @Override
     public String toString() {
         return "UpdateUserRequestDTO{" +
-                "name='" + name + '\'' +
+                "id=" + id +
+                ", companyId=" + companyId +
+                ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
                 ", position='" + position + '\'' +
+                ", documentNumber='" + documentNumber + '\'' +
                 ", status='" + status + '\'' +
                 '}';
     }

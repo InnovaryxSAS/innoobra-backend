@@ -1,3 +1,4 @@
+// DeleteUserHandler.java
 package com.lambdas.handler;
 
 import com.amazonaws.services.lambda.runtime.Context;
@@ -13,6 +14,8 @@ import com.lambdas.util.HttpStatus;
 import com.lambdas.util.LoggingHelper;
 import com.lambdas.util.ResponseUtil;
 import org.slf4j.Logger;
+
+import java.util.UUID;
 
 public class DeleteUserHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
     
@@ -35,34 +38,34 @@ public class DeleteUserHandler implements RequestHandler<APIGatewayProxyRequestE
         LoggingHelper.initializeRequestContext(requestId);
         
         try {
-            LoggingHelper.logProcessStart(logger, "user deletion");
-            
-            String userId = input.getPathParameters().get("id");
-            if (userId == null || userId.trim().isEmpty()) {
-                LoggingHelper.logMissingParameter(logger, "User ID");
+            String userIdStr = input.getPathParameters().get("id");
+            if (userIdStr == null || userIdStr.trim().isEmpty()) {
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "User ID is required");
             }
             
-            LoggingHelper.addUserId(userId);
+            LoggingHelper.addUserId(userIdStr);
+            
+            UUID userId;
+            try {
+                userId = UUID.fromString(userIdStr);
+            } catch (IllegalArgumentException e) {
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Invalid user ID format");
+            }
             
             boolean deleted = userService.deactivateUser(userId);
             
             if (deleted) {
-                LoggingHelper.logSuccess(logger, "User deletion", userId);
-                
                 DeleteResponseDTO responseDTO = new DeleteResponseDTO.Builder()
                         .message("User successfully deactivated")
-                        .userId(userId)
+                        .userId(userIdStr)
                         .success(true)
                         .build();
                 
                 return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
             } else {
-                LoggingHelper.logEntityNotFound(logger, "User", userId);
-                
                 DeleteResponseDTO responseDTO = new DeleteResponseDTO.Builder()
                         .message("User not found")
-                        .userId(userId)
+                        .userId(userIdStr)
                         .success(false)
                         .build();
                 

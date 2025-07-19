@@ -25,6 +25,7 @@ import com.lambdas.validation.groups.ValidationGroups;
 import org.slf4j.Logger;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public class UpdateUserHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
@@ -49,43 +50,45 @@ public class UpdateUserHandler implements RequestHandler<APIGatewayProxyRequestE
         LoggingHelper.initializeRequestContext(requestId);
 
         try {
-            String userId = null;
+            String userIdStr = null;
             if (input.getPathParameters() != null) {
-                userId = input.getPathParameters().get("id");
+                userIdStr = input.getPathParameters().get("id");
             }
             
-            if (userId == null || userId.trim().isEmpty()) {
-                LoggingHelper.logMissingParameter(logger, "User ID");
+            if (userIdStr == null || userIdStr.trim().isEmpty()) {
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "User ID is required");
             }
 
-            LoggingHelper.addUserId(userId);
-            LoggingHelper.logProcessStart(logger, "user update");
+            LoggingHelper.addUserId(userIdStr);
+
+            UUID userId;
+            try {
+                userId = UUID.fromString(userIdStr);
+            } catch (IllegalArgumentException e) {
+                LoggingHelper.logValidationError(logger, "Invalid UUID format: " + userIdStr);
+                return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Invalid user ID format");
+            }
 
             if (input.getBody() == null || input.getBody().trim().isEmpty()) {
-                LoggingHelper.logEmptyRequestBody(logger);
                 return ResponseUtil.createErrorResponse(HttpStatus.BAD_REQUEST, "Request body is required");
             }
 
-            UpdateUserRequestDTO requestDTO = OBJECT_MAPPER.readValue(input.getBody(), UpdateUserRequestDTO.class);
+            UpdateUserRequestDTO requestDTO = OBJECT_MAPPER.readValue(input.getBody(), 
+                    UpdateUserRequestDTO.class);
 
             ValidationHelper.validateAndThrow(requestDTO, ValidationGroups.Update.class);
 
             Optional<User> existingUserOpt = userService.getUserById(userId);
             if (!existingUserOpt.isPresent()) {
-                LoggingHelper.logEntityNotFound(logger, "User", userId);
+                LoggingHelper.logEntityNotFound(logger, "User", userIdStr);
                 return ResponseUtil.createErrorResponse(HttpStatus.NOT_FOUND, "User not found");
             }
 
             User existingUser = existingUserOpt.get();
-
             User updatedUser = DTOMapper.updateUserFromDTO(existingUser, requestDTO);
             User savedUser = userService.updateUser(updatedUser);
 
-            LoggingHelper.logSuccess(logger, "User update", userId);
-
             UserResponseDTO responseDTO = DTOMapper.toResponseDTO(savedUser);
-
             return ResponseUtil.createResponse(HttpStatus.OK, responseDTO);
 
         } catch (JsonProcessingException e) {

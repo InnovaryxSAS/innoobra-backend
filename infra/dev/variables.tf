@@ -110,6 +110,11 @@ variable "lambdas" {
       jar_path  = "lambdas/user/user-1.0-SNAPSHOT.jar"
       route_key = "GET /user/{id}"
     },
+    get_user_by_company_id = {
+      handler   = "com.lambdas.handler.GetUserByCompanyIdHandler::handleRequest"
+      jar_path  = "lambdas/user/user-1.0-SNAPSHOT.jar"
+      route_key = "GET /company/{id}/user"
+    },
     update_user = {
       handler   = "com.lambdas.handler.UpdateUserHandler::handleRequest"
       jar_path  = "lambdas/user/user-1.0-SNAPSHOT.jar"
